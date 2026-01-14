@@ -8,57 +8,6 @@ Now that you have performed your first _trustless bridge transaction_, let's kee
 step: this tutorial teaches you how to set up your own custom bridging logic by deploying your own
 smart contracts!
 
-## External dependencies
-
-To continue with this tutorial, you will first need to have the following dependencies available
-locally:
-
-- [yarn]
-- [foundry]
-
-<!-- ignore -->
-
-> [!TIP]
-> This project provides a `flake.nix` you can use to download all the dependencies you will need for
-> this tutorial inside of a sandboxed environment. Just keep in mind you will have to
-> **[enable flakes]** for this to work. To start you development environment, simply run:
->
-> ```bash
-> nix develop
-> ```
-
-Start by heading first of all to the `helpers` folder:
-
-```bash
-cd helpers
-```
-
-And download the required packages with `yarn`:
-```sh
-yarn
-```
-
-Then go back and head to the `custom-contracts-bridging` folder:
-
-```bash
-cd ../custom-contracts-bridging
-```
-
-You will need to set up the right version of foundry with `foundryup`:
-
-<!-- ignore -->
-
-```bash
-foundryup --version v1.2.3 # Skip this command if you are using nix!
-
-```
-
-And download the required packages with `yarn`:
-
-```sh
-yarn
-```
-
 ## 1. Setup
 
 This is the same as in [Hello Bridge]. If you have not already done so, follow the installation
@@ -99,13 +48,13 @@ Save the contract address. You will be needing it in the next step.
 In the next two steps we will be deploying our own bridging contract called `SimpleMinterUSC.sol`
 
 Universal smart contracts (USCs) such as `SimpleMinterUSC` are intended to be deployed by DApp
-builders. Here, our USC is used only for bridging tokens. A USC exposes functions which 
-internally make use of the Creditcoin Oracle to verify cross-chain data. It then interprets 
+builders. Here, our USC is used only for bridging tokens. A USC exposes functions which
+internally make use of the Creditcoin Oracle to verify cross-chain data. It then interprets
 those data and uses them to trigger DApp business logic.
 
 For instance, our `SimpleMinterUSC` looks for fields like `from`, `to`, and `amount` in the
-cross-chain data we submit to it. With those fields, the contract can verify whether or not a 
-token burn took place, how many tokens it needs to mint on Creditcoin, and which address it 
+cross-chain data we submit to it. With those fields, the contract can verify whether or not a
+token burn took place, how many tokens it needs to mint on Creditcoin, and which address it
 should mint them to.
 
 ### 3.1 Modify The Bridge Smart Contract
@@ -117,7 +66,7 @@ of tokens which were burned on our _source chain_.
 > This is for demonstration purposes only, as bridging this way dilutes the value of our `TEST`
 > token each time we bridge it.
 
-Start by opening the file `contracts/SimpleMinterUSC.sol`. Next, navigate to the following line 
+Start by opening the file `contracts/sol/SimpleMinterUSC.sol`. Next, navigate to the following line
 inside of the `mintFromQuery` function:
 
 ```sol
@@ -134,9 +83,9 @@ _mint(msg.sender, MINT_AMOUNT * 2);
 ### 3.2 Deploy Your Decoder Library and Modified Contract
 
 //TODO: Change this instruction after testnet release
-Since the latest USC testnet is not yet released, we will be deploying to USC Devnet. 
+Since the latest USC testnet is not yet released, we will be deploying to USC Devnet.
 
-First we need to deploy our EvmV1Decoder library so that we can reference it in our 
+First we need to deploy our EvmV1Decoder library so that we can reference it in our
 `SimpleMinterUSC`. We do so like this:
 
 ```bash
@@ -145,6 +94,7 @@ forge build
 
 <!--extract decoder_library_address "Deployed to: (0[xX][a-fA-F0-9]{40})" -->
 <!-- ignore -->
+
 ```bash
 forge create \
   --broadcast \
@@ -167,6 +117,7 @@ Now you can deploy your `SimpleMinterUSC` using the following command:
 
 <!-- extract usc_address_from_step_3_2 "Deployed to: (0[xX][a-fA-F0-9]{40})" -->
 <!-- ignore -->
+
 ```bash
 forge create \
     --broadcast \
@@ -188,8 +139,8 @@ Save the address of the contract. You will be needing it in [step 5].
 
 > [!WARNING]
 > If you run into any trouble with deployment using these steps, try using
-the [Deployment Guide](DEPLOY.md) instead. Make sure you use step 3a and ignore 
-3b, which targets testnet.
+> the [Deployment Guide] instead. Make sure you use step 3a and ignore
+> 3b, which targets testnet.
 
 ## 4. Burning the tokens you want to bridge
 
@@ -223,11 +174,11 @@ Save the transaction hash. You will be needing it in the next step.
 
 ## 5. Submit a mint query to the USC contract
 
-Now that we've burnt funds on Sepolia, we can use that transaction to request a mint in our custom USC contract, 
+Now that we've burnt funds on Sepolia, we can use that transaction to request a mint in our custom USC contract,
 this also includes generating the proof for the Oracle using the Creditcoin proof generator library.
 
 ```sh
-yarn submit_query                  \
+yarn submit_custom_contracts_bridging_query        \
     https://sepolia.infura.io/v3/<your_infura_api_key>  \
     <transaction_hash_from_step_4> \
     <your_private_key>             \
@@ -297,11 +248,8 @@ for more information!
 
 [Hello Bridge]: ../hello-bridge/README.md
 [setup]: ../hello-bridge/README.md#1-setup
-[yarn]: https://yarnpkg.com/getting-started/install
-[foundry]: https://getfoundry.sh/
-[enable flakes]: https://nixos.wiki/wiki/flakes#Enable_flakes_temporarily
 [step 2]: #2-deploy-a-test-erc20-contract-on-sepolia
 [step 3.2]: #32-deploy-your-modified-contract
 [step 5]: #5-submit-a-mint-query-to-the-usc-contract
 [bridge offchain worker]: ../bridge-offchain-worker/README.md
-[Deployment Guide]: DEPLOY.md
+[Deployment Guide]: ../contracts/DEPLOY.md

@@ -9,57 +9,6 @@ bridging!** Cross-chain bridging on Creditcoin can be broken down into three bro
 3. Using the proofs we generated, we call our minter universal smart contract (USC) which will internally call the Creditcoin oracle's native proof verifier
 4. After that the same contract will mint the tokens on Creditcoin
 
-## External dependencies
-
-To continue with this tutorial, you will first need to have the following dependencies available
-locally:
-
-- [yarn]
-- [foundry]
-
-<!-- ignore -->
-
-> [!TIP]
-> This project provides a `flake.nix` you can use to download all the dependencies you will need for
-> this tutorial inside of a sandboxed environment. Just keep in mind you will have to
-> **[enable flakes]** for this to work. To start you development environment, simply run:
->
-> ```bash
-> nix develop
-> ```
-
-Start by heading first of all to the `helpers` folder:
-
-```bash
-cd helpers
-```
-
-And download the required packages with `yarn`:
-```sh
-yarn
-```
-
-Then go back and head to the `hello-bridge` folder:
-
-```bash
-cd ../hello-bridge
-```
-
-You will need to set up the right version of foundry with `foundryup`:
-
-<!-- ignore -->
-
-```bash
-foundryup --version v1.2.3 # Skip this command if you are using nix!
-
-```
-
-And download the required packages with `yarn`:
-
-```sh
-yarn
-```
-
 ## 1. Setup
 
 This tutorial involves the use of two different blockchains.
@@ -68,6 +17,7 @@ This tutorial involves the use of two different blockchains.
 - Creditcoin USC Devnet, which serves as our _execution chain_ for the tutorial. This is where our minter universal smart contract lives. Tokens are minted by that contract.
 
 // TODO: Remove this note once testnet is live
+
 > [!NOTE]
 > **USC Testnet is coming soon!** This tutorial currently uses USC Devnet. When Testnet becomes available, you can use it instead.
 
@@ -194,17 +144,18 @@ be an issue, since nothing is preventing that company from censoring certain tra
 stealing funds! Web3 was made to be _trustless_ and _decentralized_, let's make it that way 😎.
 
 Now that we've burnt funds on Sepolia, we can use that transaction to request a mint in our USC contract.
-But before we can submit our USC call, we need to generate proofs which will be submitted to the Creditcoin 
+But before we can submit our USC call, we need to generate proofs which will be submitted to the Creditcoin
 Oracle to verify our cross-chain data.
 
 // TODO: Remove this note once testnet is available
+
 > [!NOTE]
 > This tutorial uses USC Devnet (USC Testnet is coming soon).
 
-All these steps are condensed in the `submit_query` script, which is run as follows:
+All these steps are condensed in the `submit_hello_bridge_query` script, which is run as follows:
 
 ```sh
-yarn submit_query                  \
+yarn submit_hello_bridge_query          \
     https://sepolia.infura.io/v3/<your_infura_api_key> \
     <transaction_hash_from_step_3> \
     <your_private_key>
@@ -269,9 +220,6 @@ bridging] tutorial.
 
 <!-- teardown "cd .." -->
 
-[enable flakes]: https://nixos.wiki/wiki/flakes#Enable_flakes_temporarily
-[yarn]: https://yarnpkg.com/getting-started/install
-[foundry]: https://getfoundry.sh/
 [🚰 testnet faucet]: https://cloud.google.com/application/web3/faucet/ethereum/sepolia
 [🚰 creditcoin discord faucet]: https://discord.com/channels/762302877518528522/1414985542235459707
 

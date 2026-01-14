@@ -1,10 +1,9 @@
 import dotenv from 'dotenv';
 import { Contract, ContractEventPayload, ethers, InterfaceAbi } from 'ethers';
 
-import burnerAbi from './contract-abis/TestERC20Abi.json';
-import simpleMinterAbi from './contract-abis/SimpleMinterUSC.json';
-
-import { generateProofFor, submitProof } from '../../helpers/src/index.ts';
+import burnerAbi from '../contracts/abi/TestERC20Abi.json';
+import simpleMinterAbi from '../contracts/abi/SimpleMinterUSC.json';
+import { generateProofFor, submitProof } from '../utils';
 
 const PROVER_API_URL = 'https://proof-gen-api.usc-devnet.creditcoin.network';
 
@@ -70,40 +69,59 @@ const main = async () => {
   );
 
   // 3. Listen to Minter events on USC chain
-  const minterHandle = minterContract.on('TokensMinted', (contract, to, amount, queryId) => {
-    console.log(`Tokens minted! Contract: ${contract}, To: ${to}, Amount: ${amount.toString()}, QueryId: ${queryId}`);
-  });
+  const minterHandle = minterContract.on(
+    'TokensMinted',
+    (contract, to, amount, queryId) => {
+      console.log(
+        `Tokens minted! Contract: ${contract}, To: ${to}, Amount: ${amount.toString()}, QueryId: ${queryId}`
+      );
+    }
+  );
 
   // 4. Listen to Burn events on source chain
-  const burnerHandle = burnerContract.on('TokensBurned', async (from, amount, payload: ContractEventPayload) => {
-    // We validate that the event is from the wallet address we're monitoring and the contract we deployed
-    const contractAddress = payload.log.address;
-    if (from !== wallet.address || contractAddress !== sourceChainContractAddress) {
+  const burnerHandle = burnerContract.on(
+    'TokensBurned',
+    async (from, amount, payload: ContractEventPayload) => {
+      // We validate that the event is from the wallet address we're monitoring and the contract we deployed
+      const contractAddress = payload.log.address;
+      if (
+        from !== wallet.address ||
+        contractAddress !== sourceChainContractAddress
+      ) {
+        return;
+      }
+
+      const txHash = payload.log.transactionHash;
+      console.log(
+        `Detected burn of ${amount.toString()} tokens from ${from} at ${txHash}`
+      );
+      // Here you would generate the proof and submit the query to Creditcoin USC chain
+      // using the proofGenerator and minterContract instances created above
+
+      // Generate proof for the burn transaction
+      const proofResult = await generateProofFor(
+        txHash,
+        sourceChainKey,
+        PROVER_API_URL,
+        ccProvider,
+        ethProvider
+      );
+
+      if (proofResult.success) {
+        const proofData = proofResult.data!;
+        try {
+          const response = await submitProof(minterContract, proofData);
+          console.log('Proof submitted: ', response.hash);
+        } catch (error) {
+          console.error('Error submitting proof: ', error);
+        }
+      } else {
+        console.error(`Failed to generate proof: ${proofResult.error}`);
+      }
+
       return;
     }
-
-    const txHash = payload.log.transactionHash;
-    console.log(`Detected burn of ${amount.toString()} tokens from ${from} at ${txHash}`);
-    // Here you would generate the proof and submit the query to Creditcoin USC chain
-    // using the proofGenerator and minterContract instances created above
-
-    // Generate proof for the burn transaction
-    const proofResult = await generateProofFor(txHash, sourceChainKey, PROVER_API_URL, ccProvider, ethProvider);
-
-    if (proofResult.success) {
-      const proofData = proofResult.data!;
-      try {
-        const response = await submitProof(minterContract, proofData);
-        console.log('Proof submitted: ', response.hash);
-      } catch (error) {
-        console.error('Error submitting proof: ', error);
-      }
-    } else {
-      console.error(`Failed to generate proof: ${proofResult.error}`);
-    }
-
-    return;
-  });
+  );
 
   console.log('Worker started! Listening for burn events...');
 

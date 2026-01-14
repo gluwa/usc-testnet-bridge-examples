@@ -1,0 +1,24 @@
+{
+  "license": "MIT",
+  "scripts": {
+    "submit_hello_bridge_query": "tsx hello-bridge/submit_query.ts",
+    "submit_custom_contracts_bridging_query": "tsx custom-contracts-bridging/submit_query.ts",
+    "start_worker": "tsx bridge-offchain-worker/worker.ts",
+    "format": "prettier --write .",
+    "deploy:devnet": "forge create --broadcast --rpc-url https://rpc.usc-devnet.creditcoin.network --private-key ${PRIVATE_KEY:-} contracts/SimpleMinterUSC.sol:SimpleMinterUSC",
+    "deploy:testnet": "forge create --broadcast --rpc-url https://rpc.usc-testnet.creditcoin.network --private-key ${PRIVATE_KEY:-} contracts/SimpleMinterUSC.sol:SimpleMinterUSC",
+    "build": "forge build"
+  },
+  "devDependencies": {
+    "tsx": "^4.20.3",
+    "prettier": "^3.6.2"
+  },
+  "dependencies": {
+    "@gluwa/cc-next-query-builder": "0.5.1",
+    "@openzeppelin/contracts": "^5.3.0",
+    "@types/node": "^24.0.13",
+    "dotenv": "^16.4.5",
+    "ethers": "^6.15.0"
+  },
+  "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e"
+}

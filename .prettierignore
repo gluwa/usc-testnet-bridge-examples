@@ -1,5 +1,11 @@
+# Rust code
+rust
+
 # Node Modules
 node_modules
+
+# Github files
+.github
 
 # Package-lock
 package-lock.json

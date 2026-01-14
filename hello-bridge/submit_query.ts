@@ -1,11 +1,11 @@
 import { Contract, ethers, InterfaceAbi } from 'ethers';
 
-import simpleMinterAbi from './contract-abis/SimpleMinterUSC.json';
-
-import { generateProofFor, submitProofAndAwait } from '../../helpers/src/index.ts';
+import simpleMinterAbi from '../contracts/abi/SimpleMinterUSC.json';
+import { generateProofFor, submitProofAndAwait } from '../utils';
 
 // TODO: Update with deployed address on testnet
-const USC_MINTER_CONTRACT_ADDRESS = '0x1d9b6d2E68555971138C1aE5b259BEF72E47a6D7';
+const USC_MINTER_CONTRACT_ADDRESS =
+  '0x1d9b6d2E68555971138C1aE5b259BEF72E47a6D7';
 
 const PROVER_API_URL = 'https://proof-gen-api.usc-devnet.creditcoin.network';
 const CREDITCOIN_RPC_URL = 'https://rpc.usc-devnet.creditcoin.network';
@@ -27,7 +27,7 @@ async function main() {
 
   const [sourceChainRpcUrl, transactionHash, ccNextPrivateKey] = args;
   // TODO: Change this to 1 once this script is targeting testnet
-  const chainKey = 2;
+  const chainKey = 3;
 
   // Validate Source Chain RPC URL
   if (!sourceChainRpcUrl.startsWith('http')) {
@@ -48,15 +48,25 @@ async function main() {
   const ccProvider = new ethers.JsonRpcProvider(CREDITCOIN_RPC_URL);
   const sourceChainProvider = new ethers.JsonRpcProvider(sourceChainRpcUrl);
 
-  // 2. Validate transaction and generate proof once the block is attested 
-  const proofResult = await generateProofFor(transactionHash, chainKey, PROVER_API_URL, ccProvider, sourceChainProvider);
+  // 2. Validate transaction and generate proof once the block is attested
+  const proofResult = await generateProofFor(
+    transactionHash,
+    chainKey,
+    PROVER_API_URL,
+    ccProvider,
+    sourceChainProvider
+  );
 
   // 3. Using previously generated proof, submit to USC minter and await for the minted event
   if (proofResult.success) {
     // Establish link with the USC contract
     const wallet = new ethers.Wallet(ccNextPrivateKey, ccProvider);
     const contractABI = simpleMinterAbi as unknown as InterfaceAbi;
-    const minterContract = new Contract(USC_MINTER_CONTRACT_ADDRESS, contractABI, wallet);
+    const minterContract = new Contract(
+      USC_MINTER_CONTRACT_ADDRESS,
+      contractABI,
+      wallet
+    );
 
     const proofData = proofResult.data!;
     await submitProofAndAwait(minterContract, proofData);

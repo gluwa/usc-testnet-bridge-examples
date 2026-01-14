@@ -1,6 +1,6 @@
 [profile.default]
 out = "out"
-src = "src/contracts"
+src = "contracts"
 
 libs = ["node_modules"]
 solc_version = "0.8.30"

@@ -12,61 +12,10 @@ on the Sepolia _source chain_.
 ## What is an Offchain Worker
 
 An Offchain Worker is a script responsible for watching the state of a _source chain_: in this
-case, Sepolia. In more complex cases this would also listen to state changes on the Creditcoin execution chain. The worker queries to our 
+case, Sepolia. In more complex cases this would also listen to state changes on the Creditcoin execution chain. The worker queries to our
 _Universal Smart Contract_ on Creditcoin in response to specific events on
 each chain. With an offchain worker, all the end user needs to do is sign a single transaction
 on the source chain kicking off cross-chain interaction.
-
-## External dependencies
-
-To continue with this tutorial, you will first need to have the following dependencies available
-locally:
-
-- [yarn]
-- [foundry]
-
-<!-- ignore -->
-
-> [!TIP]
-> This project provides a `flake.nix` you can use to download all the dependencies you will need for
-> this tutorial inside of a sandboxed environment. Just keep in mind you will have to
-> **[enable flakes]** for this to work. To start you development environment, simply run:
->
-> ```bash
-> nix develop
-> ```
-
-Start by heading first of all to the `helpers` folder:
-
-```bash
-cd helpers
-```
-
-And download the required packages with `yarn`:
-```sh
-yarn
-```
-
-Then go back and head to the `bridge-offchain-worker` folder:
-
-```bash
-cd bridge-offchain-worker
-```
-
-You will need to set up the right version of foundry with `foundryup`:
-
-<!-- ignore -->
-
-```bash
-foundryup --version v1.2.3 # Skip this command if you are using nix!
-
-```
-
-And download the required packages with `yarn`:
-
-```sh
-yarn
-```
 
 ## 1. Setup
 
@@ -74,7 +23,7 @@ This is the same as in [Hello Bridge]. If you have not already done so, follow t
 steps in the [setup] section there.
 
 Once that is done, you will need to set up some additional configuration for the offchain worker.
-Save and edit the following to a `.env` file inside of `bridge-offchain-worker/`:
+Edit the `.env` file in the root of the repository using the instructions below:
 
 <!-- ignore -->
 
@@ -97,11 +46,11 @@ SOURCE_CHAIN_RPC_URL=https://sepolia.infura.io/v3/<your_infura_api_key>
 #                      Creditcoin USC Chain Configuration                      #
 # ============================================================================ #
 
-# RPC endpoint for the Creditcoin USC chain
-USC_TESTNET_RPC_URL=https://rpc.usc-testnet.creditcoin.network
-
 # Address of the minter contract on Creditcoin
 USC_MINTER_CONTRACT_ADDRESS=<erc20_minter_address_from_custom_contracts_bridging>
+
+# RPC endpoint for the Creditcoin USC chain
+USC_TESTNET_RPC_URL=https://rpc.usc-testnet.creditcoin.network
 
 # Private key of the wallet that will submit mint requests
 USC_TESTNET_WALLET_PRIVATE_KEY=<your_private_key>
@@ -215,9 +164,6 @@ If you haven't already, take a look at the [USC Gitbook] for more information.
 
 <!-- teardown "cd .." -->
 
-[enable flakes]: https://nixos.wiki/wiki/flakes#Enable_flakes_temporarily
-[yarn]: https://yarnpkg.com/getting-started/install
-[foundry]: https://getfoundry.sh/
 [Custom Contract Bridging]: ../custom-contracts-bridging/README.md
 [how to initiate a trustless bridge transaction]: ../hello-bridge/README.md
 [how to customize our trustless bridging logic]: ../custom-contracts-bridging/README.md

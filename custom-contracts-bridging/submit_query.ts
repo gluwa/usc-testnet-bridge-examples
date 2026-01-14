@@ -1,8 +1,7 @@
 import { Contract, ethers, InterfaceAbi } from 'ethers';
 
-import simpleMinterAbi from './contract-abis/SimpleMinterUSC.json';
-
-import { generateProofFor, submitProofAndAwait } from '../../helpers/src/index.ts';
+import simpleMinterAbi from '../contracts/abi/SimpleMinterUSC.json';
+import { generateProofFor, submitProofAndAwait } from '../utils';
 
 const PROVER_API_URL = 'https://proof-gen-api.usc-devnet.creditcoin.network';
 const CREDITCOIN_RPC_URL = 'https://rpc.usc-devnet.creditcoin.network';
@@ -22,7 +21,8 @@ async function main() {
     process.exit(1);
   }
 
-  const [sourceChainRpcUrl, transactionHash, ccNextPrivateKey, minterAddress] = args;
+  const [sourceChainRpcUrl, transactionHash, ccNextPrivateKey, minterAddress] =
+    args;
 
   // TODO: Change this to 1 once testnet is released
   const chainKey = 3;
@@ -51,7 +51,13 @@ async function main() {
   const sourceChainProvider = new ethers.JsonRpcProvider(sourceChainRpcUrl);
 
   // 2. Validate transaction and generate proof once the block is attested
-  const proofResult = await generateProofFor(transactionHash, chainKey, PROVER_API_URL, ccProvider, sourceChainProvider);
+  const proofResult = await generateProofFor(
+    transactionHash,
+    chainKey,
+    PROVER_API_URL,
+    ccProvider,
+    sourceChainProvider
+  );
 
   // 3. Using previously generated proof, submit to USC minter and await for the minted event
   if (proofResult.success) {

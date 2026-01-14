@@ -5,6 +5,31 @@ Creditcoin cross-chain features brought forwards in the new `USC Testnet` update
 the Creditcoin Decentralized Oracle through a series of guided tutorials where you get to set up and
 interact with your own decentralized bridge!
 
+## Before you start!
+
+Before attempting any of the tutorials, make sure the following are installed and available in your system:
+
+- [yarn]
+- [foundry]
+
+After that install the required dependencies to run the examples, to do so simply run the
+following command in the root of this repo:
+
+<!-- ignore -->
+
+```sh
+yarn
+```
+
+You will also need to set up the right version of foundry with `foundryup`:
+
+<!-- ignore -->
+
+```bash
+foundryup --version v1.2.3 # Skip this command if you are using nix!
+
+```
+
 ## Tutorials
 
 Each tutorial is built to be as self-contained as possible. However, we still recommend you go
@@ -41,6 +66,8 @@ shows you how offchain workers can be used to simplify the user flow of your cro
 - 📚 [DApp Builder Infrastructure]
 - 📚 [Creditcoin Oracle Subsystem]
 
+[yarn]: https://yarnpkg.com/getting-started/install
+[foundry]: https://getfoundry.sh/
 [Hello Bridge]: ./hello-bridge/README.md
 [Custom Contracts Bridging]: ./custom-contracts-bridging/README.md
 [Bridge Offchain Worker]: ./bridge-offchain-worker/README.md

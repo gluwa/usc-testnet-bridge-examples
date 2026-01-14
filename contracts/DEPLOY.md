@@ -138,6 +138,7 @@ Search for your contract address to see deployment details and transaction histo
 ### Error: "already known" or "nonce already used"
 
 This error typically means a transaction with that nonce was already submitted to the network. This can happen when:
+
 - A previous transaction with the same nonce is pending
 - An underfunded transaction is stuck in the mempool
 
