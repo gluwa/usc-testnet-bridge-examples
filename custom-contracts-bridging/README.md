@@ -11,7 +11,7 @@ smart contracts!
 ## 1. Setup
 
 This is the same as in [Hello Bridge]. If you have not already done so, follow the installation
-steps in the [setup] section there.
+steps in the [setup] section there before continuing.
 
 ## 2. Deploy A Test `ERC20` Contract on Sepolia
 
@@ -42,6 +42,12 @@ Deployed to: 0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9
 ```
 
 Save the contract address. You will be needing it in the next step.
+
+Additionally update the `.env` file at the root of the repository with the address, like so:
+
+```env
+SOURCE_CHAIN_CONTRACT_ADDRESS=<test_erc20_contract_address_from_step_2>
+```
 
 ## 3. Deploy Your Own Custom Bridging Contract
 
@@ -82,10 +88,7 @@ _mint(msg.sender, MINT_AMOUNT * 2);
 
 ### 3.2 Deploy Your Decoder Library and Modified Contract
 
-//TODO: Change this instruction after testnet release
-Since the latest USC testnet is not yet released, we will be deploying to USC Devnet.
-
-First we need to deploy our EvmV1Decoder library so that we can reference it in our
+First we need to deploy our `EvmV1Decoder` library so that we can reference it in our
 `SimpleMinterUSC`. We do so like this:
 
 ```bash
@@ -98,7 +101,7 @@ forge build
 ```bash
 forge create \
   --broadcast \
-  --rpc-url https://rpc.usc-devnet.creditcoin.network \
+  --rpc-url https://rpc.usc-testnet2.creditcoin.network \
   --private-key <your_private_key> \
   contracts/sol/EvmV1Decoder.sol:EvmV1Decoder
 ```
@@ -121,7 +124,7 @@ Now you can deploy your `SimpleMinterUSC` using the following command:
 ```bash
 forge create \
     --broadcast \
-    --rpc-url https://rpc.usc-devnet.creditcoin.network \
+    --rpc-url https://rpc.usc-testnet2.creditcoin.network \
     --private-key <your_private_key> \
     --libraries contracts/sol/EvmV1Decoder.sol:EvmV1Decoder:<decoder_library_address> \
     contracts/sol/SimpleMinterUSC.sol:SimpleMinterUSC
@@ -135,7 +138,16 @@ You should get some output with the address of the contract you just deployed:
 Deployed to: 0x7d8726B05e4A48850E819639549B50beCB893506
 ```
 
-Save the address of the contract. You will be needing it in [step 5].
+### 3.3 Update environment with your USC contract address
+
+Save the address of the contract. And modify the following entry in the `.env` file found at the root of the
+repository:
+
+<!-- ignore -->
+
+```env
+USC_CUSTOM_MINTER_CONTRACT_ADDRESS=<usc_address_from_step_3_2>
+```
 
 > [!WARNING]
 > If you run into any trouble with deployment using these steps, try using
@@ -178,11 +190,7 @@ Now that we've burnt funds on Sepolia, we can use that transaction to request a 
 this also includes generating the proof for the Oracle using the Creditcoin proof generator library.
 
 ```sh
-yarn submit_2        \
-    https://sepolia.infura.io/v3/<your_infura_api_key>  \
-    <transaction_hash_from_step_4> \
-    <your_private_key>             \
-    <usc_address_from_step_3_2>
+yarn submit_2 <transaction_hash_from_step_4>
 ```
 
 On a succesfull query, you should see some messages like the following from the script:
@@ -219,7 +227,7 @@ As a final check, verify that your tokens were successfully minted on Creditcoin
 Cast example:
 
 ```bash
-cast call --rpc-url https://rpc.usc-devnet.creditcoin.network \
+cast call --rpc-url https://rpc.usc-testnet2.creditcoin.network \
     <usc_address_from_step_3_2> \
     "balanceOf(address)" \
     <your_wallet_address> \

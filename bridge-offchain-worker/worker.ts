@@ -5,28 +5,34 @@ import burnerAbi from '../contracts/abi/TestERC20Abi.json';
 import simpleMinterAbi from '../contracts/abi/SimpleMinterUSC.json';
 import { generateProofFor, submitProof } from '../utils';
 
-const PROVER_API_URL = 'https://proof-gen-api.usc-devnet.creditcoin.network';
-
 dotenv.config();
 
 const main = async () => {
   console.log('Starting...');
+
+  // Prover API URL
+  const proverApiUrl = process.env.PROVER_API_URL;
+
+  if (!proverApiUrl) {
+    throw new Error('PROVER_API_URL environment variable is not configured or invalid');
+  }
+
   // Source chain contract address (ERC20 contract on source chain) where tokens are burned
   const sourceChainContractAddress = process.env.SOURCE_CHAIN_CONTRACT_ADDRESS;
   const sourceChainKey = Number(process.env.SOURCE_CHAIN_KEY || 1);
   const sourceChainRpcUrl = process.env.SOURCE_CHAIN_RPC_URL;
 
   // Minter USC contract address on Creditcoin
-  const uscMinterContractAddress = process.env.USC_MINTER_CONTRACT_ADDRESS;
-  const ccNextRpcUrl = process.env.USC_TESTNET_RPC_URL;
-  const ccNextWalletPrivateKey = process.env.USC_TESTNET_WALLET_PRIVATE_KEY;
+  const uscMinterContractAddress = process.env.USC_CUSTOM_MINTER_CONTRACT_ADDRESS;
+  const ccNextRpcUrl = process.env.CREDITCOIN_RPC_URL;
+  const ccNextWalletPrivateKey = process.env.CREDITCOIN_WALLET_PRIVATE_KEY;
 
   if (!sourceChainContractAddress) {
     throw new Error('SOURCE_CHAIN_CONTRACT_ADDRESS environment variable is not configured or invalid');
   }
 
   if (!uscMinterContractAddress) {
-    throw new Error('USC_BRIDGE_CONTRACT_ADDRESS environment variable is not configured or invalid');
+    throw new Error('USC_CUSTOM_MINTER_CONTRACT_ADDRESS environment variable is not configured or invalid');
   }
 
   if (!sourceChainRpcUrl) {
@@ -34,11 +40,11 @@ const main = async () => {
   }
 
   if (!ccNextRpcUrl) {
-    throw new Error('USC_TESTNET_RPC_URL environment variable is not configured or invalid');
+    throw new Error('CREDITCOIN_RPC_URL environment variable is not configured or invalid');
   }
 
   if (!ccNextWalletPrivateKey) {
-    throw new Error('USC_TESTNET_WALLET_PRIVATE_KEY environment variable is not configured or invalid');
+    throw new Error('CREDITCOIN_WALLET_PRIVATE_KEY environment variable is not configured or invalid');
   }
 
   // 1. Instantiate source chain burner contract
@@ -69,7 +75,7 @@ const main = async () => {
     // using the proofGenerator and minterContract instances created above
 
     // Generate proof for the burn transaction
-    const proofResult = await generateProofFor(txHash, sourceChainKey, PROVER_API_URL, ccProvider, ethProvider);
+    const proofResult = await generateProofFor(txHash, sourceChainKey, proverApiUrl, ccProvider, ethProvider);
 
     if (proofResult.success) {
       const proofData = proofResult.data!;

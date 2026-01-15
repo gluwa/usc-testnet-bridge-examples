@@ -22,8 +22,10 @@ on the source chain kicking off cross-chain interaction.
 This is the same as in [Hello Bridge]. If you have not already done so, follow the installation
 steps in the [setup] section there.
 
+Addintionally you need to have the `USC_CUSTOM_MINTER_CONTRACT_ADDRESS` enviroment variable set as seen in [update]
+
 Once that is done, you will need to set up some additional configuration for the offchain worker.
-Edit the `.env` file in the root of the repository using the instructions below:
+Check the `.env` file in the root of the repository and make sure it contains the following:
 
 <!-- ignore -->
 
@@ -35,25 +37,27 @@ Edit the `.env` file in the root of the repository using the instructions below:
 # Address of the ERC20 token contract on source chain
 SOURCE_CHAIN_CONTRACT_ADDRESS=<test_erc20_contract_address_from_custom_contracts_bridging>
 
-# Chain identifier of the source chain on Creditcoin, for Sepolia it would be 1
-SOURCE_CHAIN_KEY=<source_chain_key>
+# Chain identifier of the source chain on Creditcoin
+SOURCE_CHAIN_KEY=1
 
-# RPC endpoint for the source chain. Following our previous example, this will
-# be the Sepolia urls
-SOURCE_CHAIN_RPC_URL=https://sepolia.infura.io/v3/<your_infura_api_key>
+# RPC endpoint for Sepolia
+SOURCE_CHAIN_RPC_URL="https://sepolia.infura.io/v3/<your_infura_api_key>"
 
 # ============================================================================ #
 #                      Creditcoin USC Chain Configuration                      #
 # ============================================================================ #
 
-# Address of the minter contract on Creditcoin
-USC_MINTER_CONTRACT_ADDRESS=<erc20_minter_address_from_custom_contracts_bridging>
+# Address of the proof generation api server
+PROVER_API_URL="https://proof-gen-api.usc-testnet2.creditcoin.network"
+
+# Address of your custom minter contract on Creditcoin
+USC_CUSTOM_MINTER_CONTRACT_ADDRESS=<erc20_minter_address_from_custom_contracts_bridging>
 
 # RPC endpoint for the Creditcoin USC chain
-USC_TESTNET_RPC_URL=https://rpc.usc-testnet.creditcoin.network
+CREDITCOIN_RPC_URL="https://rpc.usc-testnet2.creditcoin.network"
 
 # Private key of the wallet that will submit mint requests
-USC_TESTNET_WALLET_PRIVATE_KEY=<your_private_key>
+CREDITCOIN_WALLET_PRIVATE_KEY=<your_private_key>
 ```
 
 ## 2. Start the Offchain Worker
@@ -169,4 +173,5 @@ If you haven't already, take a look at the [USC Gitbook] for more information.
 [how to customize our trustless bridging logic]: ../custom-contracts-bridging/README.md
 [Hello Bridge]: ../hello-bridge/README.md
 [setup]: ../hello-bridge/README.md#1-setup
+[update]: ../custom-contracts-bridging/README.md#33-update-environment-with-yout-usc-contract-address
 [USC Gitbook]: https://docs.creditcoin.org/usc

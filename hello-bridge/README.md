@@ -14,12 +14,7 @@ bridging!** Cross-chain bridging on Creditcoin can be broken down into three bro
 This tutorial involves the use of two different blockchains.
 
 - Sepolia, which serves as our _source chain_ for the tutorial. This is where tokens are burned.
-- Creditcoin USC Devnet, which serves as our _execution chain_ for the tutorial. This is where our minter universal smart contract lives. Tokens are minted by that contract.
-
-// TODO: Remove this note once testnet is live
-
-> [!NOTE]
-> **USC Testnet is coming soon!** This tutorial currently uses USC Devnet. When Testnet becomes available, you can use it instead.
+- Creditcoin USC Testnet, which serves as our _execution chain_ for the tutorial. This is where our minter universal smart contract lives. Tokens are minted by that contract.
 
 In order to use both blockchains we need to create a wallet and fund it with the native tokens of
 both networks.
@@ -28,7 +23,7 @@ both networks.
 
 In order to safely sign transactions for this tutorial, we want to generate a fresh EVM wallet address.
 Since all EVM networks use the same address and transaction signature scheme we can use the address we
-create on both Sepolia and Creditcoin USC Devnet.
+create on both Sepolia and Creditcoin USC Testnet.
 
 > [!CAUTION]
 > In this tutorial, we will be using your wallet's private key to allow some test scripts to act on
@@ -50,6 +45,12 @@ Address:     0xBE7959cA1b19e159D8C0649860793dDcd125a2D5
 Private key: 0xb9c179ed56514accb60c23a862194fa2a6db8bdeb815d16e2c21aa4d7dc2845d
 ```
 
+Save this private key on the `.env` file in the root of the repository:
+
+```env
+CREDITCOIN_WALLET_PRIVATE_KEY=<your_private_key>
+```
+
 ### 1.2 Get some test funds (`Sepolia`)
 
 Now that you have your new test address ready, you will be needing some funds to make transactions.
@@ -58,11 +59,11 @@ faucet here.
 
 ### 1.3 Get some test funds (`Creditcoin`)
 
-You will also need to fund your account on the Creditcoin Devnet, otherwise our oracle query
+You will also need to fund your account on the Creditcoin Testnet, otherwise our oracle query
 submission will fail due to lack of funds. Head to the [🚰 creditcoin discord faucet] to request
 some test tokens there.
 
-Your request for tokens in the Discord faucet should look like this. Substitute in your devnet
+Your request for tokens in the Discord faucet should look like this. Substitute in your testnet
 account address from [step 1.1]:
 
 <!-- ignore -->
@@ -72,7 +73,7 @@ account address from [step 1.1]:
 ```
 
 Note, that currently the faucet yields 100 test CTC every 24 hours. This balance is sufficient
-to submit 9 oracle queries, since devnet oracle fees are artificially high to prevent DOS.
+to submit 9 oracle queries, since testnet oracle fees are artificially high to prevent DOS.
 
 Now that your wallet is ready to make transactions on both networks, you will be needing a way
 to interact with it from the command line.
@@ -85,6 +86,14 @@ is to sign up with an _RPC provider_. [Infura] will work for testing purposes.
 Follow the onscreen instructions to create your account and generate your first api key. Make sure
 you are requesting a Sepolia API key. Copy it: you will be needing it in the following steps. You
 are now ready to go with the rest of the tutorial!
+
+Once you have your key edit the following variable in the `.env` file located at the root of this repository.
+
+<!-- ignore -->
+
+```env
+SOURCE_CHAIN_RPC_URL="https://sepolia.infura.io/v3/<your_infura_api_key>"
+```
 
 ## 2. Minting some tokens on Sepolia
 
@@ -147,18 +156,10 @@ Now that we've burnt funds on Sepolia, we can use that transaction to request a 
 But before we can submit our USC call, we need to generate proofs which will be submitted to the Creditcoin
 Oracle to verify our cross-chain data.
 
-// TODO: Remove this note once testnet is available
-
-> [!NOTE]
-> This tutorial uses USC Devnet (USC Testnet is coming soon).
-
 All these steps are condensed in the `submit_1` script, which is run as follows:
 
 ```sh
-yarn submit_1          \
-    https://sepolia.infura.io/v3/<your_infura_api_key> \
-    <transaction_hash_from_step_3> \
-    <your_private_key>
+yarn submit_1 <transaction_hash_from_step_3>
 ```
 
 On a succesfull query, you should see some messages like the following from the script:
@@ -185,7 +186,7 @@ Once that's done we only need to check our newly minted tokens!
 
 ## 5. Verify Your Bridged Tokens
 
-As a final check, verify that your tokens were successfully minted on Creditcoin Devnet. You can check your balance using:
+As a final check, verify that your tokens were successfully minted on Creditcoin Testnet. You can check your balance using:
 
 - **Block Explorer**: Visit the [bridge contract] on the explorer and check your address
 - **Direct Contract Call**: Use `cast` or any web3 tool to call `balanceOf()` on the contract
@@ -195,7 +196,7 @@ As a final check, verify that your tokens were successfully minted on Creditcoin
 Cast example:
 
 ```bash
-output=$(cast call --rpc-url https://rpc.usc-devnet.creditcoin.network \
+output=$(cast call --rpc-url https://rpc.usc-testnet2.creditcoin.network \
     0x9cEfa7025C6093965230868e48d61ff6f616958C \
     "balanceOf(address)" \
     <your_wallet_address> 2>/dev/null | xargs); \

@@ -5,8 +5,6 @@
     "submit_2": "tsx custom-contracts-bridging/submit_query.ts",
     "start_worker": "tsx bridge-offchain-worker/worker.ts",
     "format": "prettier --write .",
-    "deploy:devnet": "forge create --broadcast --rpc-url https://rpc.usc-devnet.creditcoin.network --private-key ${PRIVATE_KEY:-} contracts/SimpleMinterUSC.sol:SimpleMinterUSC",
-    "deploy:testnet": "forge create --broadcast --rpc-url https://rpc.usc-testnet.creditcoin.network --private-key ${PRIVATE_KEY:-} contracts/SimpleMinterUSC.sol:SimpleMinterUSC",
     "build": "forge build"
   },
   "devDependencies": {

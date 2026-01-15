@@ -1,34 +1,27 @@
+import dotenv from 'dotenv';
 import { Contract, ethers, InterfaceAbi } from 'ethers';
 
 import simpleMinterAbi from '../contracts/abi/SimpleMinterUSC.json';
 import { generateProofFor, submitProofAndAwait } from '../utils';
 
-const PROVER_API_URL = 'https://proof-gen-api.usc-devnet.creditcoin.network';
-const CREDITCOIN_RPC_URL = 'https://rpc.usc-devnet.creditcoin.network';
+dotenv.config();
 
 async function main() {
   // Setup
   const args = process.argv.slice(2);
 
-  if (args.length !== 4) {
+  if (args.length !== 1) {
     console.error(`
   Usage:
-    yarn submit_2 <Source_Chain_Rpc_Url> <Transaction_Hash> <Creditcoin_Private_Key> <Minter_Contract_Address>
+    yarn submit_2 <Transaction_Hash>
 
   Example:
-    yarn submit_2 https://sepolia.example.rpc 1 0xabc123... 0xYOURPRIVATEKEY 0xMinterContractAddress
+    yarn submit_2 0x87c97c776a678941b5941ec0cb602a4467ff4a35f77264208575f137cb05b2a7
   `);
     process.exit(1);
   }
 
-  const [sourceChainRpcUrl, transactionHash, ccNextPrivateKey, minterAddress] = args;
-
-  // TODO: Change this to 1 once testnet is released
-  const chainKey = 3;
-
-  if (!sourceChainRpcUrl.startsWith('http')) {
-    throw new Error('Invalid source chain RPC URL provided');
-  }
+  const [transactionHash] = args;
 
   // Validate Transaction Hash
   if (!transactionHash.startsWith('0x') || transactionHash.length !== 66) {
@@ -36,24 +29,45 @@ async function main() {
   }
 
   // Validate Private Key
-  if (!ccNextPrivateKey.startsWith('0x') || ccNextPrivateKey.length !== 66) {
-    throw new Error('Invalid private key provided');
+  const ccNextPrivateKey = process.env.CREDITCOIN_WALLET_PRIVATE_KEY;
+  if (!ccNextPrivateKey || !ccNextPrivateKey.startsWith('0x') || ccNextPrivateKey.length !== 66) {
+    throw new Error('CREDITCOIN_WALLET_PRIVATE_KEY environment variable is not configured or invalid');
   }
 
-  // Validate Minter Contract Address
-  if (!minterAddress.startsWith('0x') || minterAddress.length !== 42) {
-    throw new Error('Invalid minter contract address provided');
+  const sourceChainKey = Number(process.env.SOURCE_CHAIN_KEY);
+  if (!sourceChainKey) {
+    throw new Error('SOURCE_CHAIN_KEY environment variable is not configured or invalid');
+  }
+
+  const proverApiUrl = process.env.PROVER_API_URL;
+  if (!proverApiUrl) {
+    throw new Error('PROVER_API_URL is not configured or invalid');
+  }
+
+  const creditcoinRpcUrl = process.env.CREDITCOIN_RPC_URL;
+  if (!creditcoinRpcUrl) {
+    throw new Error('CREDITCOIN_RPC_URL environment variable is not configured or invalid');
+  }
+
+  const minterContractAddress = process.env.USC_CUSTOM_MINTER_CONTRACT_ADDRESS;
+  if (!minterContractAddress || !minterContractAddress.startsWith('0x') || minterContractAddress.length !== 42) {
+    throw new Error('USC_CUSTOM_MINTER_CONTRACT_ADDRESS is not configured or invalid');
+  }
+
+  const sourceChainRpcUrl = process.env.SOURCE_CHAIN_RPC_URL;
+  if (!sourceChainRpcUrl) {
+    throw new Error('SOURCE_CHAIN_RPC_URL environment variable is not configured or invalid');
   }
 
   // 1. Initialize RPC providers
-  const ccProvider = new ethers.JsonRpcProvider(CREDITCOIN_RPC_URL);
+  const ccProvider = new ethers.JsonRpcProvider(creditcoinRpcUrl);
   const sourceChainProvider = new ethers.JsonRpcProvider(sourceChainRpcUrl);
 
   // 2. Validate transaction and generate proof once the block is attested
   const proofResult = await generateProofFor(
     transactionHash,
-    chainKey,
-    PROVER_API_URL,
+    sourceChainKey,
+    proverApiUrl,
     ccProvider,
     sourceChainProvider
   );
@@ -63,7 +77,7 @@ async function main() {
     // Establish link with the USC contract
     const wallet = new ethers.Wallet(ccNextPrivateKey, ccProvider);
     const contractABI = simpleMinterAbi as unknown as InterfaceAbi;
-    const minterContract = new Contract(minterAddress, contractABI, wallet);
+    const minterContract = new Contract(minterContractAddress, contractABI, wallet);
 
     const proofData = proofResult.data!;
     await submitProofAndAwait(minterContract, proofData);
