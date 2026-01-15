@@ -1,8 +1,8 @@
 {
   "license": "MIT",
   "scripts": {
-    "submit_hello_bridge_query": "tsx hello-bridge/submit_query.ts",
-    "submit_custom_contracts_bridging_query": "tsx custom-contracts-bridging/submit_query.ts",
+    "submit_1": "tsx hello-bridge/submit_query.ts",
+    "submit_2": "tsx custom-contracts-bridging/submit_query.ts",
     "start_worker": "tsx bridge-offchain-worker/worker.ts",
     "format": "prettier --write .",
     "deploy:devnet": "forge create --broadcast --rpc-url https://rpc.usc-devnet.creditcoin.network --private-key ${PRIVATE_KEY:-} contracts/SimpleMinterUSC.sol:SimpleMinterUSC",

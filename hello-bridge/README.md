@@ -152,10 +152,10 @@ Oracle to verify our cross-chain data.
 > [!NOTE]
 > This tutorial uses USC Devnet (USC Testnet is coming soon).
 
-All these steps are condensed in the `submit_hello_bridge_query` script, which is run as follows:
+All these steps are condensed in the `submit_1` script, which is run as follows:
 
 ```sh
-yarn submit_hello_bridge_query          \
+yarn submit_1          \
     https://sepolia.infura.io/v3/<your_infura_api_key> \
     <transaction_hash_from_step_3> \
     <your_private_key>

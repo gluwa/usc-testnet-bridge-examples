@@ -68,7 +68,7 @@ forge create \
     --broadcast \
     --rpc-url https://rpc.usc-devnet.creditcoin.network \
     --private-key $PRIVATE_KEY \
-    src/contracts/SimpleMinterUSC.sol:SimpleMinterUSC
+    contracts/sol/SimpleMinterUSC.sol:SimpleMinterUSC
 ```
 
 ### 3b. Deploy to USC Testnet (Coming Soon)
@@ -83,7 +83,7 @@ forge create \
     --broadcast \
     --rpc-url https://rpc.usc-testnet.creditcoin.network \
     --private-key $PRIVATE_KEY \
-    src/contracts/SimpleMinterUSC.sol:SimpleMinterUSC
+    contracts/sol/SimpleMinterUSC.sol:SimpleMinterUSC
 ```
 
 ### 4. Save the Contract Address
@@ -155,7 +155,7 @@ forge create \
     --rpc-url https://rpc.usc-devnet.creditcoin.network \
     --private-key $PRIVATE_KEY \
     --gas-price <higher_gas_price> \
-    src/contracts/SimpleMinterUSC.sol:SimpleMinterUSC
+    contracts/sol/SimpleMinterUSC.sol:SimpleMinterUSC
 ```
 
 **Solution 2: Wait and retry** (recommended)
@@ -178,7 +178,7 @@ forge create \
     --rpc-url https://rpc.usc-devnet.creditcoin.network \
     --private-key $PRIVATE_KEY \
     --nonce X \
-    src/contracts/SimpleMinterUSC.sol:SimpleMinterUSC
+    contracts/sol/SimpleMinterUSC.sol:SimpleMinterUSC
 ```
 
 **Solution 4: Check if contract was already deployed**
@@ -238,7 +238,7 @@ forge create \
     --rpc-url <rpc_url> \
     --private-key $PRIVATE_KEY \
     --nonce $((CURRENT_NONCE + 1)) \
-    src/contracts/SimpleMinterUSC.sol:SimpleMinterUSC
+    contracts/sol/SimpleMinterUSC.sol:SimpleMinterUSC
 ```
 
 ## Next Steps
@@ -248,9 +248,9 @@ After deploying your contract:
 1. **Save the contract address** - you'll need it for all interactions
 2. **Update your scripts** - replace any hardcoded contract addresses with your new address
 3. **Verify the deployment** - check the block explorer to confirm the contract was deployed
-4. **Submit queries** - use `yarn submit_query` with your contract address
+4. **Submit queries** - use `yarn submit_query_2` with your contract address
 
-For more information on using the deployed contract, see the main [README.md](README.md).
+For more information on using the deployed contract, see the [README.md](../custom-contracts-bridging/README.md) for the Custom Contract Bridging example.
 
 ## Additional Resources
 

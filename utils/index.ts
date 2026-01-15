@@ -1,11 +1,6 @@
 import { Contract, JsonRpcApiProvider } from 'ethers';
 
-import {
-  api,
-  chainInfo,
-  ContinuityResponse,
-  ProofGenerationResult,
-} from '@gluwa/cc-next-query-builder';
+import { api, chainInfo, ContinuityResponse, ProofGenerationResult } from '@gluwa/cc-next-query-builder';
 
 /**
  * Tries to generate a proof for the given transaction hash on the specified chain. Will fail if the
@@ -47,9 +42,7 @@ export async function generateProofFor(
   console.log(`Waiting for block ${blockNumber} attestation on Creditcoin...`);
 
   const latestAttested = await info.getLatestAttestedHeightAndHash(chainKey);
-  console.log(
-    `Latest attested height for chain key ${chainKey}: ${latestAttested.height}`
-  );
+  console.log(`Latest attested height for chain key ${chainKey}: ${latestAttested.height}`);
 
   // We wait for at most 5 minutes for the attestation to be available
   await info.waitUntilHeightAttested(chainKey, blockNumber, 5_000, 300_000);
@@ -57,10 +50,7 @@ export async function generateProofFor(
   console.log(`Block ${blockNumber} attested! Generating proof...`);
 
   // We can now proceed to generate the proof using the prover API
-  const proofGenerator = new api.ProverAPIProofGenerator(
-    chainKey,
-    proofServerUrl
-  );
+  const proofGenerator = new api.ProverAPIProofGenerator(chainKey, proofServerUrl);
 
   try {
     const proof = await proofGenerator.generateProof(txHash);
@@ -78,10 +68,7 @@ export async function generateProofFor(
  * @param proofData A proof data object obtained from the proof generation process.
  * @returns A promise that resolves to the transaction response of the mintFromQuery call.
  */
-export async function submitProof(
-  contract: Contract,
-  proofData: ContinuityResponse
-): Promise<any> {
+export async function submitProof(contract: Contract, proofData: ContinuityResponse): Promise<any> {
   const chainKey = proofData.chainKey;
   const height = proofData.headerNumber;
   const encodedTransaction = proofData.txBytes;
@@ -106,17 +93,12 @@ export async function submitProof(
  * @param contract A minter contract instance, must have the mintFromQuery method with the correct signature.
  * @param proofData A proof data object obtained from the proof generation process.
  */
-export async function submitProofAndAwait(
-  contract: Contract,
-  proofData: ContinuityResponse
-) {
+export async function submitProofAndAwait(contract: Contract, proofData: ContinuityResponse) {
   let eventTriggered = false;
 
   // Prepare to listen to the TokensMinted event
   contract.on('TokensMinted', (contract, to, amount, queryId) => {
-    console.log(
-      `Tokens minted! Contract: ${contract}, To: ${to}, Amount: ${amount.toString()}, QueryId: ${queryId}`
-    );
+    console.log(`Tokens minted! Contract: ${contract}, To: ${to}, Amount: ${amount.toString()}, QueryId: ${queryId}`);
 
     eventTriggered = true;
   });

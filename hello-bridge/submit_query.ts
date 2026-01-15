@@ -17,10 +17,10 @@ async function main() {
   if (args.length !== 3) {
     console.error(`
   Usage:
-    yarn submit_query <Source_Chain_Rpc_Url> <Transaction_Hash> <Creditcoin_Private_Key>
+    yarn submit_1 <Source_Chain_Rpc_Url> <Transaction_Hash> <Creditcoin_Private_Key>
 
   Example:
-    yarn submit_query "https://sepolia.example.rpc" 0xabc123... 0xYOURPRIVATEKEY
+    yarn submit_1 "https://sepolia.example.rpc" 0xabc123... 0xYOURPRIVATEKEY
   `);
     process.exit(1);
   }
@@ -62,11 +62,7 @@ async function main() {
     // Establish link with the USC contract
     const wallet = new ethers.Wallet(ccNextPrivateKey, ccProvider);
     const contractABI = simpleMinterAbi as unknown as InterfaceAbi;
-    const minterContract = new Contract(
-      USC_MINTER_CONTRACT_ADDRESS,
-      contractABI,
-      wallet
-    );
+    const minterContract = new Contract(USC_MINTER_CONTRACT_ADDRESS, contractABI, wallet);
 
     const proofData = proofResult.data!;
     await submitProofAndAwait(minterContract, proofData);

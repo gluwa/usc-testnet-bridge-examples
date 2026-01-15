@@ -30,7 +30,7 @@ forge create                                                     \
     --broadcast                                                  \
     --rpc-url https://sepolia.infura.io/v3/<your_infura_api_key> \
     --private-key <your_private_key> \
-    src/contracts/TestERC20.sol:TestERC20
+    contracts/sol/TestERC20.sol:TestERC20
 ```
 
 This should display some output containing the address of your test `ERC20` contract:
@@ -100,7 +100,7 @@ forge create \
   --broadcast \
   --rpc-url https://rpc.usc-devnet.creditcoin.network \
   --private-key <your_private_key> \
-  src/contracts/EvmV1Decoder.sol:EvmV1Decoder
+  contracts/sol/EvmV1Decoder.sol:EvmV1Decoder
 ```
 
 You should get some output with the address of the library you just deployed:
@@ -123,8 +123,8 @@ forge create \
     --broadcast \
     --rpc-url https://rpc.usc-devnet.creditcoin.network \
     --private-key <your_private_key> \
-    --libraries src/contracts/EvmV1Decoder.sol:EvmV1Decoder:<decoder_library_address> \
-    src/contracts/SimpleMinterUSC.sol:SimpleMinterUSC
+    --libraries contracts/sol/EvmV1Decoder.sol:EvmV1Decoder:<decoder_library_address> \
+    contracts/sol/SimpleMinterUSC.sol:SimpleMinterUSC
 ```
 
 You should get some output with the address of the contract you just deployed:
@@ -178,7 +178,7 @@ Now that we've burnt funds on Sepolia, we can use that transaction to request a 
 this also includes generating the proof for the Oracle using the Creditcoin proof generator library.
 
 ```sh
-yarn submit_custom_contracts_bridging_query        \
+yarn submit_2        \
     https://sepolia.infura.io/v3/<your_infura_api_key>  \
     <transaction_hash_from_step_4> \
     <your_private_key>             \

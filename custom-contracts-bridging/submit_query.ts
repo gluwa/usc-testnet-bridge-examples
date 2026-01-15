@@ -13,16 +13,15 @@ async function main() {
   if (args.length !== 4) {
     console.error(`
   Usage:
-    yarn submit_query <Source_Chain_Rpc_Url> <Transaction_Hash> <Creditcoin_Private_Key> <Minter_Contract_Address>
+    yarn submit_2 <Source_Chain_Rpc_Url> <Transaction_Hash> <Creditcoin_Private_Key> <Minter_Contract_Address>
 
   Example:
-    yarn submit_query https://sepolia.example.rpc 1 0xabc123... 0xYOURPRIVATEKEY 0xMinterContractAddress
+    yarn submit_2 https://sepolia.example.rpc 1 0xabc123... 0xYOURPRIVATEKEY 0xMinterContractAddress
   `);
     process.exit(1);
   }
 
-  const [sourceChainRpcUrl, transactionHash, ccNextPrivateKey, minterAddress] =
-    args;
+  const [sourceChainRpcUrl, transactionHash, ccNextPrivateKey, minterAddress] = args;
 
   // TODO: Change this to 1 once testnet is released
   const chainKey = 3;
