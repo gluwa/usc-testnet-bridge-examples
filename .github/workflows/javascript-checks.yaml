@@ -1,0 +1,52 @@
+---
+name: javascript-checks
+
+"on":
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.ref }}-${{ github.workflow }}
+  cancel-in-progress: true
+
+permissions: read-all
+
+jobs:
+  execute-command:
+    name: execute-command-${{ matrix.command }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        command: [build, check-format]
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+      - run: npm install -g yarn
+
+      - name: Install Foundry
+        run: |
+          # first install it
+          unset XDG_CONFIG_HOME
+          curl -L https://foundry.paradigm.xyz | bash
+          ~/.foundry/bin/foundryup
+
+          echo "$HOME/.foundry/bin" >> "$GITHUB_PATH"
+
+      - name: Install dependencies
+        run: |
+          if [ -f yarn.lock ]; then
+              yarn install
+          else
+              npm clean-install
+          fi
+
+      - name: Execute command ${{ matrix.command }}
+        run: |
+          yarn ${{ matrix.command }}
