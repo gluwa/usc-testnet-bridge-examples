@@ -7,6 +7,7 @@
     "submit_custom": "tsx custom-contracts-bridging/submit_query.ts",
     "start_worker": "tsx bridge-offchain-worker/worker.ts",
     "check_balance": "node check_balance.js",
+    "check-format": "prettier --check .",
     "format": "prettier --write .",
     "build": "forge build"
   },
