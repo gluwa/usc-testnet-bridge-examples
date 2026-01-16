@@ -94,10 +94,10 @@ Run the following command to initiate the burn:
 <!-- alias test_erc20_contract_address_from_step_2 test_erc20_contract_address_from_custom_contracts_bridging -->
 
 ```sh
-cast send --rpc-url https://sepolia.infura.io/v3/<your_infura_api_key> \
-    <test_erc20_contract_address_from_custom_contracts_bridging>       \
+cast send --rpc-url $SOURCE_CHAIN_RPC_URL \
+    $SOURCE_CHAIN_CONTRACT_ADDRESS       \
     "burn(uint256)" 50000000000000000000                               \
-    --private-key <your_private_key>
+    --private-key $CREDITCOIN_WALLET_PRIVATE_KEY
 ```
 
 > [!TIP]
@@ -139,9 +139,10 @@ Run the following command to check your funds:
 <!-- alias erc20_mintable_address_from_step_3_2 erc20_mintable_address_from_custom_contracts_bridging -->
 
 ```sh
+WALLET_ADDRESS=$(cast wallet address --private-key $CREDITCOIN_WALLET_PRIVATE_KEY)
 yarn check_balance                                          \
-    <erc20_mintable_address_from_custom_contracts_bridging> \
-    <your_wallet_address>
+    $USC_CUSTOM_MINTER_CONTRACT_ADDRESS \
+    $WALLET_ADDRESS
 ```
 
 If you've been going through the previous tutorials, your balance should now

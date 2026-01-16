@@ -28,8 +28,8 @@ Run the following command to deploy the contract:
 ```sh
 forge create                                                     \
     --broadcast                                                  \
-    --rpc-url https://sepolia.infura.io/v3/<your_infura_api_key> \
-    --private-key <your_private_key> \
+    --rpc-url $SOURCE_CHAIN_RPC_URL \
+    --private-key $CREDITCOIN_WALLET_PRIVATE_KEY \
     contracts/sol/TestERC20.sol:TestERC20
 ```
 
@@ -102,7 +102,7 @@ forge build
 forge create \
   --broadcast \
   --rpc-url https://rpc.usc-testnet2.creditcoin.network \
-  --private-key <your_private_key> \
+  --private-key $CREDITCOIN_WALLET_PRIVATE_KEY \
   contracts/sol/EvmV1Decoder.sol:EvmV1Decoder
 ```
 
@@ -125,7 +125,7 @@ Now you can deploy your `SimpleMinterUSC` using the following command:
 forge create \
     --broadcast \
     --rpc-url https://rpc.usc-testnet2.creditcoin.network \
-    --private-key <your_private_key> \
+    --private-key $CREDITCOIN_WALLET_PRIVATE_KEY \
     --libraries contracts/sol/EvmV1Decoder.sol:EvmV1Decoder:<decoder_library_address> \
     contracts/sol/SimpleMinterUSC.sol:SimpleMinterUSC
 ```
@@ -167,10 +167,10 @@ Run the following command to initiate the burn:
 
 ```bash
 cast send                                                        \
-    --rpc-url https://sepolia.infura.io/v3/<your_infura_api_key> \
-    <test_erc20_contract_address_from_step_2>                    \
+    --rpc-url $SOURCE_CHAIN_RPC_URL \
+    $SOURCE_CHAIN_CONTRACT_ADDRESS                    \
     "burn(uint256)" 50000000000000000000                         \
-    --private-key <your_private_key>
+    --private-key $CREDITCOIN_WALLET_PRIVATE_KEY
 ```
 
 This should display some output stating that your transaction was a success, along with a
@@ -227,10 +227,11 @@ As a final check, verify that your tokens were successfully minted on Creditcoin
 Cast example:
 
 ```bash
+WALLET_ADDRESS=$(cast wallet address --private-key $CREDITCOIN_WALLET_PRIVATE_KEY)
 cast call --rpc-url https://rpc.usc-testnet2.creditcoin.network \
-    <usc_address_from_step_3_2> \
+    $USC_CUSTOM_MINTER_CONTRACT_ADDRESS \
     "balanceOf(address)" \
-    <your_wallet_address> \
+    $WALLET_ADDRESS \
     | cast to-dec
 ```
 

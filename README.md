@@ -30,6 +30,16 @@ foundryup --version v1.2.3 # Skip this command if you are using nix!
 
 ```
 
+Finally, source the `.env` file to load your configuration globally for all examples:
+
+<!-- ignore -->
+
+```bash
+source .env
+```
+
+This ensures that all tutorial commands can access your wallet private key and RPC URLs without needing to manually substitute them.
+
 ## Tutorials
 
 Each tutorial is built to be as self-contained as possible. However, we still recommend you go

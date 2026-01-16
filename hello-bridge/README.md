@@ -111,10 +111,10 @@ use to mint some dummy ERC20 tokens. Run the following command:
 <!-- env your_private_key USC_DOCS_TESTING_PK -->
 
 ```bash
-cast send --rpc-url https://sepolia.infura.io/v3/<your_infura_api_key> \
-    0x15166Ba9d24aBfa477C0c88dD1E6321297214eC8                         \
-    "mint(uint256)" 50000000000000000000                               \
-    --private-key <your_private_key>
+cast send --rpc-url $SOURCE_CHAIN_RPC_URL \
+    0x15166Ba9d24aBfa477C0c88dD1E6321297214eC8  \
+    "mint(uint256)" 50000000000000000000        \
+    --private-key $CREDITCOIN_WALLET_PRIVATE_KEY
 ```
 
 ## 3. Burning the tokens you want to bridge
@@ -127,10 +127,10 @@ bridging process, we won't be creating any artificial value. Run the following c
 <!-- extract transaction_hash_from_step_3 "transactionHash\s*(0[xX][a-fA-F0-9]{64})" -->
 
 ```sh
-cast send --rpc-url https://sepolia.infura.io/v3/<your_infura_api_key> \
-    0x15166Ba9d24aBfa477C0c88dD1E6321297214eC8                         \
-    "burn(uint256)" 50000000000000000000                               \
-    --private-key <your_private_key>
+cast send --rpc-url $SOURCE_CHAIN_RPC_URL \
+    0x15166Ba9d24aBfa477C0c88dD1E6321297214eC8  \
+    "burn(uint256)" 50000000000000000000        \
+    --private-key $CREDITCOIN_WALLET_PRIVATE_KEY
 ```
 
 This should display some output stating that your transaction was a success, along with a
@@ -196,10 +196,11 @@ As a final check, verify that your tokens were successfully minted on Creditcoin
 Cast example:
 
 ```bash
+WALLET_ADDRESS=$(cast wallet address --private-key $CREDITCOIN_WALLET_PRIVATE_KEY)
 output=$(cast call --rpc-url https://rpc.usc-testnet2.creditcoin.network \
     0x9cEfa7025C6093965230868e48d61ff6f616958C \
     "balanceOf(address)" \
-    <your_wallet_address> 2>/dev/null | xargs); \
+    $WALLET_ADDRESS 2>/dev/null | xargs); \
 if [ -n "$output" ] && [ "$output" != "0x" ]; then echo "$output" | cast to-dec; else echo "0"; fi
 ```
 
