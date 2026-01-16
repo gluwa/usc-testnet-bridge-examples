@@ -30,10 +30,10 @@ You should see output indicating successful compilation. The compiled artifacts 
 
 ### 2. Set Your Private Key
 
-Set your private key as an environment variable for security:
+Set your private in the `.env` file as an environment variable and then load the file into your environment with:
 
 ```bash
-export PRIVATE_KEY=<your_private_key>
+source .env
 ```
 
 > [!CAUTION]

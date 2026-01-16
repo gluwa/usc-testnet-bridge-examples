@@ -18,8 +18,8 @@ const main = async () => {
   }
 
   // Source chain contract address (ERC20 contract on source chain) where tokens are burned
-  const sourceChainContractAddress = process.env.SOURCE_CHAIN_CONTRACT_ADDRESS;
-  const sourceChainKey = Number(process.env.SOURCE_CHAIN_KEY || 1);
+  const sourceChainContractAddress = process.env.SOURCE_CHAIN_CUSTOM_CONTRACT_ADDRESS;
+  const sourceChainKey = Number(process.env.SOURCE_CHAIN_KEY);
   const sourceChainRpcUrl = process.env.SOURCE_CHAIN_RPC_URL;
 
   // Minter USC contract address on Creditcoin
@@ -28,7 +28,7 @@ const main = async () => {
   const ccNextWalletPrivateKey = process.env.CREDITCOIN_WALLET_PRIVATE_KEY;
 
   if (!sourceChainContractAddress) {
-    throw new Error('SOURCE_CHAIN_CONTRACT_ADDRESS environment variable is not configured or invalid');
+    throw new Error('SOURCE_CHAIN_CUSTOM_CONTRACT_ADDRESS environment variable is not configured or invalid');
   }
 
   if (!uscMinterContractAddress) {

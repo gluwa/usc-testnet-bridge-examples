@@ -32,27 +32,18 @@ Check the `.env` file in the root of the repository and make sure it contains th
 #                          Source Chain Configuration                          #
 # ============================================================================ #
 
-# Address of the ERC20 token contract on source chain
-SOURCE_CHAIN_CONTRACT_ADDRESS=<test_erc20_contract_address_from_custom_contracts_bridging>
-
-# Chain identifier of the source chain on Creditcoin
-SOURCE_CHAIN_KEY=1
-
 # RPC endpoint for Sepolia
 SOURCE_CHAIN_RPC_URL="https://sepolia.infura.io/v3/<your_infura_api_key>"
+
+# Address of the ERC20 token contract on source chain
+SOURCE_CHAIN_CUSTOM_CONTRACT_ADDRESS=<test_erc20_contract_address_from_custom_contracts_bridging>
 
 # ============================================================================ #
 #                      Creditcoin USC Chain Configuration                      #
 # ============================================================================ #
 
-# Address of the proof generation api server
-PROVER_API_URL="https://proof-gen-api.usc-testnet2.creditcoin.network"
-
 # Address of your custom minter contract on Creditcoin
 USC_CUSTOM_MINTER_CONTRACT_ADDRESS=<erc20_minter_address_from_custom_contracts_bridging>
-
-# RPC endpoint for the Creditcoin USC chain
-CREDITCOIN_RPC_URL="https://rpc.usc-testnet2.creditcoin.network"
 
 # Private key of the wallet that will submit mint requests
 CREDITCOIN_WALLET_PRIVATE_KEY=<your_private_key>
@@ -95,7 +86,7 @@ Run the following command to initiate the burn:
 
 ```sh
 cast send --rpc-url $SOURCE_CHAIN_RPC_URL \
-    $SOURCE_CHAIN_CONTRACT_ADDRESS       \
+    $SOURCE_CHAIN_CUSTOM_CONTRACT_ADDRESS       \
     "burn(uint256)" 50000000000000000000                               \
     --private-key $CREDITCOIN_WALLET_PRIVATE_KEY
 ```

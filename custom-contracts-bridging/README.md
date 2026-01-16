@@ -46,7 +46,7 @@ Save the contract address. You will be needing it in the next step.
 Additionally update the `.env` file at the root of the repository with the address, like so:
 
 ```env
-SOURCE_CHAIN_CONTRACT_ADDRESS=<test_erc20_contract_address_from_step_2>
+SOURCE_CHAIN_CUSTOM_CONTRACT_ADDRESS=<test_erc20_contract_address_from_step_2>
 ```
 
 Once again, reload your `.env` file with:
@@ -172,7 +172,7 @@ Run the following command to initiate the burn:
 ```bash
 cast send   \
     --rpc-url $SOURCE_CHAIN_RPC_URL \
-    $SOURCE_CHAIN_CONTRACT_ADDRESS                    \
+    $SOURCE_CHAIN_CUSTOM_CONTRACT_ADDRESS                    \
     "burn(uint256)" 50000000000000000000                         \
     --private-key $CREDITCOIN_WALLET_PRIVATE_KEY
 ```
@@ -226,11 +226,7 @@ Cast example:
 
 ```bash
 WALLET_ADDRESS=$(cast wallet address --private-key $CREDITCOIN_WALLET_PRIVATE_KEY)
-cast call --rpc-url $CREDITCOIN_RPC_URL \
-    $USC_CUSTOM_MINTER_CONTRACT_ADDRESS \
-    "balanceOf(address)" \
-    $WALLET_ADDRESS \
-    | cast to-dec
+yarn check_balance $USC_CUSTOM_MINTER_CONTRACT_ADDRESS $WALLET_ADDRESS
 ```
 
 This will return your balance in whole (TEST) token units.

@@ -115,7 +115,7 @@ use to mint some dummy ERC20 tokens. Run the following command:
 
 ```bash
 cast send --rpc-url $SOURCE_CHAIN_RPC_URL \
-    0x15166Ba9d24aBfa477C0c88dD1E6321297214eC8  \
+    $SOURCE_CHAIN_CONTRACT_ADDRESS  \
     "mint(uint256)" 50000000000000000000        \
     --private-key $CREDITCOIN_WALLET_PRIVATE_KEY
 ```
@@ -129,7 +129,7 @@ bridging process, we won't be creating any artificial value. Run the following c
 
 ```sh
 cast send --rpc-url $SOURCE_CHAIN_RPC_URL \
-    0x15166Ba9d24aBfa477C0c88dD1E6321297214eC8  \
+    $SOURCE_CHAIN_CONTRACT_ADDRESS  \
     "burn(uint256)" 50000000000000000000        \
     --private-key $CREDITCOIN_WALLET_PRIVATE_KEY
 ```
@@ -192,11 +192,7 @@ Cast example:
 
 ```bash
 WALLET_ADDRESS=$(cast wallet address --private-key $CREDITCOIN_WALLET_PRIVATE_KEY)
-output=$(cast call --rpc-url $CREDITCOIN_RPC_URL \
-    0x9cEfa7025C6093965230868e48d61ff6f616958C \
-    "balanceOf(address)" \
-    $WALLET_ADDRESS 2>/dev/null | xargs); \
-if [ -n "$output" ] && [ "$output" != "0x" ]; then echo "$output" | cast to-dec; else echo "0"; fi
+yarn check_balance $USC_CUSTOM_MINTER_CONTRACT_ADDRESS $WALLET_ADDRESS
 ```
 
 This will return your balance in whole (TEST) token units.
