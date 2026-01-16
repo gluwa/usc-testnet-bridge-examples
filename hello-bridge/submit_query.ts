@@ -4,7 +4,7 @@ import { Contract, ethers, InterfaceAbi } from 'ethers';
 import simpleMinterAbi from '../contracts/abi/SimpleMinterUSC.json';
 import { generateProofFor, submitProofAndAwait } from '../utils';
 
-dotenv.config();
+dotenv.config({ override: true });
 
 async function main() {
   // Setup
@@ -13,10 +13,10 @@ async function main() {
   if (args.length !== 1) {
     console.error(`
   Usage:
-    yarn submit_1 <Transaction_Hash>
+    yarn submit_hello <Transaction_Hash>
 
   Example:
-    yarn submit_1 0x87c97c776a678941b5941ec0cb602a4467ff4a35f77264208575f137cb05b2a7
+    yarn submit_hello 0x87c97c776a678941b5941ec0cb602a4467ff4a35f77264208575f137cb05b2a7
   `);
     process.exit(1);
   }

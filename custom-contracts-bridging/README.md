@@ -192,7 +192,7 @@ Now that we've burnt funds on Sepolia, we can use that transaction to request a 
 this also includes generating the proof for the Oracle using the Creditcoin proof generator library.
 
 ```sh
-yarn submit_2 <transaction_hash_from_step_4>
+yarn submit_custom <transaction_hash_from_step_4>
 ```
 
 On a succesfull query, you should see some messages like the following from the script:

@@ -3,9 +3,10 @@
   "name": "usc-testnet-bridge-examples",
   "version": "0.1.0",
   "scripts": {
-    "submit_1": "tsx hello-bridge/submit_query.ts",
-    "submit_2": "tsx custom-contracts-bridging/submit_query.ts",
+    "submit_hello": "tsx hello-bridge/submit_query.ts",
+    "submit_custom": "tsx custom-contracts-bridging/submit_query.ts",
     "start_worker": "tsx bridge-offchain-worker/worker.ts",
+    "check_balance": "node bridge-offchain-worker/check_balance.js",
     "format": "prettier --write .",
     "build": "forge build"
   },

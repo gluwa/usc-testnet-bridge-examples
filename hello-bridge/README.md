@@ -155,10 +155,10 @@ Now that we've burnt funds on Sepolia, we can use that transaction to request a 
 But before we can submit our USC call, we need to generate proofs which will be submitted to the Creditcoin
 Oracle to verify our cross-chain data.
 
-All these steps are condensed in the `submit_1` script, which is run as follows:
+All these steps are condensed in the `submit_hello` script, which is run as follows:
 
 ```sh
-yarn submit_1 <transaction_hash_from_step_3>
+yarn submit_hello <transaction_hash_from_step_3>
 ```
 
 On a succesfull query, you should see some messages like the following from the script:

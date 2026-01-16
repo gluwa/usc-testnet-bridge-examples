@@ -5,7 +5,7 @@ import burnerAbi from '../contracts/abi/TestERC20Abi.json';
 import simpleMinterAbi from '../contracts/abi/SimpleMinterUSC.json';
 import { generateProofFor, submitProof } from '../utils';
 
-dotenv.config();
+dotenv.config({ override: true });
 
 const main = async () => {
   console.log('Starting...');
@@ -48,7 +48,7 @@ const main = async () => {
   }
 
   // 1. Instantiate source chain burner contract
-  const ethProvider = new ethers.JsonRpcProvider(sourceChainRpcUrl);
+  const ethProvider = new ethers.JsonRpcProvider(sourceChainRpcUrl, undefined, { polling: true });
   const burnerContract = new Contract(sourceChainContractAddress, burnerAbi as unknown as InterfaceAbi, ethProvider);
 
   // 2. Instantiate minter contract on Creditcoin USC chain
