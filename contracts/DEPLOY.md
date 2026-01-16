@@ -47,8 +47,8 @@ First we need to deploy our `EvmV1Decoder` library so that we can reference it i
 ```bash
 forge create \
   --broadcast \
-  --rpc-url https://rpc.usc-testnet2.creditcoin.network \
-  --private-key <your_private_key> \
+  --rpc-url $CREDITCOIN_RPC_URL \
+  --private-key $CREDITCOIN_WALLET_PRIVATE_KEY \
   contracts/sol/EvmV1Decoder.sol:EvmV1Decoder
 ```
 
@@ -67,8 +67,8 @@ Now you can deploy your `SimpleMinterUSC` using the following command:
 ```bash
 forge create \
     --broadcast \
-    --rpc-url https://rpc.usc-testnet2.creditcoin.network \
-    --private-key <your_private_key> \
+    --rpc-url $CREDITCOIN_RPC_URL \
+    --private-key $CREDITCOIN_WALLET_PRIVATE_KEY \
     --libraries contracts/sol/EvmV1Decoder.sol:EvmV1Decoder:<decoder_library_address> \
     contracts/sol/SimpleMinterUSC.sol:SimpleMinterUSC
 ```
@@ -127,8 +127,8 @@ If the transaction is stuck in the mempool due to insufficient gas fees, retry w
 # Retry deployment with higher gas price
 forge create \
     --broadcast \
-    --rpc-url https://rpc.usc-testnet2.creditcoin.network \
-    --private-key $PRIVATE_KEY \
+    --rpc-url $CREDITCOIN_RPC_URL \
+    --private-key $CREDITCOIN_WALLET_PRIVATE_KEY \
     --gas-price <higher_gas_price> \
     contracts/sol/SimpleMinterUSC.sol:SimpleMinterUSC
 ```
@@ -141,8 +141,8 @@ retry redeploying the `SimpleUSCMinter` contract:
 ```bash
 forge create \
     --broadcast \
-    --rpc-url https://rpc.usc-testnet2.creditcoin.network \
-    --private-key <your_private_key> \
+    --rpc-url $CREDITCOIN_RPC_URL \
+    --private-key $CREDITCOIN_WALLET_PRIVATE_KEY \
     --libraries contracts/sol/EvmV1Decoder.sol:EvmV1Decoder:<decoder_library_address> \
     contracts/sol/SimpleMinterUSC.sol:SimpleMinterUSC
 ```
@@ -151,13 +151,13 @@ forge create \
 
 ```bash
 # Get your current nonce
-cast nonce <your_address> --rpc-url https://rpc.usc-testnet2.creditcoin.network
+cast nonce <your_address> --rpc-url $CREDITCOIN_RPC_URL
 
 # Deploy with the next nonce (replace X with current_nonce + 1)
 forge create \
     --broadcast \
-    --rpc-url https://rpc.usc-testnet2.creditcoin.network \
-    --private-key $PRIVATE_KEY \
+    --rpc-url $CREDITCOIN_RPC_URL \
+    --private-key $CREDITCOIN_WALLET_PRIVATE_KEY \
     --nonce X \
     --libraries contracts/sol/EvmV1Decoder.sol:EvmV1Decoder:<decoder_library_address> \
     contracts/sol/SimpleMinterUSC.sol:SimpleMinterUSC
@@ -212,13 +212,13 @@ If you're experiencing persistent nonce issues, you can manually manage nonces:
 
 ```bash
 # Get current nonce
-CURRENT_NONCE=$(cast nonce <your_address> --rpc-url <rpc_url>)
+CURRENT_NONCE=$(cast nonce <your_address> --rpc-url $CREDITCOIN_RPC_URL)
 
 # Deploy with explicit nonce
 forge create \
     --broadcast \
-    --rpc-url <rpc_url> \
-    --private-key $PRIVATE_KEY \
+    --rpc-url $CREDITCOIN_RPC_URL \
+    --private-key $CREDITCOIN_WALLET_PRIVATE_KEY \
     --nonce $((CURRENT_NONCE + 1)) \
     --libraries contracts/sol/EvmV1Decoder.sol:EvmV1Decoder:<decoder_library_address> \
     contracts/sol/SimpleMinterUSC.sol:SimpleMinterUSC

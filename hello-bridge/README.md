@@ -38,8 +38,6 @@ cast wallet new
 
 Save the resulting wallet address and private key for future use. They should look like:
 
-<!-- ignore -->
-
 ```bash
 Address:     0xBE7959cA1b19e159D8C0649860793dDcd125a2D5
 Private key: 0xb9c179ed56514accb60c23a862194fa2a6db8bdeb815d16e2c21aa4d7dc2845d
@@ -49,6 +47,12 @@ Save this private key on the `.env` file in the root of the repository:
 
 ```env
 CREDITCOIN_WALLET_PRIVATE_KEY=<your_private_key>
+```
+
+And load into your terminal session with:
+
+```sh
+source .env
 ```
 
 ### 1.2 Get some test funds (`Sepolia`)
@@ -65,8 +69,6 @@ some test tokens there.
 
 Your request for tokens in the Discord faucet should look like this. Substitute in your testnet
 account address from [step 1.1]:
-
-<!-- ignore -->
 
 ```bash
 /faucet address: 0xBE7959cA1b19e159D8C0649860793dDcd125a2D5
@@ -89,10 +91,14 @@ are now ready to go with the rest of the tutorial!
 
 Once you have your key edit the following variable in the `.env` file located at the root of this repository.
 
-<!-- ignore -->
-
 ```env
 SOURCE_CHAIN_RPC_URL="https://sepolia.infura.io/v3/<your_infura_api_key>"
+```
+
+And load into your terminal session with:
+
+```sh
+source .env
 ```
 
 ## 2. Minting some tokens on Sepolia
@@ -106,9 +112,6 @@ But your new Sepolia account doesn't have these tokens yet!
 
 For your convenience, we have [already deployed] a test `ERC20` contract to Sepolia which you can
 use to mint some dummy ERC20 tokens. Run the following command:
-
-<!-- env your_infura_api_key USC_DOCS_INFURA_KEY -->
-<!-- env your_private_key USC_DOCS_TESTING_PK -->
 
 ```bash
 cast send --rpc-url $SOURCE_CHAIN_RPC_URL \
@@ -124,8 +127,6 @@ burn tokens by transferring them to an address for which the private key is unkn
 inaccessible. This way, when creating the same amount of tokens on Creditcoin at the end of the
 bridging process, we won't be creating any artificial value. Run the following command:
 
-<!-- extract transaction_hash_from_step_3 "transactionHash\s*(0[xX][a-fA-F0-9]{64})" -->
-
 ```sh
 cast send --rpc-url $SOURCE_CHAIN_RPC_URL \
     0x15166Ba9d24aBfa477C0c88dD1E6321297214eC8  \
@@ -135,8 +136,6 @@ cast send --rpc-url $SOURCE_CHAIN_RPC_URL \
 
 This should display some output stating that your transaction was a success, along with a
 transaction hash:
-
-<!-- ignore -->
 
 ```bash
 transactionHash         0xbc1aefc42f7bc5897e7693e815831729dc401877df182b137ab3bf06edeaf0e1
@@ -164,8 +163,6 @@ yarn submit_1 <transaction_hash_from_step_3>
 
 On a succesfull query, you should see some messages like the following from the script:
 
-<!-- ignore -->
-
 ```sh
 Transaction 0x87c97c776a678941b5941ec0cb602a4467ff4a35f77264208575f137cb05b2a7 found in block 254
 Waiting for block 254 attestation on Creditcoin...
@@ -191,13 +188,11 @@ As a final check, verify that your tokens were successfully minted on Creditcoin
 - **Block Explorer**: Visit the [bridge contract] on the explorer and check your address
 - **Direct Contract Call**: Use `cast` or any web3 tool to call `balanceOf()` on the contract
 
-<!-- env your_wallet_address USC_DOCS_TESTING_ADDRESS -->
-
 Cast example:
 
 ```bash
 WALLET_ADDRESS=$(cast wallet address --private-key $CREDITCOIN_WALLET_PRIVATE_KEY)
-output=$(cast call --rpc-url https://rpc.usc-testnet2.creditcoin.network \
+output=$(cast call --rpc-url $CREDITCOIN_RPC_URL \
     0x9cEfa7025C6093965230868e48d61ff6f616958C \
     "balanceOf(address)" \
     $WALLET_ADDRESS 2>/dev/null | xargs); \
@@ -232,8 +227,7 @@ bridging] tutorial.
 <!-- markdown-link-check-enable -->
 
 [already deployed]: https://sepolia.etherscan.io/address/0x15166Ba9d24aBfa477C0c88dD1E6321297214eC8
-[bridge contract]: https://explorer.usc-testnet.creditcoin.network/address/0x441726D6821B2009147F0FA96E1Ee09D412cCb38
-[ERC20 contract]: https://explorer.usc-testnet.creditcoin.network/token/0xb0fb0b182f774266b1c7183535A41D69255937a3
+[bridge contract]: https://explorer.usc-testnet2.creditcoin.network/address/0x84632340F5053487f2Bcb72d0314bA25cc69817A
 [custom contract bridging]: ../custom-contracts-bridging/README.md
 [step 1.1]: #11-generate-a-new-wallet-address
 [step 2]: #2-minting-some-tokens-on-sepolia

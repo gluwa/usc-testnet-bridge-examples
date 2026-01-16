@@ -19,23 +19,23 @@ Let's start by deploying our own `ERC20` contract on Sepolia. The contract conta
 tracking the balances of a coin called `TEST`. The contract also automatically funds its creator's
 address with 1000 `TEST` coins, so we won't have to mint `TEST` tokens manually.
 
-Run the following command to deploy the contract:
-
-<!-- env your_infura_api_key USC_DOCS_INFURA_KEY -->
-<!-- env your_private_key USC_DOCS_TESTING_PK -->
-<!-- extract test_erc20_contract_address_from_step_2 "Deployed to: (0[xX][a-fA-F0-9]{40})" -->
+Make sure to first load your `.env` file with:
 
 ```sh
-forge create                                                     \
-    --broadcast                                                  \
+source .env
+```
+
+After, run the following command to deploy the contract:
+
+```sh
+forge create                \
+    --broadcast              \
     --rpc-url $SOURCE_CHAIN_RPC_URL \
     --private-key $CREDITCOIN_WALLET_PRIVATE_KEY \
     contracts/sol/TestERC20.sol:TestERC20
 ```
 
 This should display some output containing the address of your test `ERC20` contract:
-
-<!-- ignore -->
 
 ```bash
 Deployed to: 0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9
@@ -47,6 +47,12 @@ Additionally update the `.env` file at the root of the repository with the addre
 
 ```env
 SOURCE_CHAIN_CONTRACT_ADDRESS=<test_erc20_contract_address_from_step_2>
+```
+
+Once again, reload your `.env` file with:
+
+```sh
+source .env
 ```
 
 ## 3. Deploy Your Own Custom Bridging Contract
@@ -95,13 +101,10 @@ First we need to deploy our `EvmV1Decoder` library so that we can reference it i
 forge build
 ```
 
-<!--extract decoder_library_address "Deployed to: (0[xX][a-fA-F0-9]{40})" -->
-<!-- ignore -->
-
 ```bash
 forge create \
   --broadcast \
-  --rpc-url https://rpc.usc-testnet2.creditcoin.network \
+  --rpc-url $CREDITCOIN_RPC_URL \
   --private-key $CREDITCOIN_WALLET_PRIVATE_KEY \
   contracts/sol/EvmV1Decoder.sol:EvmV1Decoder
 ```
@@ -111,20 +114,17 @@ You should get some output with the address of the library you just deployed:
 <!-- ignore -->
 
 ```bash
-Deployed to: 0x7d8726B05e4A48850E819639549B50beCB893506
+Deployed to: 0x73684e10cE6d6E344BfdD4F92a79e0D6Cd931b52
 ```
 
 Save the address of the contract. You will be needing it for the second half of this step.
 
 Now you can deploy your `SimpleMinterUSC` using the following command:
 
-<!-- extract usc_address_from_step_3_2 "Deployed to: (0[xX][a-fA-F0-9]{40})" -->
-<!-- ignore -->
-
 ```bash
 forge create \
     --broadcast \
-    --rpc-url https://rpc.usc-testnet2.creditcoin.network \
+    --rpc-url $CREDITCOIN_RPC_URL \
     --private-key $CREDITCOIN_WALLET_PRIVATE_KEY \
     --libraries contracts/sol/EvmV1Decoder.sol:EvmV1Decoder:<decoder_library_address> \
     contracts/sol/SimpleMinterUSC.sol:SimpleMinterUSC
@@ -149,6 +149,12 @@ repository:
 USC_CUSTOM_MINTER_CONTRACT_ADDRESS=<usc_address_from_step_3_2>
 ```
 
+Once again, reload your `.env` file with:
+
+```sh
+source .env
+```
+
 > [!WARNING]
 > If you run into any trouble with deployment using these steps, try using
 > the [Deployment Guide] instead. Make sure you use step 3a and ignore
@@ -163,10 +169,8 @@ transferring them to an address for which the private key is unknown, making the
 
 Run the following command to initiate the burn:
 
-<!-- extract transaction_hash_from_step_4 "transactionHash\s*(0[xX][a-fA-F0-9]{64})" -->
-
 ```bash
-cast send                                                        \
+cast send   \
     --rpc-url $SOURCE_CHAIN_RPC_URL \
     $SOURCE_CHAIN_CONTRACT_ADDRESS                    \
     "burn(uint256)" 50000000000000000000                         \
@@ -175,8 +179,6 @@ cast send                                                        \
 
 This should display some output stating that your transaction was a success, along with a
 transaction hash:
-
-<!-- ignore -->
 
 ```bash
 transactionHash         0xbc1aefc42f7bc5897e7693e815831729dc401877df182b137ab3bf06edeaf0e1
@@ -194,8 +196,6 @@ yarn submit_2 <transaction_hash_from_step_4>
 ```
 
 On a succesfull query, you should see some messages like the following from the script:
-
-<!-- ignore -->
 
 ```sh
 Transaction 0x87c97c776a678941b5941ec0cb602a4467ff4a35f77264208575f137cb05b2a7 found in block 254
@@ -222,13 +222,11 @@ As a final check, verify that your tokens were successfully minted on Creditcoin
 - **Block Explorer**: Visit the [bridge contract] on the explorer and check your address
 - **Direct Contract Call**: Use `cast` or any web3 tool to call `balanceOf()` on the contract
 
-<!-- env your_wallet_address USC_DOCS_TESTING_ADDRESS -->
-
 Cast example:
 
 ```bash
 WALLET_ADDRESS=$(cast wallet address --private-key $CREDITCOIN_WALLET_PRIVATE_KEY)
-cast call --rpc-url https://rpc.usc-testnet2.creditcoin.network \
+cast call --rpc-url $CREDITCOIN_RPC_URL \
     $USC_CUSTOM_MINTER_CONTRACT_ADDRESS \
     "balanceOf(address)" \
     $WALLET_ADDRESS \
@@ -252,8 +250,6 @@ end user only has to sign a _single_ transaction to initiate the bridging proced
 In practice, DApp builders will want to conduct all cross-chain queries via an offchain worker in
 order to ensure robustness and streamline UX. Checkout the [bridge offchain worker] tutorial next
 for more information!
-
-<!-- teardown "cd .." -->
 
 [Hello Bridge]: ../hello-bridge/README.md
 [setup]: ../hello-bridge/README.md#1-setup

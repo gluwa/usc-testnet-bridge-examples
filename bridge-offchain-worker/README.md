@@ -22,12 +22,10 @@ on the source chain kicking off cross-chain interaction.
 This is the same as in [Hello Bridge]. If you have not already done so, follow the installation
 steps in the [setup] section there.
 
-Addintionally you need to have the `USC_CUSTOM_MINTER_CONTRACT_ADDRESS` enviroment variable set as seen in [update]
+Additionally you need to have the `USC_CUSTOM_MINTER_CONTRACT_ADDRESS` environment variable set as seen in [update]
 
 Once that is done, you will need to set up some additional configuration for the offchain worker.
 Check the `.env` file in the root of the repository and make sure it contains the following:
-
-<!-- ignore -->
 
 ```env
 # ============================================================================ #
@@ -60,6 +58,12 @@ CREDITCOIN_RPC_URL="https://rpc.usc-testnet2.creditcoin.network"
 CREDITCOIN_WALLET_PRIVATE_KEY=<your_private_key>
 ```
 
+Once everyting if fine reload your `.env` file with:
+
+```sh
+source .env
+```
+
 ## 2. Start the Offchain Worker
 
 Once you have your worker configured, it's time to start automating some queries!
@@ -88,10 +92,6 @@ bridge on Sepolia. This time however this will be the only transaction we need t
 will be handled automatically by the worker 🤖
 
 Run the following command to initiate the burn:
-
-<!-- env your_infura_api_key USC_DOCS_INFURA_KEY -->
-<!-- env your_private_key USC_DOCS_TESTING_PK -->
-<!-- alias test_erc20_contract_address_from_step_2 test_erc20_contract_address_from_custom_contracts_bridging -->
 
 ```sh
 cast send --rpc-url $SOURCE_CHAIN_RPC_URL \
@@ -135,9 +135,6 @@ the bridging process was successful.
 
 Run the following command to check your funds:
 
-<!-- env your_wallet_address USC_DOCS_TESTING_ADDRESS -->
-<!-- alias erc20_mintable_address_from_step_3_2 erc20_mintable_address_from_custom_contracts_bridging -->
-
 ```sh
 WALLET_ADDRESS=$(cast wallet address --private-key $CREDITCOIN_WALLET_PRIVATE_KEY)
 yarn check_balance                                          \
@@ -166,8 +163,6 @@ You've learned:
 3. How to run an offchain worker to support smooth cross-chain user experience
 
 If you haven't already, take a look at the [USC Gitbook] for more information.
-
-<!-- teardown "cd .." -->
 
 [Custom Contract Bridging]: ../custom-contracts-bridging/README.md
 [how to initiate a trustless bridge transaction]: ../hello-bridge/README.md
