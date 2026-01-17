@@ -54,8 +54,6 @@ forge create \
 
 You should get some output with the address of the library you just deployed:
 
-<!-- ignore -->
-
 ```bash
 Deployed to: 0x7d8726B05e4A48850E819639549B50beCB893506
 ```
