@@ -224,6 +224,17 @@ This will return your balance in whole (TEST) token units.
 
 Notice how you now have _twice_ the amount of tokens you originally burned on Sepolia!
 
+It should show something like this:
+
+<!-- ignore -->
+
+```bash
+📦 Token: Mintable (TEST)
+🧾 Raw Balance: 2000
+💰 Formatted Balance: 0.000000000000002 TEST
+Decimals for token micro unit: 18
+```
+
 ## Conclusion
 
 Congratulations! You've set up your first custom smart contracts which make use of the Creditcoin

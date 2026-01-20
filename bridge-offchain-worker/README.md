@@ -93,7 +93,7 @@ Then run the following command to initiate the burn:
 ```sh
 cast send --rpc-url $SOURCE_CHAIN_RPC_URL \
     $SOURCE_CHAIN_CUSTOM_CONTRACT_ADDRESS       \
-    "burn(uint256)" 50000000000000000000                               \
+    "burn(uint256)" 2000        \
     --private-key $CREDITCOIN_WALLET_PRIVATE_KEY
 ```
 
@@ -109,7 +109,7 @@ At this point, you should see the worker picking up the event.
 <!-- ignore -->
 
 ```bash
-Detected burn of 1000 tokens from 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266 at 0xb5f8f1000432f92521021642a915999407c61ed1a9f13c2e6c37f6ac9b6eb6f0
+Detected burn of 2000 tokens from 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266 at 0xb5f8f1000432f92521021642a915999407c61ed1a9f13c2e6c37f6ac9b6eb6f0
 Transaction 0xb5f8f1000432f92521021642a915999407c61ed1a9f13c2e6c37f6ac9b6eb6f0 found in block 418
 Waiting for block attestation on Creditcoin...
 ```
@@ -137,15 +137,15 @@ WALLET_ADDRESS=$(cast wallet address --private-key $CREDITCOIN_WALLET_PRIVATE_KE
 yarn check_balance $USC_CUSTOM_MINTER_CONTRACT_ADDRESS $WALLET_ADDRESS
 ```
 
-If you've been going through the previous tutorials, your balance should now
-be:
+It should show something like this:
 
 <!-- ignore -->
 
 ```bash
 📦 Token: Mintable (TEST)
-🧾 Raw Balance: 200000000000000000000
-💰 Formatted Balance: 200 TEST
+🧾 Raw Balance: 2000
+💰 Formatted Balance: 0.000000000000002 TEST
+Decimals for token micro unit: 18
 ```
 
 ## Conclusion

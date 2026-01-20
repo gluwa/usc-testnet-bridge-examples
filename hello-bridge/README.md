@@ -194,6 +194,17 @@ This will return your balance in whole (TEST) token units.
 
 The contract address and your wallet address should show your minted TEST tokens from the bridging process.
 
+It should show something like this:
+
+<!-- ignore -->
+
+```bash
+📦 Token: Mintable (TEST)
+🧾 Raw Balance: 1000
+💰 Formatted Balance: 0.000000000000001 TEST
+Decimals for token micro unit: 18
+```
+
 ## Conclusion
 
 Congratulations, you've bridged your first funds using the **Creditcoin Decentralized oracle!** This
