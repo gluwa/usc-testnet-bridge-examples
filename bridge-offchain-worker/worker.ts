@@ -97,11 +97,11 @@ const main = async () => {
     throw new Error('CREDITCOIN_WALLET_PRIVATE_KEY environment variable is not configured or invalid');
   }
 
-  // 1. Instantiate source chain burner contract
+  // 1. Create connection to source chain burner contract
   const ethProvider = new ethers.JsonRpcProvider(sourceChainRpcUrl);
   const burnerContract = new Contract(sourceChainContractAddress, burnerAbi as unknown as InterfaceAbi, ethProvider);
 
-  // 2. Instantiate minter contract on Creditcoin USC chain
+  // 2. Create connection to minter contract on Creditcoin USC chain
   const ccProvider = new ethers.JsonRpcProvider(ccNextRpcUrl);
   const wallet = new ethers.Wallet(ccNextWalletPrivateKey, ccProvider);
   const minterContract = new Contract(uscMinterContractAddress, simpleMinterAbi as unknown as InterfaceAbi, wallet);

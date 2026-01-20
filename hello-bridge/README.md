@@ -185,14 +185,9 @@ Once that's done we only need to check our newly minted tokens!
 
 As a final check, verify that your tokens were successfully minted on Creditcoin Testnet. You can check your balance using:
 
-- **Block Explorer**: Visit the [bridge contract] on the explorer and check your address
-- **Direct Contract Call**: Use `cast` or any web3 tool to call `balanceOf()` on the contract
-
-Cast example:
-
 ```bash
 WALLET_ADDRESS=$(cast wallet address --private-key $CREDITCOIN_WALLET_PRIVATE_KEY)
-yarn check_balance $USC_CUSTOM_MINTER_CONTRACT_ADDRESS $WALLET_ADDRESS
+yarn check_balance $USC_MINTER_CONTRACT_ADDRESS $WALLET_ADDRESS
 ```
 
 This will return your balance in whole (TEST) token units.
@@ -215,7 +210,6 @@ bridging] tutorial.
 [🚰 creditcoin discord faucet]: https://discord.com/channels/762302877518528522/1414985542235459707
 [Infura]: https://developer.metamask.io/register
 [already deployed]: https://sepolia.etherscan.io/address/0x15166Ba9d24aBfa477C0c88dD1E6321297214eC8
-[bridge contract]: https://explorer.usc-testnet2.creditcoin.network/address/0x84632340F5053487f2Bcb72d0314bA25cc69817A
 [custom contract bridging]: ../custom-contracts-bridging/README.md
 [step 1.1]: #11-generate-a-new-wallet-address
 [step 2]: #2-minting-some-tokens-on-sepolia

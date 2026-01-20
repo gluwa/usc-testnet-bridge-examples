@@ -98,10 +98,6 @@ First we need to deploy our `EvmV1Decoder` library so that we can reference it i
 `SimpleMinterUSC`. We do so like this:
 
 ```bash
-forge build
-```
-
-```bash
 forge create \
   --broadcast \
   --rpc-url $CREDITCOIN_RPC_URL \
@@ -215,14 +211,9 @@ Sometimes it may take a bit more for the `TokensMinted` event to trigger, but sh
 
 Once that's done we only need to check our newly minted tokens!
 
-## 5. Verify Your Bridged Tokens
+## 6. Verify Your Bridged Tokens
 
 As a final check, verify that your tokens were successfully minted on Creditcoin Testnet. You can check your balance using:
-
-- **Block Explorer**: Visit the [bridge contract] on the explorer and check your address
-- **Direct Contract Call**: Use `cast` or any web3 tool to call `balanceOf()` on the contract
-
-Cast example:
 
 ```bash
 WALLET_ADDRESS=$(cast wallet address --private-key $CREDITCOIN_WALLET_PRIVATE_KEY)
