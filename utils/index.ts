@@ -68,7 +68,7 @@ export async function getGasLimit(
   proofData: ContinuityResponse,
   signerAddress: string
 ): Promise<bigint> {
-  const GAS_BUFFER_MULTIPLIER = 100; // 100% + 35% buffer
+  const GAS_BUFFER_MULTIPLIER = 135; // 100% + 35% buffer
   // Estimate gas and add buffer
   console.log('⏳ Estimating gas...');
 
