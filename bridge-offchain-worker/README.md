@@ -22,7 +22,7 @@ on the source chain kicking off cross-chain interaction.
 This is the same as in [Hello Bridge]. If you have not already done so, follow the installation
 steps in the [setup] section there.
 
-Additionally you need to have the `USC_CUSTOM_MINTER_CONTRACT_ADDRESS` environment variable set as seen in [update]
+Additionally you need to have the `USC_CUSTOM_MINTER_CONTRACT_ADDRESS` environment variable set as seen in the [Custom Contract Bridging] tutorial.
 
 Once that is done, you will need to set up some additional configuration for the offchain worker.
 Check the `.env` file in the root of the repository and make sure it contains the following:
@@ -49,7 +49,7 @@ USC_CUSTOM_MINTER_CONTRACT_ADDRESS=<erc20_minter_address_from_custom_contracts_b
 CREDITCOIN_WALLET_PRIVATE_KEY=<your_private_key>
 ```
 
-Once everyting if fine reload your `.env` file with:
+Once everyting is fine reload your `.env` file with:
 
 ```sh
 source .env
@@ -82,7 +82,13 @@ Like we did in the previous tutorials, we start the bridging process by burning 
 bridge on Sepolia. This time however this will be the only transaction we need to submit! The rest
 will be handled automatically by the worker 🤖
 
-Run the following command to initiate the burn:
+Open a new terminal window and source the `.env` file once again
+
+```sh
+source .env
+```
+
+Then run the following command to initiate the burn:
 
 ```sh
 cast send --rpc-url $SOURCE_CHAIN_RPC_URL \
@@ -119,7 +125,7 @@ Tokens minted! Contract: 0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512, To: 0xf39Fd
 That's it! All it took was a single transaction on your end to initiate the bridging process,
 providing for a _truly native UX_.
 
-## 5. Check Balance in USC Testnet ERC20 Contract
+## 6. Check Balance in USC Testnet ERC20 Contract
 
 As a final check, we can take a look at the balance of your account on Creditcoin to confirm that
 the bridging process was successful.
@@ -158,5 +164,5 @@ If you haven't already, take a look at the [USC Gitbook] for more information.
 [how to customize our trustless bridging logic]: ../custom-contracts-bridging/README.md
 [Hello Bridge]: ../hello-bridge/README.md
 [setup]: ../hello-bridge/README.md#1-setup
-[update]: ../custom-contracts-bridging/README.md#33-update-environment-with-yout-usc-contract-address
+[Custom Contracts Bridging]: ../custom-contracts-bridging/README.md#33-update-environment-with-yout-usc-contract-address
 [USC Gitbook]: https://docs.creditcoin.org/usc

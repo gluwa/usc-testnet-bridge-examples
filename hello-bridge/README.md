@@ -177,7 +177,7 @@ Tokens minted! Contract: 0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512, To: 0xf39Fd
 Minting completed!
 ```
 
-Sometimes it may take a bit longer for the `TokensMinted` event to trigger, but should be no more than 30 seconds.
+Sometimes it may take a bit longer for the `TokensMinted` event to trigger, but should be no more than a couple of minutes.
 
 Once that's done we only need to check our newly minted tokens!
 
