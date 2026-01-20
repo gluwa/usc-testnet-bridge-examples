@@ -62,13 +62,65 @@ export async function generateProofFor(
   }
 }
 
+export async function getGasLimit(
+  provider: JsonRpcApiProvider,
+  contract: Contract,
+  proofData: ContinuityResponse,
+  signerAddress: string
+): Promise<bigint> {
+  const GAS_BUFFER_MULTIPLIER = 100; // 100% + 35% buffer
+  // Estimate gas and add buffer
+  console.log('⏳ Estimating gas...');
+
+  const chainKey = proofData.chainKey;
+  const height = proofData.headerNumber;
+  const encodedTransaction = proofData.txBytes;
+  const merkleRoot = proofData.merkleProof.root;
+  const siblings = proofData.merkleProof.siblings;
+  const lowerEndpointDigest = proofData.continuityProof.lowerEndpointDigest;
+  const continuityRoots = proofData.continuityProof.roots;
+
+  const iface = contract.interface;
+  const funcFragment = iface.getFunction(
+    'mintFromQuery(uint64,uint64,bytes,bytes32,(bytes32,bool)[],bytes32,bytes32[])'
+  );
+  const params = [chainKey, height, encodedTransaction, merkleRoot, siblings, lowerEndpointDigest, continuityRoots];
+  const data = iface.encodeFunctionData(funcFragment!, params);
+
+  let gasLimit;
+  try {
+    const estimatedGas = await provider.estimateGas({
+      to: contract.getAddress(),
+      data,
+      from: signerAddress,
+    });
+    gasLimit = (estimatedGas * BigInt(GAS_BUFFER_MULTIPLIER)) / BigInt(100);
+    console.log(`   Estimated gas: ${estimatedGas.toString()}, Gas limit with buffer: ${gasLimit.toString()}`);
+  } catch (gasEstimateError) {
+    // Gas estimation can fail even when the call would succeed
+    // This is a known issue with precompiles - pallet-evm doesn't always
+    // properly propagate revert reasons during estimation mode
+    // Calculate a reasonable estimate based on continuity proof size (matching Rust logic)
+    const continuityBlocks = proofData.continuityProof.roots?.length || 1;
+    // Base: 21000 (tx) + ~5000 per continuity block + ~10000 for merkle + overhead
+    const calculatedGas = 21000 + continuityBlocks * 5000 + 20000;
+    console.warn(`   Gas estimation failed: ${gasEstimateError}`);
+    console.log(
+      `   Using calculated gas limit based on proof size: ${calculatedGas} (${continuityBlocks} continuity blocks)`
+    );
+    gasLimit = BigInt(calculatedGas);
+  }
+
+  return gasLimit;
+}
+
 /**
  * Submits the proof to the USC minter contract.
  * @param contract A minter contract instance, must have the mintFromQuery method with the correct signature.
  * @param proofData A proof data object obtained from the proof generation process.
  * @returns A promise that resolves to the transaction response of the mintFromQuery call.
  */
-export async function submitProof(contract: Contract, proofData: ContinuityResponse): Promise<any> {
+export async function submitProof(contract: Contract, proofData: ContinuityResponse, gasLimit: bigint): Promise<any> {
   const chainKey = proofData.chainKey;
   const height = proofData.headerNumber;
   const encodedTransaction = proofData.txBytes;
@@ -84,7 +136,8 @@ export async function submitProof(contract: Contract, proofData: ContinuityRespo
     merkleRoot,
     siblings,
     lowerEndpointDigest,
-    continuityRoots
+    continuityRoots,
+    { gasLimit }
   );
 }
 
@@ -107,8 +160,12 @@ export interface MintResult {
  * @param proofData A proof data object obtained from the proof generation process.
  * @returns Promise resolving to MintResult with transaction details and parsed event.
  */
-export async function submitProofAndAwait(contract: Contract, proofData: ContinuityResponse): Promise<MintResult> {
-  const response = await submitProof(contract, proofData);
+export async function submitProofAndAwait(
+  contract: Contract,
+  proofData: ContinuityResponse,
+  gasLimit: bigint
+): Promise<MintResult> {
+  const response = await submitProof(contract, proofData, gasLimit);
   const txHash = response.hash;
   console.log('Proof submitted: ', txHash);
 

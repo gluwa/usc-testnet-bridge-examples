@@ -2,7 +2,7 @@ import dotenv from 'dotenv';
 import { Contract, ethers, InterfaceAbi } from 'ethers';
 
 import simpleMinterAbi from '../contracts/abi/SimpleMinterUSC.json';
-import { generateProofFor, submitProofAndAwait } from '../utils';
+import { generateProofFor, submitProofAndAwait, getGasLimit } from '../utils';
 
 dotenv.config({ override: true });
 
@@ -80,7 +80,8 @@ async function main() {
     const minterContract = new Contract(uscMinterContractAddress, contractABI, wallet);
 
     const proofData = proofResult.data!;
-    await submitProofAndAwait(minterContract, proofData);
+    const gasLimit = await getGasLimit(ccProvider, minterContract, proofData, wallet.address);
+    await submitProofAndAwait(minterContract, proofData, gasLimit);
   } else {
     throw new Error(`Failed to generate proof: ${proofResult.error}`);
   }

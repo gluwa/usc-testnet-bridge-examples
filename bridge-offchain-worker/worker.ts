@@ -3,7 +3,7 @@ import { Contract, ethers, InterfaceAbi, EventLog } from 'ethers';
 
 import burnerAbi from '../contracts/abi/TestERC20Abi.json';
 import simpleMinterAbi from '../contracts/abi/SimpleMinterUSC.json';
-import { generateProofFor, submitProof } from '../utils';
+import { generateProofFor, getGasLimit, submitProof } from '../utils';
 
 dotenv.config({ override: true });
 
@@ -151,7 +151,8 @@ const main = async () => {
         if (proofResult.success) {
           const proofData = proofResult.data!;
           try {
-            const response = await submitProof(minterContract, proofData);
+            const gasLimit = await getGasLimit(ccProvider, minterContract, proofData, wallet.address);
+            const response = await submitProof(minterContract, proofData, gasLimit);
             console.log('Proof submitted: ', response.hash);
           } catch (error) {
             console.error('Error submitting proof: ', error);
