@@ -27,7 +27,7 @@ interface INativeQueryVerifier {
         bytes calldata encodedTransaction,
         MerkleProof calldata merkleProof,
         ContinuityProof calldata continuityProof
-    ) external view returns (bool);
+    ) external returns (bool);
 }
 
 library NativeQueryVerifierLib {
@@ -109,7 +109,7 @@ contract SimpleMinterUSC is ERC20 {
         INativeQueryVerifier.MerkleProofEntry[] calldata siblings,
         bytes32 lowerEndpointDigest,
         bytes32[] calldata continuityRoots
-    ) internal view returns (bool verified) {
+    ) internal returns (bool verified) {
         INativeQueryVerifier.MerkleProof memory merkleProof =
             INativeQueryVerifier.MerkleProof({root: merkleRoot, siblings: siblings});
 
