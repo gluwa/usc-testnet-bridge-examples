@@ -21,7 +21,7 @@ interface INativeQueryVerifier {
         bytes32[] roots;
     }
 
-    function verify(
+    function verifyAndEmit(
         uint64 chainKey,
         uint64 height,
         bytes calldata encodedTransaction,
@@ -117,7 +117,7 @@ contract SimpleMinterUSC is ERC20 {
             INativeQueryVerifier.ContinuityProof({lowerEndpointDigest: lowerEndpointDigest, roots: continuityRoots});
 
         // Verify inclusion proof
-        verified = VERIFIER.verify(chainKey, blockHeight, encodedTransaction, merkleProof, continuityProof);
+        verified = VERIFIER.verifyAndEmit(chainKey, blockHeight, encodedTransaction, merkleProof, continuityProof);
 
         return verified;
     }
