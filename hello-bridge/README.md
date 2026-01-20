@@ -208,6 +208,7 @@ bridging] tutorial.
 
 [🚰 testnet faucet]: https://cloud.google.com/application/web3/faucet/ethereum/sepolia
 [🚰 creditcoin discord faucet]: https://discord.com/channels/762302877518528522/1414985542235459707
+<!-- markdown-link-check-disable -->
 [Infura]: https://developer.metamask.io/register
 [already deployed]: https://sepolia.etherscan.io/address/0x15166Ba9d24aBfa477C0c88dD1E6321297214eC8
 [custom contract bridging]: ../custom-contracts-bridging/README.md
