@@ -1,4 +1,4 @@
-import { Contract, JsonRpcApiProvider } from 'ethers';
+import { Contract, JsonRpcApiProvider, TransactionReceipt, Log, LogDescription } from 'ethers';
 
 import { api, chainInfo, ContinuityResponse, ProofGenerationResult } from '@gluwa/cc-next-query-builder';
 
@@ -88,38 +88,58 @@ export async function submitProof(contract: Contract, proofData: ContinuityRespo
   );
 }
 
+export interface MintResult {
+  txHash: string;
+  receipt: TransactionReceipt;
+  mintEvent: {
+    contract: string;
+    to: string;
+    amount: bigint;
+    queryId: string;
+  } | null;
+}
+
 /**
  * Submits the proof to the USC minter contract and awaits the TokensMinted event.
+ * Uses transaction receipt to check for events instead of filter-based polling to avoid
+ * "Filter id does not exist" errors from RPC nodes with filter expiration.
  * @param contract A minter contract instance, must have the mintFromQuery method with the correct signature.
  * @param proofData A proof data object obtained from the proof generation process.
+ * @returns Promise resolving to MintResult with transaction details and parsed event.
  */
-export async function submitProofAndAwait(contract: Contract, proofData: ContinuityResponse) {
-  let eventTriggered = false;
+export async function submitProofAndAwait(contract: Contract, proofData: ContinuityResponse): Promise<MintResult> {
+  const response = await submitProof(contract, proofData);
+  const txHash = response.hash;
+  console.log('Proof submitted: ', txHash);
 
-  // Prepare to listen to the TokensMinted event
-  contract.on('TokensMinted', (contract, to, amount, queryId) => {
-    console.log(`Tokens minted! Contract: ${contract}, To: ${to}, Amount: ${amount.toString()}, QueryId: ${queryId}`);
+  // Wait for transaction to be mined and get the receipt
+  console.log('Waiting for transaction to be mined...');
+  const receipt: TransactionReceipt = await response.wait();
 
-    eventTriggered = true;
-  });
+  // Parse the TokensMinted event from the transaction logs
+  const tokensMintedEvent = receipt.logs
+    .map((log: Log): LogDescription | null => {
+      try {
+        return contract.interface.parseLog({ topics: [...log.topics], data: log.data });
+      } catch {
+        return null;
+      }
+    })
+    .find((parsed): parsed is LogDescription => parsed?.name === 'TokensMinted');
 
-  // Submit proof to the minter contract
-  try {
-    const response = await submitProof(contract, proofData);
-    console.log('Proof submitted: ', response.hash);
-  } catch (error) {
-    console.error('Error submitting proof: ', error);
+  let mintEvent: MintResult['mintEvent'] = null;
 
-    process.exit(1);
-  }
-
-  // Wait for the TokensMinted event
-  while (!eventTriggered) {
-    console.log('Waiting for TokensMinted event...');
-    await new Promise((resolve) => setTimeout(resolve, 5000)); // Wait for 5 seconds
+  if (tokensMintedEvent) {
+    const [contractAddr, to, amount, queryId] = tokensMintedEvent.args;
+    console.log(
+      `Tokens minted! Contract: ${contractAddr}, To: ${to}, Amount: ${amount.toString()}, QueryId: ${queryId}`
+    );
+    mintEvent = { contract: contractAddr, to, amount, queryId };
+  } else {
+    console.log('Transaction mined but TokensMinted event not found in logs');
   }
 
   console.log('Minting completed!');
 
-  return;
+  return { txHash, receipt, mintEvent };
 }
