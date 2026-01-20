@@ -1,14 +1,14 @@
 {
   "license": "MIT",
   "name": "usc-testnet-bridge-examples",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "scripts": {
-    "submit_hello": "tsx hello-bridge/submit_query.ts",
-    "submit_custom": "tsx custom-contracts-bridging/submit_query.ts",
-    "start_worker": "tsx bridge-offchain-worker/worker.ts",
-    "check_balance": "node check_balance.js",
-    "check-format": "prettier --check .",
-    "eslint": "eslint -c .eslintrc.js --ignore-pattern .eslintrc.js --ignore-pattern check_balance.js --max-warnings 0 --ext .ts --ext .js .",
+    "hello_bridge:submit_query": "tsx hello-bridge/submit_query.ts",
+    "custom_bridge:submit_query": "tsx custom-contracts-bridging/submit_query.ts",
+    "offchain:start_worker": "tsx bridge-offchain-worker/worker.ts",
+    "loan_flow:register_loan": "tsx loan_flow/register_loan.ts",
+    "loan_flow:start_worker": "tsx loan_flow/worker.ts",
+    "utils:check_balance": "node utils/check_balance.js",
     "format": "prettier --write .",
     "build": "forge build",
     "typecheck": "tsc --noEmit"

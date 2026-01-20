@@ -15,15 +15,11 @@ Before attempting any of the tutorials, make sure the following are installed an
 After that install the required dependencies to run the examples, to do so simply run the
 following command in the root of this repo:
 
-<!-- ignore -->
-
 ```sh
 yarn
 ```
 
 You will also need to set up the right version of foundry with `foundryup`:
-
-<!-- ignore -->
 
 ```bash
 foundryup --version v1.2.3 # Skip this command if you are using nix!
@@ -31,8 +27,6 @@ foundryup --version v1.2.3 # Skip this command if you are using nix!
 ```
 
 Finally, source the `.env` file to load your configuration globally for all examples:
-
-<!-- ignore -->
 
 ```bash
 source .env

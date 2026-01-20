@@ -155,10 +155,10 @@ Now that we've burnt funds on Sepolia, we can use that transaction to request a 
 But before we can submit our USC call, we need to generate proofs which will be submitted to the Creditcoin
 Oracle to verify our cross-chain data.
 
-All these steps are condensed in the `submit_hello` script, which is run as follows:
+All these steps are condensed in the `hello_bridge:submit_query` script, which is run as follows:
 
 ```sh
-yarn submit_hello <transaction_hash_from_step_3>
+yarn hello_bridge:submit_query <transaction_hash_from_step_3>
 ```
 
 On a succesfull query, you should see some messages like the following from the script:
@@ -189,7 +189,7 @@ As a final check, verify that your tokens were successfully minted on Creditcoin
 
 ```bash
 WALLET_ADDRESS=$(cast wallet address --private-key $CREDITCOIN_WALLET_PRIVATE_KEY)
-yarn check_balance $USC_MINTER_CONTRACT_ADDRESS $WALLET_ADDRESS
+yarn utils:check_balance $USC_MINTER_CONTRACT_ADDRESS $WALLET_ADDRESS
 ```
 
 This will return your balance in whole (TEST) token units.
@@ -197,8 +197,6 @@ This will return your balance in whole (TEST) token units.
 The contract address and your wallet address should show your minted TEST tokens from the bridging process.
 
 It should show something like this:
-
-<!-- ignore -->
 
 ```bash
 📦 Token: Mintable (TEST)

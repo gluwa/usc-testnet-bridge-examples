@@ -61,15 +61,11 @@ Once you have your worker configured, it's time to start automating some queries
 
 Run the following command to start the worker:
 
-<!-- ignore -->
-
 ```sh
-yarn start_worker
+yarn offchain:start_worker
 ```
 
 Once it's up and running, you start to see the following logs:
-
-<!-- ignore -->
 
 ```bash
 Starting...
@@ -106,8 +102,6 @@ cast send --rpc-url $SOURCE_CHAIN_RPC_URL \
 
 At this point, you should see the worker picking up the event.
 
-<!-- ignore -->
-
 ```bash
 Detected burn of 2000 tokens from 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266 at 0xb5f8f1000432f92521021642a915999407c61ed1a9f13c2e6c37f6ac9b6eb6f0
 Transaction 0xb5f8f1000432f92521021642a915999407c61ed1a9f13c2e6c37f6ac9b6eb6f0 found in block 418
@@ -115,8 +109,6 @@ Waiting for block attestation on Creditcoin...
 ```
 
 Eventually, you should see a message like this one:
-
-<!-- ignore -->
 
 ```bash
 Tokens minted! Contract: 0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512, To: 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266, Amount: 1000, QueryId: 0x3bfcf46c80011ef4280b7212e4fa11e5be314b12c9ddd56a74e83c2964b3e9be
@@ -134,12 +126,10 @@ Run the following command to check your funds:
 
 ```sh
 WALLET_ADDRESS=$(cast wallet address --private-key $CREDITCOIN_WALLET_PRIVATE_KEY)
-yarn check_balance $USC_CUSTOM_MINTER_CONTRACT_ADDRESS $WALLET_ADDRESS
+yarn utils:check_balance $USC_CUSTOM_MINTER_CONTRACT_ADDRESS $WALLET_ADDRESS
 ```
 
 It should show something like this:
-
-<!-- ignore -->
 
 ```bash
 📦 Token: Mintable (TEST)

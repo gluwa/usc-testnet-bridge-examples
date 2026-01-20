@@ -13,10 +13,10 @@ async function main() {
   if (args.length !== 1) {
     console.error(`
   Usage:
-    yarn submit_custom <Transaction_Hash>
+    yarn custom_bridge:submit_query <Transaction_Hash>
 
   Example:
-    yarn submit_custom 0x87c97c776a678941b5941ec0cb602a4467ff4a35f77264208575f137cb05b2a7
+    yarn custom_bridge:submit_query 0x87c97c776a678941b5941ec0cb602a4467ff4a35f77264208575f137cb05b2a7
   `);
     process.exit(1);
   }

@@ -107,8 +107,6 @@ forge create \
 
 You should get some output with the address of the library you just deployed:
 
-<!-- ignore -->
-
 ```bash
 Deployed to: 0x73684e10cE6d6E344BfdD4F92a79e0D6Cd931b52
 ```
@@ -128,8 +126,6 @@ forge create \
 
 You should get some output with the address of the contract you just deployed:
 
-<!-- ignore -->
-
 ```bash
 Deployed to: 0x7d8726B05e4A48850E819639549B50beCB893506
 ```
@@ -138,8 +134,6 @@ Deployed to: 0x7d8726B05e4A48850E819639549B50beCB893506
 
 Save the address of the contract. And modify the following entry in the `.env` file found at the root of the
 repository:
-
-<!-- ignore -->
 
 ```env
 USC_CUSTOM_MINTER_CONTRACT_ADDRESS=<usc_address_from_step_3_2>
@@ -188,7 +182,7 @@ Now that we've burnt funds on Sepolia, we can use that transaction to request a 
 this also includes generating the proof for the Oracle using the Creditcoin proof generator library.
 
 ```sh
-yarn submit_custom <transaction_hash_from_step_4>
+yarn custom_bridge:submit_query <transaction_hash_from_step_4>
 ```
 
 On a succesfull query, you should see some messages like the following from the script:
@@ -219,7 +213,7 @@ As a final check, verify that your tokens were successfully minted on Creditcoin
 
 ```bash
 WALLET_ADDRESS=$(cast wallet address --private-key $CREDITCOIN_WALLET_PRIVATE_KEY)
-yarn check_balance $USC_CUSTOM_MINTER_CONTRACT_ADDRESS $WALLET_ADDRESS
+yarn utils:check_balance $USC_CUSTOM_MINTER_CONTRACT_ADDRESS $WALLET_ADDRESS
 ```
 
 This will return your balance in whole (TEST) token units.
@@ -227,8 +221,6 @@ This will return your balance in whole (TEST) token units.
 Notice how you now have _twice_ the amount of tokens you originally burned on Sepolia!
 
 It should show something like this:
-
-<!-- ignore -->
 
 ```bash
 📦 Token: Mintable (TEST)
