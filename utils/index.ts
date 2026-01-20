@@ -1,4 +1,4 @@
-import { Contract, JsonRpcApiProvider, TransactionReceipt, Log, LogDescription } from 'ethers';
+import { Contract, JsonRpcApiProvider, TransactionReceipt, Log, LogDescription, EventLog } from 'ethers';
 
 import { api, chainInfo, ContinuityResponse, ProofGenerationResult } from '@gluwa/cc-next-query-builder';
 
@@ -62,16 +62,73 @@ export async function generateProofFor(
   }
 }
 
-export async function getGasLimit(
+async function computeGasLimit(
   provider: JsonRpcApiProvider,
   contract: Contract,
-  proofData: ContinuityResponse,
-  signerAddress: string
+  data: string,
+  from: string,
+  continuityLength: number
 ): Promise<bigint> {
   const GAS_BUFFER_MULTIPLIER = 135; // 100% + 35% buffer
   // Estimate gas and add buffer
   console.log('⏳ Estimating gas...');
 
+  let gasLimit;
+  try {
+    const estimatedGas = await provider.estimateGas({
+      to: contract.getAddress(),
+      data,
+      from,
+    });
+    gasLimit = (estimatedGas * BigInt(GAS_BUFFER_MULTIPLIER)) / BigInt(100);
+    console.log(`   Estimated gas: ${estimatedGas.toString()}, Gas limit with buffer: ${gasLimit.toString()}`);
+  } catch (gasEstimateError) {
+    // Gas estimation can fail even when the call would succeed
+    // This is a known issue with precompiles - pallet-evm doesn't always
+    // properly propagate revert reasons during estimation mode
+    // Calculate a reasonable estimate based on continuity proof size (matching Rust logic)
+    // Base: 21000 (tx) + ~5000 per continuity block + ~10000 for merkle + overhead
+    const calculatedGas = 21000 + continuityLength * 5000 + 20000;
+    console.warn(`   Gas estimation failed: ${gasEstimateError}`);
+    console.log(
+      `   Using calculated gas limit based on proof size: ${calculatedGas} (${continuityLength} continuity blocks)`
+    );
+    gasLimit = BigInt(calculatedGas);
+  }
+
+  return gasLimit;
+}
+
+export async function computeGasLimitForProver(
+  provider: JsonRpcApiProvider,
+  contract: Contract,
+  proofData: ContinuityResponse,
+  signerAddress: string
+): Promise<bigint> {
+  const chainKey = proofData.chainKey;
+  const height = proofData.headerNumber;
+  const encodedTransaction = proofData.txBytes;
+  const merkleProof = proofData.merkleProof;
+  const continuityProof = proofData.continuityProof;
+
+  const iface = contract.interface;
+  const funcFragment = iface.getFunction(
+    'verifyAndEmit(uint64,uint64,bytes,(bytes32,(bytes32,bool)[]),(bytes32,bytes32[]))'
+  );
+  const params = [chainKey, height, encodedTransaction, merkleProof, continuityProof];
+  const data = iface.encodeFunctionData(funcFragment!, params);
+
+  const continuityBlocks = proofData.continuityProof.roots?.length || 1;
+
+  return computeGasLimit(provider, contract, data, signerAddress, continuityBlocks);
+}
+
+export async function computeGasLimitForMinter(
+  provider: JsonRpcApiProvider,
+  contract: Contract,
+  proofData: ContinuityResponse,
+  signerAddress: string
+): Promise<bigint> {
   const chainKey = proofData.chainKey;
   const height = proofData.headerNumber;
   const encodedTransaction = proofData.txBytes;
@@ -87,31 +144,29 @@ export async function getGasLimit(
   const params = [chainKey, height, encodedTransaction, merkleRoot, siblings, lowerEndpointDigest, continuityRoots];
   const data = iface.encodeFunctionData(funcFragment!, params);
 
-  let gasLimit;
-  try {
-    const estimatedGas = await provider.estimateGas({
-      to: contract.getAddress(),
-      data,
-      from: signerAddress,
-    });
-    gasLimit = (estimatedGas * BigInt(GAS_BUFFER_MULTIPLIER)) / BigInt(100);
-    console.log(`   Estimated gas: ${estimatedGas.toString()}, Gas limit with buffer: ${gasLimit.toString()}`);
-  } catch (gasEstimateError: any) {
-    // Gas estimation can fail even when the call would succeed
-    // This is a known issue with precompiles - pallet-evm doesn't always
-    // properly propagate revert reasons during estimation mode
-    // Calculate a reasonable estimate based on continuity proof size (matching Rust logic)
-    const continuityBlocks = proofData.continuityProof.roots?.length || 1;
-    // Base: 21000 (tx) + ~5000 per continuity block + ~10000 for merkle + overhead
-    const calculatedGas = 21000 + continuityBlocks * 5000 + 20000;
-    console.warn(`   Gas estimation failed: ${gasEstimateError.toString()}`);
-    console.log(
-      `   Using calculated gas limit based on proof size: ${calculatedGas} (${continuityBlocks} continuity blocks)`
-    );
-    gasLimit = BigInt(calculatedGas);
-  }
+  const continuityBlocks = proofData.continuityProof.roots?.length || 1;
 
-  return gasLimit;
+  return computeGasLimit(provider, contract, data, signerAddress, continuityBlocks);
+}
+
+/**
+ * Submits the proof to the USC block prover contract.
+ * @param contract A block prover contract instance, must have the verifyAndEmit method with the correct signature.
+ * @param proofData A proof data object obtained from the proof generation process.
+ * @returns A promise that resolves to the transaction response of the verifyAndEmit call.
+ */
+export async function submitProofToBlockProver(
+  contract: Contract,
+  proofData: ContinuityResponse,
+  gasLimit: bigint
+): Promise<any> {
+  const chainKey = proofData.chainKey;
+  const height = proofData.headerNumber;
+  const encodedTransaction = proofData.txBytes;
+  const merkleProof = proofData.merkleProof;
+  const continuityProof = proofData.continuityProof;
+
+  return await contract.verifyAndEmit(chainKey, height, encodedTransaction, merkleProof, continuityProof, { gasLimit });
 }
 
 /**
@@ -120,7 +175,11 @@ export async function getGasLimit(
  * @param proofData A proof data object obtained from the proof generation process.
  * @returns A promise that resolves to the transaction response of the mintFromQuery call.
  */
-export async function submitProof(contract: Contract, proofData: ContinuityResponse, gasLimit: bigint): Promise<any> {
+export async function submitProofToMinter(
+  contract: Contract,
+  proofData: ContinuityResponse,
+  gasLimit: bigint
+): Promise<any> {
   const chainKey = proofData.chainKey;
   const height = proofData.headerNumber;
   const encodedTransaction = proofData.txBytes;
@@ -160,12 +219,12 @@ export interface MintResult {
  * @param proofData A proof data object obtained from the proof generation process.
  * @returns Promise resolving to MintResult with transaction details and parsed event.
  */
-export async function submitProofAndAwait(
+export async function submitProofToMinterAndAwait(
   contract: Contract,
   proofData: ContinuityResponse,
   gasLimit: bigint
 ): Promise<MintResult> {
-  const response = await submitProof(contract, proofData, gasLimit);
+  const response = await submitProofToMinter(contract, proofData, gasLimit);
   const txHash = response.hash;
   console.log('Proof submitted: ', txHash);
 
@@ -199,4 +258,41 @@ export async function submitProofAndAwait(
   console.log('Minting completed!');
 
   return { txHash, receipt, mintEvent };
+}
+
+// Polling interval in milliseconds (adjust as needed)
+export const POLLING_INTERVAL_MS = 5000;
+// Backoff delay when polling encounters an error
+export const ERROR_BACKOFF_MS = 10000;
+// Maximum number of processed transactions to track before clearing
+export const MAX_PROCESSED_TXS = 1000;
+
+// Helper function to poll for events using queryFilter (avoids filter expiration issues)
+export async function pollEvents(
+  contract: Contract,
+  eventName: string,
+  fromBlock: number,
+  handler: (event: EventLog) => Promise<void> | void
+): Promise<number> {
+  try {
+    const currentBlock = await contract.runner?.provider?.getBlockNumber();
+    if (!currentBlock || currentBlock < fromBlock) {
+      return fromBlock;
+    }
+
+    const events = await contract.queryFilter(eventName, fromBlock, currentBlock);
+    for (const event of events) {
+      if (event instanceof EventLog) {
+        await handler(event);
+      }
+    }
+
+    // Return next block to query from
+    return currentBlock + 1;
+  } catch (error) {
+    console.error(`Error polling ${eventName} events:`, error);
+    // Add backoff delay on error to avoid hammering the RPC
+    await new Promise((resolve) => setTimeout(resolve, ERROR_BACKOFF_MS));
+    return fromBlock; // Retry from same block on error
+  }
 }

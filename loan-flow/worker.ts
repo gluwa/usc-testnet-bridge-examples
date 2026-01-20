@@ -4,9 +4,29 @@ import { Contract, ethers, InterfaceAbi } from 'ethers';
 import loanManagerAbi from '../contracts/abi/USCLoanManager.json';
 import loanHelperAbi from '../contracts/abi/AuxiliaryLoanContract.json';
 import blockProverAbi from '../contracts/abi/BlockProver.json';
-import { generateProofFor, submitProofToBlockProver } from '../utils';
+import {
+  computeGasLimitForProver,
+  generateProofFor,
+  MAX_PROCESSED_TXS,
+  pollEvents,
+  POLLING_INTERVAL_MS,
+  submitProofToBlockProver,
+} from '../utils';
 
 dotenv.config({ override: true });
+
+// Graceful shutdown flag
+let isShuttingDown = false;
+
+process.on('SIGINT', () => {
+  console.log('\nReceived SIGINT, shutting down gracefully...');
+  isShuttingDown = true;
+});
+
+process.on('SIGTERM', () => {
+  console.log('\nReceived SIGTERM, shutting down gracefully...');
+  isShuttingDown = true;
+});
 
 interface LoanInfo {
   lender: string;
@@ -97,9 +117,20 @@ const main = async () => {
     sourceChainProvider
   );
 
-  // 3. Initialize loan tracker and expiry tracker maps
+  // 3. Initialize loan tracker, expiry tracker and other state
   let loanTracker: Record<string, LoanInfo> = {};
   let loanExpiriesAt: Record<number, number[]> = {};
+
+  // Get starting block numbers
+  let sourceFromBlock = await sourceChainProvider.getBlockNumber();
+  let ccFromBlock = await ccProvider.getBlockNumber();
+
+  // Track processed transaction hashes to avoid duplicates
+  const processedTxs = new Set<string>();
+
+  console.log('Worker started! Listening for burn events...');
+  console.log(`Polling source chain from block ${sourceFromBlock}`);
+  console.log(`Polling USC chain from block ${ccFromBlock}`);
 
   // 4. List on block production on source chain to track loan expiries
   const blockHandle = sourceChainProvider.on('block', async (blockNumber: number) => {
@@ -129,198 +160,271 @@ const main = async () => {
     }
   });
 
-  // 5. Listen to LoanRegistered events on manager contract
-  const loanRegisteredHandle = managerContract.on(
-    'LoanRegistered',
-    async (
-      loanId: number,
-      lender: string,
-      borrower: string,
-      loanAmount: number,
-      repayAmount: number,
-      expiresAt: number,
-      ...params: any[]
-    ) => {
-      // Last param is always the transaction hash
-      const txHash = params[params.length - 1];
-      console.log(`Detected LoanRegistered event for loanId: ${loanId} - tx hash: ${txHash}`);
+  // Main polling loop
+  while (!isShuttingDown) {
+    // Poll both chains in parallel for better performance
+    const [newCcBlock, newSourceBlock] = await Promise.all([
+      // 5. Poll LoanRegistered events on manager contract
+      pollEvents(managerContract, 'LoanRegistered', ccFromBlock, async (event) => {
+        const [loanId, lender, borrower, loanAmount, repayAmount, expiresAt] = event.args;
+        const txHash = event.transactionHash;
 
-      // 5.1. Validate transaction and generate proof once the block is attested
-      const proofResult = await generateProofFor(txHash, sourceChainKey, proverApiUrl, ccProvider, sourceChainProvider);
+        if (processedTxs.has(txHash)) {
+          return;
+        }
+        processedTxs.add(txHash);
 
-      // 5.2. Using previously generated proof, submit to USC prover contract
-      if (proofResult.success) {
-        try {
-          await submitProofToBlockProver(proverContract, proofResult.data!);
+        console.log(`Detected LoanRegistered event for loanId: ${loanId} - tx hash: ${txHash}`);
 
-          // If the proof submission is successful, update the loan tracker
-          loanTracker[loanId] = {
-            lender,
-            borrower,
-            loanAmount,
-            repayAmount,
-            repayLeft: repayAmount,
-            expiresAt,
-            funded: false,
-            repaid: false,
-            expired: false,
-          };
+        // 5.1. Validate transaction and generate proof once the block is attested
+        const proofResult = await generateProofFor(
+          txHash,
+          sourceChainKey,
+          proverApiUrl,
+          ccProvider,
+          sourceChainProvider
+        );
 
-          // Add loan to expiry tracker
-          if (!loanExpiriesAt[expiresAt]) {
-            loanExpiriesAt[expiresAt] = [];
+        // 5.2. Using previously generated proof, submit to USC prover contract
+        if (proofResult.success) {
+          try {
+            const gasLimit = await computeGasLimitForProver(
+              ccProvider,
+              proverContract,
+              proofResult.data!,
+              wallet.address
+            );
+            await submitProofToBlockProver(proverContract, proofResult.data!, gasLimit);
+
+            // If the proof submission is successful, update the loan tracker
+            loanTracker[loanId] = {
+              lender,
+              borrower,
+              loanAmount,
+              repayAmount,
+              repayLeft: repayAmount,
+              expiresAt,
+              funded: false,
+              repaid: false,
+              expired: false,
+            };
+
+            // Add loan to expiry tracker
+            if (!loanExpiriesAt[expiresAt]) {
+              loanExpiriesAt[expiresAt] = [];
+            }
+            loanExpiriesAt[expiresAt].push(loanId);
+
+            // 5.3 Register in source chain loan contract the funding of the loan
+            const fundFlow = {
+              from: lender,
+              to: borrower,
+              withToken: sourceChainERC20ContractAddress,
+            };
+
+            const tx = await sourceChainLoanContract.registerLoanFund(fundFlow, loanAmount);
+            console.log(`Registered loan ${loanId} for funding on source chain, tx hash: ${tx.hash}`);
+          } catch (error) {
+            console.error(`Error on LoanRegistered handle for ${loanId}: `, error);
           }
-          loanExpiriesAt[expiresAt].push(loanId);
-
-          // 5.3 Register in source chain loan contract the funding of the loan
-          const fundFlow = {
-            from: lender,
-            to: borrower,
-            withToken: sourceChainERC20ContractAddress,
-          };
-
-          const tx = await sourceChainLoanContract.registerLoanFund(fundFlow, loanAmount);
-          console.log(`Registered loan ${loanId} for funding on source chain, tx hash: ${tx.hash}`);
-        } catch (error) {
-          console.error(`Error on LoanRegistered handle for ${loanId}: `, error);
+        } else {
+          throw new Error(`Failed to generate proof: ${proofResult.error}`);
         }
-      } else {
-        throw new Error(`Failed to generate proof: ${proofResult.error}`);
-      }
-    }
-  );
+      }),
+      // 6. Poll LoanFunded events on source chain loan contract
+      pollEvents(sourceChainLoanContract, 'LoanFunded', sourceFromBlock, async (event) => {
+        const [loanId] = event.args;
+        const txHash = event.transactionHash;
 
-  // 6. Listen to LoanFunded events on source chain loan contract
-  const loanFundedOnSourceHandle = sourceChainLoanContract.on(
-    'LoanFunded',
-    async (loanId: number, ...params: any[]) => {
-      // Last param is always the transaction hash
-      const txHash = params[params.length - 1];
-      console.log(`Detected LoanFunded event for loanId: ${loanId} - tx hash: ${txHash}`);
-
-      const loanInfo = loanTracker[loanId];
-
-      if (!loanInfo) {
-        console.warn(`Loan ${loanId} not found in tracker.`);
-        return;
-      }
-
-      if (loanInfo.expired || loanInfo.repaid || loanInfo.funded) {
-        console.warn(`Loan ${loanId} is not in a valid state for funding. Skipping.`);
-        return;
-      }
-
-      // 6.1 Validate transaction and generate proof once the block is attested
-      const proofResult = await generateProofFor(txHash, sourceChainKey, proverApiUrl, ccProvider, sourceChainProvider);
-
-      // 6.2 Using previously generated proof, submit to USC prover contract
-      if (proofResult.success) {
-        try {
-          await submitProofToBlockProver(proverContract, proofResult.data!);
-
-          const loanInfo = loanTracker[loanId];
-          loanInfo.funded = true;
-
-          // 6.3 Register in source chain loan contract the repayment of the loan
-          const repaymentFlow = {
-            from: loanInfo.borrower,
-            to: loanInfo.lender,
-            withToken: sourceChainERC20ContractAddress,
-          };
-
-          const tx1 = await sourceChainLoanContract.registerLoanRepayment(repaymentFlow, loanInfo.repayAmount);
-          console.log(`Registered loan ${loanId} for repayment on source chain, tx hash: ${tx1.hash}`);
-
-          // 6.4 Mark loan as funded on Creditcoin
-          const tx2 = await managerContract.markLoanAsFunded(loanId);
-          console.log(`Marked loan ${loanId} as funded on Creditcoin, tx hash: ${tx2.hash}`);
-        } catch (error) {
-          console.error(`Error on LoanFunded handle for ${loanId}: `, error);
+        if (processedTxs.has(txHash)) {
+          return;
         }
-      } else {
-        throw new Error(`Failed to generate proof: ${proofResult.error}`);
-      }
-    }
-  );
+        processedTxs.add(txHash);
 
-  // 7. Listen to LoanRepaid events on source chain loan contract
-  const loanRepaidOnSourceHandle = sourceChainLoanContract.on(
-    'LoanRepaid',
-    async (loanId: number, amount: number, ...params: any[]) => {
-      // Last param is always the transaction hash
-      const txHash = params[params.length - 1];
-      console.log(`Detected LoanRepaid event for loanId: ${loanId} - tx hash: ${txHash}`);
+        console.log(`Detected LoanFunded event for loanId: ${loanId} - tx hash: ${txHash}`);
 
-      const loanInfo = loanTracker[loanId];
+        const loanInfo = loanTracker[loanId];
 
-      if (!loanInfo) {
-        console.warn(`Loan ${loanId} not found in tracker.`);
-        return;
-      }
+        if (!loanInfo) {
+          console.warn(`Loan ${loanId} not found in tracker.`);
+          return;
+        }
 
-      if (loanInfo.expired || loanInfo.repaid || !loanInfo.funded) {
-        console.warn(`Loan ${loanId} is not in a valid state for repayment. Skipping.`);
-        return;
-      }
+        if (loanInfo.expired || loanInfo.repaid || loanInfo.funded) {
+          console.warn(`Loan ${loanId} is not in a valid state for funding. Skipping.`);
+          return;
+        }
 
-      // 7.1 Validate transaction and generate proof once the block is attested
-      const proofResult = await generateProofFor(txHash, sourceChainKey, proverApiUrl, ccProvider, sourceChainProvider);
+        // 6.1 Validate transaction and generate proof once the block is attested
+        const proofResult = await generateProofFor(
+          txHash,
+          sourceChainKey,
+          proverApiUrl,
+          ccProvider,
+          sourceChainProvider
+        );
 
-      // 7.2 Using previously generated proof, submit to USC prover contract
-      if (proofResult.success) {
-        try {
-          await submitProofToBlockProver(proverContract, proofResult.data!);
+        // 6.2 Using previously generated proof, submit to USC prover contract
+        if (proofResult.success) {
+          try {
+            const gasLimit = await computeGasLimitForProver(
+              ccProvider,
+              proverContract,
+              proofResult.data!,
+              wallet.address
+            );
+            await submitProofToBlockProver(proverContract, proofResult.data!, gasLimit);
 
-          const loanInfo = loanTracker[loanId];
-          loanInfo.repayLeft -= amount;
+            const loanInfo = loanTracker[loanId];
+            loanInfo.funded = true;
 
-          // 7.3 Note loan repayment on Creditcoin, depending on whether the loan is fully repaid or not
-          // will trigger either partial or full repayment events
-          const tx1 = await managerContract.noteLoanRepayment(loanId, amount);
-          console.log(`Note loan ${loanId} repayment, tx hash: ${tx1.hash}`);
+            // 6.3 Register in source chain loan contract the repayment of the loan
+            const repaymentFlow = {
+              from: loanInfo.borrower,
+              to: loanInfo.lender,
+              withToken: sourceChainERC20ContractAddress,
+            };
 
-          if (loanInfo.repayLeft <= 0) {
-            loanInfo.repaid = true;
+            const tx1 = await sourceChainLoanContract.registerLoanRepayment(repaymentFlow, loanInfo.repayAmount);
+            console.log(`Registered loan ${loanId} for repayment on source chain, tx hash: ${tx1.hash}`);
+
+            // 6.4 Mark loan as funded on Creditcoin
+            const tx2 = await managerContract.markLoanAsFunded(loanId);
+            console.log(`Marked loan ${loanId} as funded on Creditcoin, tx hash: ${tx2.hash}`);
+          } catch (error) {
+            console.error(`Error on LoanFunded handle for ${loanId}: `, error);
           }
-        } catch (error) {
-          console.error(`Error on LoanRepaid handle for ${loanId}: `, error);
+        } else {
+          throw new Error(`Failed to generate proof: ${proofResult.error}`);
         }
-      } else {
-        throw new Error(`Failed to generate proof: ${proofResult.error}`);
-      }
+      }),
+      // 7. Poll LoanRepaid events on source chain loan contract
+      pollEvents(sourceChainLoanContract, 'LoanRepaid', sourceFromBlock, async (event) => {
+        const [loanId, amount] = event.args;
+        const txHash = event.transactionHash;
+
+        if (processedTxs.has(txHash)) {
+          return;
+        }
+        processedTxs.add(txHash);
+
+        console.log(`Detected LoanRepaid event for loanId: ${loanId} - tx hash: ${txHash}`);
+
+        const loanInfo = loanTracker[loanId];
+
+        if (!loanInfo) {
+          console.warn(`Loan ${loanId} not found in tracker.`);
+          return;
+        }
+
+        if (loanInfo.expired || loanInfo.repaid || !loanInfo.funded) {
+          console.warn(`Loan ${loanId} is not in a valid state for repayment. Skipping.`);
+          return;
+        }
+
+        // 7.1 Validate transaction and generate proof once the block is attested
+        const proofResult = await generateProofFor(
+          txHash,
+          sourceChainKey,
+          proverApiUrl,
+          ccProvider,
+          sourceChainProvider
+        );
+
+        // 7.2 Using previously generated proof, submit to USC prover contract
+        if (proofResult.success) {
+          try {
+            const gasLimit = await computeGasLimitForProver(
+              ccProvider,
+              proverContract,
+              proofResult.data!,
+              wallet.address
+            );
+            await submitProofToBlockProver(proverContract, proofResult.data!, gasLimit);
+
+            const loanInfo = loanTracker[loanId];
+            loanInfo.repayLeft -= amount;
+
+            // 7.3 Note loan repayment on Creditcoin, depending on whether the loan is fully repaid or not
+            // will trigger either partial or full repayment events
+            const tx1 = await managerContract.noteLoanRepayment(loanId, amount);
+            console.log(`Note loan ${loanId} repayment, tx hash: ${tx1.hash}`);
+
+            if (loanInfo.repayLeft <= 0) {
+              loanInfo.repaid = true;
+            }
+          } catch (error) {
+            console.error(`Error on LoanRepaid handle for ${loanId}: `, error);
+          }
+        } else {
+          throw new Error(`Failed to generate proof: ${proofResult.error}`);
+        }
+      }),
+      // 8. Polling LoanFunded, LoanExpired, LoanPartiallyRepaid and LoanFullyRepaid events on manager contract
+      pollEvents(managerContract, 'LoanFunded', ccFromBlock, async (event) => {
+        const [loanId] = event.args;
+        const txHash = event.transactionHash;
+
+        if (processedTxs.has(txHash)) {
+          return;
+        }
+        processedTxs.add(txHash);
+
+        console.log(`Loan ${loanId} has been marked as funded on Creditcoin.`);
+      }),
+      pollEvents(managerContract, 'LoanExpired', ccFromBlock, async (event) => {
+        const [loanId] = event.args;
+        const txHash = event.transactionHash;
+
+        if (processedTxs.has(txHash)) {
+          return;
+        }
+        processedTxs.add(txHash);
+
+        console.log(`Loan ${loanId} has been marked as expired on Creditcoin.`);
+      }),
+      pollEvents(managerContract, 'LoanPartiallyRepaid', ccFromBlock, async (event) => {
+        const [loanId, amountRepaid] = event.args;
+        const txHash = event.transactionHash;
+
+        if (processedTxs.has(txHash)) {
+          return;
+        }
+        processedTxs.add(txHash);
+
+        console.log(`Loan ${loanId} has been partially repaid on Creditcoin. Amount repaid: ${amountRepaid}`);
+      }),
+      pollEvents(managerContract, 'LoanFullyRepaid', ccFromBlock, async (event) => {
+        const [loanId] = event.args;
+        const txHash = event.transactionHash;
+
+        if (processedTxs.has(txHash)) {
+          return;
+        }
+        processedTxs.add(txHash);
+
+        console.log(`Loan ${loanId} has been marked as fully repaid on Creditcoin.`);
+      }),
+    ]);
+
+    ccFromBlock = newCcBlock;
+    sourceFromBlock = newSourceBlock;
+
+    // Prevent memory leak by clearing old entries when set grows too large
+    if (processedTxs.size > MAX_PROCESSED_TXS) {
+      console.log(`Clearing processed transactions cache (had ${processedTxs.size} entries)`);
+      processedTxs.clear();
     }
-  );
 
-  // 8. Listening to LoanFunded, LoanExpired, LoanPartiallyRepaid and LoanFullyRepaid events on manager contract
-  const loanFundedHandle = managerContract.on('LoanFunded', (loanId: number) => {
-    console.log(`Loan ${loanId} has been marked as funded on Creditcoin.`);
-  });
+    // Wait before next poll
+    await new Promise((resolve) => setTimeout(resolve, POLLING_INTERVAL_MS));
+  }
 
-  const loanExpiredHandle = managerContract.on('LoanExpired', (loanId: number) => {
-    console.log(`Loan ${loanId} has been marked as expired on Creditcoin.`);
-  });
+  // Shutdown providers
+  sourceChainProvider.destroy();
+  ccProvider.destroy();
 
-  const loanPartiallyRepaidHandle = managerContract.on(
-    'LoanPartiallyRepaid',
-    (loanId: number, amountRepaid: number) => {
-      console.log(`Loan ${loanId} has been partially repaid on Creditcoin. Amount repaid: ${amountRepaid}`);
-    }
-  );
-
-  const loanFullyRepaidHandle = managerContract.on('LoanFullyRepaid', (loanId: number) => {
-    console.log(`Loan ${loanId} has been marked as fully repaid on Creditcoin.`);
-  });
-
-  await Promise.all([
-    blockHandle,
-    loanRegisteredHandle,
-    loanFundedOnSourceHandle,
-    loanRepaidOnSourceHandle,
-    loanFundedHandle,
-    loanExpiredHandle,
-    loanPartiallyRepaidHandle,
-    loanFullyRepaidHandle,
-  ]);
+  console.log('Worker stopped.');
 };
 
 main().catch(console.error);
