@@ -156,7 +156,7 @@ contract USCLoanManager is Ownable, ReentrancyGuard {
     function markLoanAsExpired(uint256 loanId) external onlyOwner {
         LoanOrder storage loan = loanOrders[loanId];
         require(loan.status != LoanStatus.Repaid && loan.status != LoanStatus.Expired, "Loan already finalized");
-        require(block.number > loan.terms.deadlineBlockNumber, "Loan has not expired yet");
+        require(block.number >= loan.terms.deadlineBlockNumber, "Loan has not expired yet");
 
         loan.status = LoanStatus.Expired;
         emit LoanExpired(loanId);

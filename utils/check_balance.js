@@ -3,13 +3,13 @@ const { ethers } = require('ethers');
 require('dotenv').config({ override: true });
 
 // === Check for arguments ===
-if (process.argv.length !== 4) {
+if (process.argv.length < 4 || process.argv.length > 5) {
   console.error(`
 Usage:
-  node check_balance.js <contract_address> <target_address>
+  yarn utils:check_balance <contract_address> <target_address> [RPC_URL]
 
 Example:
-  node check_balance.js 0x123...abc 0x456...def
+  yarn utils:check_balance 0x123...abc 0x456...def http://localhost:8545
 `);
   process.exit(1);
 }
@@ -18,7 +18,12 @@ const CONTRACT_ADDRESS = process.argv[2];
 const TARGET_ADDRESS = process.argv[3];
 
 // === RPC URL Setup ===
-const RPC_URL = process.env.CREDITCOIN_RPC_URL;
+let RPC_URL;
+if (process.argv.length === 5) {
+  RPC_URL = process.argv[4];
+} else {
+  RPC_URL = process.env.CREDITCOIN_RPC_URL;
+}
 
 // === ERC20 ABI ===
 const ERC20_ABI = [

@@ -1,4 +1,4 @@
-import { Contract, JsonRpcApiProvider, TransactionReceipt, Log, LogDescription, EventLog } from 'ethers';
+import { Contract, JsonRpcApiProvider, TransactionReceipt, Log, LogDescription, EventLog, EthersError } from 'ethers';
 
 import { api, chainInfo, ContinuityResponse, ProofGenerationResult } from '@gluwa/cc-next-query-builder';
 
@@ -82,14 +82,14 @@ async function computeGasLimit(
     });
     gasLimit = (estimatedGas * BigInt(GAS_BUFFER_MULTIPLIER)) / BigInt(100);
     console.log(`   Estimated gas: ${estimatedGas.toString()}, Gas limit with buffer: ${gasLimit.toString()}`);
-  } catch (gasEstimateError) {
+  } catch (error: EthersError | any) {
     // Gas estimation can fail even when the call would succeed
     // This is a known issue with precompiles - pallet-evm doesn't always
     // properly propagate revert reasons during estimation mode
     // Calculate a reasonable estimate based on continuity proof size (matching Rust logic)
     // Base: 21000 (tx) + ~5000 per continuity block + ~10000 for merkle + overhead
     const calculatedGas = 21000 + continuityLength * 5000 + 20000;
-    console.warn(`   Gas estimation failed: ${gasEstimateError}`);
+    console.warn(`   Gas estimation failed: ${error.shortMessage}`);
     console.log(
       `   Using calculated gas limit based on proof size: ${calculatedGas} (${continuityLength} continuity blocks)`
     );
@@ -289,10 +289,18 @@ export async function pollEvents(
 
     // Return next block to query from
     return currentBlock + 1;
-  } catch (error) {
-    console.error(`Error polling ${eventName} events:`, error);
+  } catch (error: EthersError | any) {
+    console.error(`Error polling ${eventName} events:`, error.shortMessage);
     // Add backoff delay on error to avoid hammering the RPC
     await new Promise((resolve) => setTimeout(resolve, ERROR_BACKOFF_MS));
     return fromBlock; // Retry from same block on error
   }
+}
+
+export function isValidPrivateKey(key: string | undefined): boolean {
+  return !!key && key.startsWith('0x') && key.length === 66;
+}
+
+export function isValidContractAddress(address: string | undefined): boolean {
+  return !!address && address.startsWith('0x') && address.length === 42;
 }

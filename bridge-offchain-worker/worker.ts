@@ -10,6 +10,8 @@ import {
   pollEvents,
   MAX_PROCESSED_TXS,
   POLLING_INTERVAL_MS,
+  isValidContractAddress,
+  isValidPrivateKey,
 } from '../utils';
 
 dotenv.config({ override: true });
@@ -47,11 +49,11 @@ const main = async () => {
   const ccNextRpcUrl = process.env.CREDITCOIN_RPC_URL;
   const ccNextWalletPrivateKey = process.env.CREDITCOIN_WALLET_PRIVATE_KEY;
 
-  if (!sourceChainContractAddress) {
+  if (!isValidContractAddress(sourceChainContractAddress)) {
     throw new Error('SOURCE_CHAIN_CUSTOM_CONTRACT_ADDRESS environment variable is not configured or invalid');
   }
 
-  if (!uscMinterContractAddress) {
+  if (!isValidContractAddress(uscMinterContractAddress)) {
     throw new Error('USC_CUSTOM_MINTER_CONTRACT_ADDRESS environment variable is not configured or invalid');
   }
 
@@ -63,18 +65,18 @@ const main = async () => {
     throw new Error('CREDITCOIN_RPC_URL environment variable is not configured or invalid');
   }
 
-  if (!ccNextWalletPrivateKey) {
+  if (!isValidPrivateKey(ccNextWalletPrivateKey)) {
     throw new Error('CREDITCOIN_WALLET_PRIVATE_KEY environment variable is not configured or invalid');
   }
 
   // 1. Create connection to source chain burner contract
   const ethProvider = new ethers.JsonRpcProvider(sourceChainRpcUrl);
-  const burnerContract = new Contract(sourceChainContractAddress, burnerAbi as unknown as InterfaceAbi, ethProvider);
+  const burnerContract = new Contract(sourceChainContractAddress!, burnerAbi as unknown as InterfaceAbi, ethProvider);
 
   // 2. Create connection to minter contract on Creditcoin USC chain
   const ccProvider = new ethers.JsonRpcProvider(ccNextRpcUrl);
-  const wallet = new ethers.Wallet(ccNextWalletPrivateKey, ccProvider);
-  const minterContract = new Contract(uscMinterContractAddress, simpleMinterAbi as unknown as InterfaceAbi, wallet);
+  const wallet = new ethers.Wallet(ccNextWalletPrivateKey!, ccProvider);
+  const minterContract = new Contract(uscMinterContractAddress!, simpleMinterAbi as unknown as InterfaceAbi, wallet);
 
   // Get starting block numbers
   let burnerFromBlock = await ethProvider.getBlockNumber();

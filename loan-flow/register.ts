@@ -1,7 +1,8 @@
 import dotenv from 'dotenv';
-import { Contract, ethers, InterfaceAbi } from 'ethers';
+import { Contract, ethers, EthersError, InterfaceAbi } from 'ethers';
 
 import loanManagerAbi from '../contracts/abi/USCLoanManager.json';
+import { isValidContractAddress, isValidPrivateKey } from '../utils';
 
 dotenv.config({ override: true });
 
@@ -11,10 +12,10 @@ const main = async () => {
   if (args.length !== 3) {
     console.error(`
   Usage:
-    yarn register <LoanAmount> <IntereseBasisPoints> <DurationInBlocks>
+    yarn loan_flow:register_loan <LoanAmount> <IntereseBasisPoints> <DurationInBlocks>
 
   Example:
-    yarn register 1000 500 5000
+    yarn loan_flow:register_loan 1000 500 5000
   `);
     process.exit(1);
   }
@@ -33,8 +34,8 @@ const main = async () => {
     throw new Error('Invalid Interest Basis Points provided');
   }
 
-  if (isNaN(durationInBlocks) || durationInBlocks <= 100) {
-    throw new Error('Invalid Deadline Block Number provided, minimum duration is 100 blocks');
+  if (isNaN(durationInBlocks) || durationInBlocks < 100) {
+    throw new Error('Invalid Deadline Block Number provided, minimum duration is 100 blocks!');
   }
 
   // Environment Variables
@@ -45,46 +46,35 @@ const main = async () => {
   const ccNextRpcUrl = process.env.CREDITCOIN_RPC_URL;
   const ccNextWalletPrivateKey = process.env.CREDITCOIN_WALLET_PRIVATE_KEY;
 
-  if (
-    !loanManagerContractAddress ||
-    !loanManagerContractAddress.startsWith('0x') ||
-    loanManagerContractAddress.length !== 42
-  ) {
-    throw new Error('USC_LOAN_MANAGER_CONTRACT_ADDRESS environment variable is not configured or invalid');
-  }
-
-  if (
-    !sourceChainERC20ContractAddress ||
-    !sourceChainERC20ContractAddress.startsWith('0x') ||
-    sourceChainERC20ContractAddress.length !== 42
-  ) {
-    throw new Error('SOURCE_CHAIN_ERC20_CONTRACT_ADDRESS environment variable is not configured or invalid');
-  }
-
-  if (!lenderKey || !lenderKey.startsWith('0x') || lenderKey.length !== 66) {
-    throw new Error('LENDER_WALLET_PRIVATE_KEY environment variable is not configured or invalid');
-  }
-
-  if (!borrowerKey || !borrowerKey.startsWith('0x') || borrowerKey.length !== 66) {
-    throw new Error('BORROWER_WALLET_PRIVATE_KEY environment variable is not configured or invalid');
-  }
   if (!ccNextRpcUrl) {
     throw new Error('CREDITCOIN_RPC_URL environment variable is not configured or invalid');
   }
 
-  if (!ccNextWalletPrivateKey || !ccNextWalletPrivateKey.startsWith('0x') || ccNextWalletPrivateKey.length !== 66) {
+  if (!isValidContractAddress(loanManagerContractAddress)) {
+    throw new Error('USC_LOAN_MANAGER_CONTRACT_ADDRESS environment variable is not configured or invalid');
+  }
+  if (!isValidContractAddress(sourceChainERC20ContractAddress)) {
+    throw new Error('SOURCE_CHAIN_ERC20_CONTRACT_ADDRESS environment variable is not configured or invalid');
+  }
+
+  if (!isValidPrivateKey(ccNextWalletPrivateKey)) {
     throw new Error('CREDITCOIN_WALLET_PRIVATE_KEY environment variable is not configured or invalid');
+  }
+  if (!isValidPrivateKey(lenderKey)) {
+    throw new Error('LENDER_WALLET_PRIVATE_KEY environment variable is not configured or invalid');
+  }
+  if (!isValidPrivateKey(borrowerKey)) {
+    throw new Error('BORROWER_WALLET_PRIVATE_KEY environment variable is not configured or invalid');
   }
 
   // 1. Connect to loan manager contract on creditcoin chain
   const ccProvider = new ethers.JsonRpcProvider(ccNextRpcUrl);
-  const wallet = new ethers.Wallet(ccNextWalletPrivateKey, ccProvider);
-  const managerContract = new Contract(loanManagerContractAddress, loanManagerAbi as unknown as InterfaceAbi, wallet);
+  const wallet = new ethers.Wallet(ccNextWalletPrivateKey!, ccProvider);
+  const managerContract = new Contract(loanManagerContractAddress!, loanManagerAbi as unknown as InterfaceAbi, wallet);
 
   // 2. Build loan registration payload
-  const lenderWallet = new ethers.Wallet(lenderKey, ccProvider);
-  const borrowerWallet = new ethers.Wallet(borrowerKey, ccProvider);
-
+  const lenderWallet = new ethers.Wallet(lenderKey!, ccProvider);
+  const borrowerWallet = new ethers.Wallet(borrowerKey!, ccProvider);
   const fundFlow = {
     from: lenderWallet.address,
     to: borrowerWallet.address,
@@ -153,8 +143,8 @@ const main = async () => {
   try {
     const tx = await managerContract.registerLoan(fundFlow, repayFlow, loanTerm, lenderSignature, borrowerSignature);
     console.log('Loan registered with transaction hash: ', tx.hash);
-  } catch (error) {
-    console.error('Error registering loan: ', error);
+  } catch (error: EthersError | any) {
+    console.error('Error registering loan: ', error.shortMessage);
     process.exit(1);
   }
 

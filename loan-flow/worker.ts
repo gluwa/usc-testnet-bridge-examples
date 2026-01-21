@@ -1,5 +1,5 @@
 import dotenv from 'dotenv';
-import { Contract, ethers, InterfaceAbi } from 'ethers';
+import { Contract, ethers, EthersError, InterfaceAbi } from 'ethers';
 
 import loanManagerAbi from '../contracts/abi/USCLoanManager.json';
 import loanHelperAbi from '../contracts/abi/AuxiliaryLoanContract.json';
@@ -7,6 +7,8 @@ import blockProverAbi from '../contracts/abi/BlockProver.json';
 import {
   computeGasLimitForProver,
   generateProofFor,
+  isValidContractAddress,
+  isValidPrivateKey,
   MAX_PROCESSED_TXS,
   pollEvents,
   POLLING_INTERVAL_MS,
@@ -66,23 +68,14 @@ const main = async () => {
     throw new Error('CREDITCOIN_RPC_URL environment variable is not configured or invalid');
   }
 
-  if (!ccNextWalletPrivateKey || !ccNextWalletPrivateKey.startsWith('0x') || ccNextWalletPrivateKey.length !== 66) {
+  if (!isValidPrivateKey(ccNextWalletPrivateKey)) {
     throw new Error('CREDITCOIN_WALLET_PRIVATE_KEY environment variable is not configured or invalid');
   }
 
-  if (
-    !loanManagerContractAddress ||
-    !loanManagerContractAddress.startsWith('0x') ||
-    loanManagerContractAddress.length !== 42
-  ) {
+  if (!isValidContractAddress(loanManagerContractAddress)) {
     throw new Error('USC_LOAN_MANAGER_CONTRACT_ADDRESS environment variable is not configured or invalid');
   }
-
-  if (
-    !sourceChainLoanContractAddress ||
-    !sourceChainLoanContractAddress.startsWith('0x') ||
-    sourceChainLoanContractAddress.length !== 42
-  ) {
+  if (!isValidContractAddress(sourceChainLoanContractAddress)) {
     throw new Error('SOURCE_CHAIN_LOAN_CONTRACT_ADDRESS environment variable is not configured or invalid');
   }
 
@@ -94,27 +87,28 @@ const main = async () => {
   // ERC20 Contract Address
   const sourceChainERC20ContractAddress = process.env.SOURCE_CHAIN_ERC20_CONTRACT_ADDRESS;
 
-  if (
-    !sourceChainERC20ContractAddress ||
-    !sourceChainERC20ContractAddress.startsWith('0x') ||
-    sourceChainERC20ContractAddress.length !== 42
-  ) {
+  if (!isValidContractAddress(sourceChainERC20ContractAddress)) {
     throw new Error('SOURCE_CHAIN_ERC20_CONTRACT_ADDRESS environment variable is not configured or invalid');
   }
 
   // 1. Connect to the loan manager and prover contracts on creditcoin chain
   const ccProvider = new ethers.JsonRpcProvider(ccNextRpcUrl);
-  const wallet = new ethers.Wallet(ccNextWalletPrivateKey, ccProvider);
+  const ccWallet = new ethers.Wallet(ccNextWalletPrivateKey!, ccProvider);
 
-  const managerContract = new Contract(loanManagerContractAddress, loanManagerAbi as unknown as InterfaceAbi, wallet);
-  const proverContract = new Contract(proverContractAddress, blockProverAbi as unknown as InterfaceAbi, wallet);
+  const managerContract = new Contract(
+    loanManagerContractAddress!,
+    loanManagerAbi as unknown as InterfaceAbi,
+    ccWallet
+  );
+  const proverContract = new Contract(proverContractAddress, blockProverAbi as unknown as InterfaceAbi, ccWallet);
 
   // 2. Connect to source chain loan contract
-  const sourceChainProvider = new ethers.JsonRpcProvider(sourceChainRpcUrl, undefined, { polling: true });
+  const sourceChainProvider = new ethers.JsonRpcProvider(sourceChainRpcUrl);
+  const sourceChainWallet = new ethers.Wallet(ccNextWalletPrivateKey!, sourceChainProvider);
   const sourceChainLoanContract = new Contract(
-    sourceChainLoanContractAddress,
+    sourceChainLoanContractAddress!,
     loanHelperAbi as unknown as InterfaceAbi,
-    sourceChainProvider
+    sourceChainWallet
   );
 
   // 3. Initialize loan tracker, expiry tracker and other state
@@ -132,8 +126,8 @@ const main = async () => {
   console.log(`Polling source chain from block ${sourceFromBlock}`);
   console.log(`Polling USC chain from block ${ccFromBlock}`);
 
-  // 4. List on block production on source chain to track loan expiries
-  const blockHandle = sourceChainProvider.on('block', async (blockNumber: number) => {
+  // 4. List on block production on USC chain to track loan expiries
+  ccProvider.on('block', async (blockNumber: number) => {
     const expiringLoans = loanExpiriesAt[blockNumber];
 
     // 4.1 Go through expiring loans in the current block and mark them as expired if not repaid
@@ -141,7 +135,7 @@ const main = async () => {
       for (const loanId of expiringLoans) {
         const loanInfo = loanTracker[loanId];
         if (loanInfo && !loanInfo.repaid && !loanInfo.expired) {
-          console.log(`Loan ${loanId} has expired on source chain at block ${blockNumber}`);
+          console.log(`Loan ${loanId} has expired on USC chain at block ${blockNumber}`);
           loanInfo.expired = true;
 
           try {
@@ -152,8 +146,8 @@ const main = async () => {
             console.log(`Marked loan ${loanId} as expired on Creditcoin, tx hash: ${tx2.hash}`);
 
             loanInfo.expired = true;
-          } catch (error) {
-            console.error(`Error marking loan ${loanId} as expired on Creditcoin: `, error);
+          } catch (error: EthersError | any) {
+            console.error(`Error marking loan ${loanId} as expired: `, error.shortMessage);
           }
         }
       }
@@ -172,63 +166,42 @@ const main = async () => {
         if (processedTxs.has(txHash)) {
           return;
         }
-        processedTxs.add(txHash);
 
         console.log(`Detected LoanRegistered event for loanId: ${loanId} - tx hash: ${txHash}`);
 
-        // 5.1. Validate transaction and generate proof once the block is attested
-        const proofResult = await generateProofFor(
-          txHash,
-          sourceChainKey,
-          proverApiUrl,
-          ccProvider,
-          sourceChainProvider
-        );
+        try {
+          // If this is a new transaction, add to loan tracker
+          loanTracker[loanId] = {
+            lender,
+            borrower,
+            loanAmount,
+            repayAmount,
+            repayLeft: repayAmount,
+            expiresAt,
+            funded: false,
+            repaid: false,
+            expired: false,
+          };
 
-        // 5.2. Using previously generated proof, submit to USC prover contract
-        if (proofResult.success) {
-          try {
-            const gasLimit = await computeGasLimitForProver(
-              ccProvider,
-              proverContract,
-              proofResult.data!,
-              wallet.address
-            );
-            await submitProofToBlockProver(proverContract, proofResult.data!, gasLimit);
-
-            // If the proof submission is successful, update the loan tracker
-            loanTracker[loanId] = {
-              lender,
-              borrower,
-              loanAmount,
-              repayAmount,
-              repayLeft: repayAmount,
-              expiresAt,
-              funded: false,
-              repaid: false,
-              expired: false,
-            };
-
-            // Add loan to expiry tracker
-            if (!loanExpiriesAt[expiresAt]) {
-              loanExpiriesAt[expiresAt] = [];
-            }
-            loanExpiriesAt[expiresAt].push(loanId);
-
-            // 5.3 Register in source chain loan contract the funding of the loan
-            const fundFlow = {
-              from: lender,
-              to: borrower,
-              withToken: sourceChainERC20ContractAddress,
-            };
-
-            const tx = await sourceChainLoanContract.registerLoanFund(fundFlow, loanAmount);
-            console.log(`Registered loan ${loanId} for funding on source chain, tx hash: ${tx.hash}`);
-          } catch (error) {
-            console.error(`Error on LoanRegistered handle for ${loanId}: `, error);
+          // Add loan to expiry tracker
+          if (!loanExpiriesAt[expiresAt]) {
+            loanExpiriesAt[expiresAt] = [];
           }
-        } else {
-          throw new Error(`Failed to generate proof: ${proofResult.error}`);
+          loanExpiriesAt[expiresAt].push(loanId);
+
+          // 5.3 Register in source chain loan contract the funding of the loan
+          const fundFlow = {
+            from: lender,
+            to: borrower,
+            withToken: sourceChainERC20ContractAddress,
+          };
+
+          const tx = await sourceChainLoanContract.registerLoanFund(loanId, fundFlow, loanAmount);
+          console.log(`Registered loan ${loanId} for funding on source chain, tx hash: ${tx.hash}`);
+
+          processedTxs.add(txHash);
+        } catch (error: EthersError | any) {
+          console.error(`Error on LoanRegistered handle for ${loanId}: `, error.shortMessage);
         }
       }),
       // 6. Poll LoanFunded events on source chain loan contract
@@ -239,7 +212,6 @@ const main = async () => {
         if (processedTxs.has(txHash)) {
           return;
         }
-        processedTxs.add(txHash);
 
         console.log(`Detected LoanFunded event for loanId: ${loanId} - tx hash: ${txHash}`);
 
@@ -271,7 +243,7 @@ const main = async () => {
               ccProvider,
               proverContract,
               proofResult.data!,
-              wallet.address
+              ccWallet.address
             );
             await submitProofToBlockProver(proverContract, proofResult.data!, gasLimit);
 
@@ -285,14 +257,22 @@ const main = async () => {
               withToken: sourceChainERC20ContractAddress,
             };
 
-            const tx1 = await sourceChainLoanContract.registerLoanRepayment(repaymentFlow, loanInfo.repayAmount);
+            const tx1 = await sourceChainLoanContract.registerLoanRepayment(
+              loanId,
+              repaymentFlow,
+              loanInfo.repayAmount
+            );
             console.log(`Registered loan ${loanId} for repayment on source chain, tx hash: ${tx1.hash}`);
+
+            await new Promise((resolve) => setTimeout(resolve, 2000));
 
             // 6.4 Mark loan as funded on Creditcoin
             const tx2 = await managerContract.markLoanAsFunded(loanId);
             console.log(`Marked loan ${loanId} as funded on Creditcoin, tx hash: ${tx2.hash}`);
-          } catch (error) {
-            console.error(`Error on LoanFunded handle for ${loanId}: `, error);
+
+            processedTxs.add(txHash);
+          } catch (error: EthersError | any) {
+            console.error(`Error on LoanFunded handle for ${loanId}: `, error.shortMessage);
           }
         } else {
           throw new Error(`Failed to generate proof: ${proofResult.error}`);
@@ -306,7 +286,6 @@ const main = async () => {
         if (processedTxs.has(txHash)) {
           return;
         }
-        processedTxs.add(txHash);
 
         console.log(`Detected LoanRepaid event for loanId: ${loanId} - tx hash: ${txHash}`);
 
@@ -338,12 +317,14 @@ const main = async () => {
               ccProvider,
               proverContract,
               proofResult.data!,
-              wallet.address
+              ccWallet.address
             );
             await submitProofToBlockProver(proverContract, proofResult.data!, gasLimit);
 
             const loanInfo = loanTracker[loanId];
             loanInfo.repayLeft -= amount;
+
+            await new Promise((resolve) => setTimeout(resolve, 2000));
 
             // 7.3 Note loan repayment on Creditcoin, depending on whether the loan is fully repaid or not
             // will trigger either partial or full repayment events
@@ -353,14 +334,16 @@ const main = async () => {
             if (loanInfo.repayLeft <= 0) {
               loanInfo.repaid = true;
             }
-          } catch (error) {
-            console.error(`Error on LoanRepaid handle for ${loanId}: `, error);
+
+            processedTxs.add(txHash);
+          } catch (error: EthersError | any) {
+            console.error(`Error on LoanRepaid handle for ${loanId}: `, error.shortMessage);
           }
         } else {
           throw new Error(`Failed to generate proof: ${proofResult.error}`);
         }
       }),
-      // 8. Polling LoanFunded, LoanExpired, LoanPartiallyRepaid and LoanFullyRepaid events on manager contract
+      // 8. Polling LoanFunded, LoanExpired, LoanPartiallyRepaid and LoanRepaid events on manager contract
       pollEvents(managerContract, 'LoanFunded', ccFromBlock, async (event) => {
         const [loanId] = event.args;
         const txHash = event.transactionHash;
@@ -394,7 +377,7 @@ const main = async () => {
 
         console.log(`Loan ${loanId} has been partially repaid on Creditcoin. Amount repaid: ${amountRepaid}`);
       }),
-      pollEvents(managerContract, 'LoanFullyRepaid', ccFromBlock, async (event) => {
+      pollEvents(managerContract, 'LoanRepaid', ccFromBlock, async (event) => {
         const [loanId] = event.args;
         const txHash = event.transactionHash;
 
