@@ -1,0 +1,60 @@
+---
+name: Reusable workflow to build a creditcoin3 client
+
+"on":
+  workflow_call:
+    inputs:
+      build-options:
+        required: true
+        type: string
+      version-string:
+        required: true
+        type: string
+
+permissions: read-all
+
+jobs:
+  build-creditcoin3:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          lfs: true
+          repository: gluwa/creditcoin3-next
+          ref: poc_external_attestation_network
+          token: ${{ secrets.GLUWA_BOT_TOKEN }}
+
+      - name: Install protobuf
+        uses: arduino/setup-protoc@v3
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure rustc version
+        run: |
+          RUSTC_VERSION=$(grep channel rust-toolchain.toml | tail -n1 | tr -d " " | cut -f2 -d'"')
+          echo "RUSTC_VERSION=$RUSTC_VERSION" >> "$GITHUB_ENV"
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: ${{ env.RUSTC_VERSION }}
+          targets: wasm32-unknown-unknown
+          components: rust-src
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Build SUT
+        uses: gluwa/cargo@dev
+        with:
+          command: build
+          args: ${{ inputs.build-options }}
+
+      - name: Upload binaries
+        uses: actions/upload-artifact@v6
+        with:
+          name: binary-for-${{ inputs.version-string }}
+          path: |
+            target/release/attestor
+            target/release/attestor_zombienet
+            target/release/creditcoin3-node
+            target/release/proof-gen-api-server
