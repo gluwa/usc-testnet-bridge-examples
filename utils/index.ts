@@ -104,7 +104,7 @@ export async function getGasLimit(
     const continuityBlocks = proofData.continuityProof.roots?.length || 1;
     // Base: 21000 (tx) + ~5000 per continuity block + ~10000 for merkle + overhead
     const calculatedGas = 21000 + continuityBlocks * 5000 + 20000;
-    console.warn(`   Gas estimation failed: ${gasEstimateError}`);
+    console.warn(`   Gas estimation failed: ${gasEstimateError.toString()}`);
     console.log(
       `   Using calculated gas limit based on proof size: ${calculatedGas} (${continuityBlocks} continuity blocks)`
     );
