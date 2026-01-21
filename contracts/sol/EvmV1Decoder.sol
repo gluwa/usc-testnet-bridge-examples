@@ -8,24 +8,24 @@ pragma solidity ^0.8.23;
  * @dev This nested ABI encoding structure avoids "stack too deep" errors in Solidity
  * @dev The checkpoint attests to this bytes[] format - all components must use the same structure
  * @dev QueryBuilder calculates offsets from bytes[] structure, BlockProver extracts using those offsets
- * 
+ *
  * @dev Selective Decoding (Gas-Efficient):
  * @dev This library provides selective decoding functions that allow you to decode only the fields you need:
  * @dev - decodeCommonTxFields(): Decode only common transaction fields (chunk 1)
  * @dev - decodeReceiptFields(): Decode only receipt fields (last chunk)
  * @dev - decodeTypeSpecificFieldsTypeX(): Decode only type-specific fields (chunks 2+)
- * @dev 
+ * @dev
  * @dev Gas Efficiency Tips:
  * @dev - Decode once in memory and reuse the struct to avoid redundant decoding within the same transaction
  * @dev - Use selective decoding when you only need specific fields (e.g., only receipt logs, only TX value)
  * @dev - Full decoding (decodeTransactionTypeX) is still available for backward compatibility
- * @dev 
+ * @dev
  * @dev Example Usage:
  * @dev ```solidity
  * @dev // Only need receipt logs? Decode just the receipt:
  * @dev ReceiptFields memory receipt = EvmV1Decoder.decodeReceiptFields(encodedTx);
  * @dev LogEntry[] memory logs = receipt.receiptLogs;
- * @dev 
+ * @dev
  * @dev // Need both common TX fields and receipt? Decode separately:
  * @dev CommonTxFields memory tx = EvmV1Decoder.decodeCommonTxFields(encodedTx);
  * @dev ReceiptFields memory receipt = EvmV1Decoder.decodeReceiptFields(encodedTx);
@@ -268,7 +268,7 @@ library EvmV1Decoder {
     function _decodeCommonTxChunk(bytes memory chunk) internal pure returns (CommonTxFields memory common) {
         (, bytes[] memory chunks) = abi.decode(chunk, (uint8, bytes[]));
         require(chunks.length >= 1, "EvmV1Decoder: Invalid chunk count");
-        
+
         uint64 nonce;
         uint64 gasLimit;
         address from;
@@ -276,11 +276,11 @@ library EvmV1Decoder {
         address to;
         uint256 value;
         bytes memory data;
-        
+
         (nonce, gasLimit, from, toIsNull, to, value, data) = abi.decode(chunks[0], (
             uint64, uint64, address, bool, address, uint256, bytes
         ));
-        
+
         common.nonce = nonce;
         common.gasLimit = gasLimit;
         common.from = from;
@@ -300,7 +300,7 @@ library EvmV1Decoder {
      */
     function _decodeReceiptChunk(bytes memory chunk, uint8 txType) internal pure returns (ReceiptFields memory receipt) {
         (, bytes[] memory chunks) = abi.decode(chunk, (uint8, bytes[]));
-        
+
         uint256 receiptChunkIndex;
         if (txType <= 2) {
             receiptChunkIndex = 2;
@@ -309,16 +309,16 @@ library EvmV1Decoder {
             receiptChunkIndex = 3;
             require(chunks.length >= 4, "EvmV1Decoder: Invalid chunk count");
         }
-        
+
         uint8 receiptStatus;
         uint64 receiptGasUsed;
         LogEntryTuple[] memory receiptLogs;
         bytes memory receiptLogsBloom;
-        
+
         (receiptStatus, receiptGasUsed, receiptLogs, receiptLogsBloom) = abi.decode(chunks[receiptChunkIndex], (
             uint8, uint64, LogEntryTuple[], bytes
         ));
-        
+
         receipt.receiptStatus = receiptStatus;
         receipt.receiptGasUsed = receiptGasUsed;
         receipt.receiptLogs = _toLogs(receiptLogs);
@@ -403,11 +403,11 @@ library EvmV1Decoder {
         uint8 yParity;
         bytes32 r;
         bytes32 s;
-        
+
         (chainId, gasPrice, accessList, yParity, r, s) = abi.decode(chunk, (
             uint64, uint128, AccessListEntryBytes32[], uint8, bytes32, bytes32
         ));
-        
+
         type1.chainId = chainId;
         type1.gasPrice = gasPrice;
         type1.yParity = yParity;
@@ -427,11 +427,11 @@ library EvmV1Decoder {
         uint8 yParity;
         bytes32 r;
         bytes32 s;
-        
+
         (chainId, maxPriorityFeePerGas, maxFeePerGas, accessList, yParity, r, s) = abi.decode(chunk, (
             uint64, uint128, uint128, AccessListEntryBytes32[], uint8, bytes32, bytes32
         ));
-        
+
         type2.chainId = chainId;
         type2.maxPriorityFeePerGas = maxPriorityFeePerGas;
         type2.maxFeePerGas = maxFeePerGas;
@@ -450,22 +450,22 @@ library EvmV1Decoder {
         uint128 maxPriorityFeePerGas;
         uint128 maxFeePerGas;
         AccessListEntryUint256[] memory accessList;
-        
+
         (chainId, maxPriorityFeePerGas, maxFeePerGas, accessList) = abi.decode(chunk2, (
             uint64, uint128, uint128, AccessListEntryUint256[]
         ));
-        
+
         // Decode chunk 3 (includes signature)
         uint256 maxFeePerBlobGas;
         bytes32[] memory blobVersionedHashes;
         uint8 yParity;
         bytes32 r;
         bytes32 s;
-        
+
         (maxFeePerBlobGas, blobVersionedHashes, yParity, r, s) = abi.decode(chunk3, (
             uint256, bytes32[], uint8, bytes32, bytes32
         ));
-        
+
         type3.chainId = chainId;
         type3.maxPriorityFeePerGas = maxPriorityFeePerGas;
         type3.maxFeePerGas = maxFeePerGas;
@@ -486,21 +486,21 @@ library EvmV1Decoder {
         uint128 maxPriorityFeePerGas;
         uint128 maxFeePerGas;
         AccessListEntryUint256[] memory accessList;
-        
+
         (chainId, maxPriorityFeePerGas, maxFeePerGas, accessList) = abi.decode(chunk2, (
             uint64, uint128, uint128, AccessListEntryUint256[]
         ));
-        
+
         // Decode chunk 3 (includes signature)
         AuthorizationListEntry[] memory authorizationList;
         uint8 yParity;
         bytes32 r;
         bytes32 s;
-        
+
         (authorizationList, yParity, r, s) = abi.decode(chunk3, (
             AuthorizationListEntry[], uint8, bytes32, bytes32
         ));
-        
+
         type4.chainId = chainId;
         type4.maxPriorityFeePerGas = maxPriorityFeePerGas;
         type4.maxFeePerGas = maxFeePerGas;
@@ -515,11 +515,11 @@ library EvmV1Decoder {
     function _decodeType0(bytes memory chunk) internal pure returns (DecodedTransactionType0 memory d) {
         CommonTxFields memory commonTx = _decodeCommonTxChunk(chunk);
         ReceiptFields memory receipt = _decodeReceiptChunk(chunk, 0);
-        
+
         // Decode type-specific chunk
         (, bytes[] memory chunks) = abi.decode(chunk, (uint8, bytes[]));
         d.type0 = _decodeTypeSpecificChunkType0(chunks[1]);
-        
+
         // Assemble structs
         d.commonTx = commonTx;
         d.receipt = receipt;
@@ -528,11 +528,11 @@ library EvmV1Decoder {
     function _decodeType1(bytes memory chunk) internal pure returns (DecodedTransactionType1 memory d) {
         CommonTxFields memory commonTx = _decodeCommonTxChunk(chunk);
         ReceiptFields memory receipt = _decodeReceiptChunk(chunk, 1);
-        
+
         // Decode type-specific chunk
         (, bytes[] memory chunks) = abi.decode(chunk, (uint8, bytes[]));
         d.type1 = _decodeTypeSpecificChunkType1(chunks[1]);
-        
+
         // Assemble structs
         d.commonTx = commonTx;
         d.receipt = receipt;
@@ -541,11 +541,11 @@ library EvmV1Decoder {
     function _decodeType2(bytes memory chunk) internal pure returns (DecodedTransactionType2 memory d) {
         CommonTxFields memory commonTx = _decodeCommonTxChunk(chunk);
         ReceiptFields memory receipt = _decodeReceiptChunk(chunk, 2);
-        
+
         // Decode type-specific chunk
         (, bytes[] memory chunks) = abi.decode(chunk, (uint8, bytes[]));
         d.type2 = _decodeTypeSpecificChunkType2(chunks[1]);
-        
+
         // Assemble structs
         d.commonTx = commonTx;
         d.receipt = receipt;
@@ -554,11 +554,11 @@ library EvmV1Decoder {
     function _decodeType3(bytes memory chunk) internal pure returns (DecodedTransactionType3 memory d) {
         CommonTxFields memory commonTx = _decodeCommonTxChunk(chunk);
         ReceiptFields memory receipt = _decodeReceiptChunk(chunk, 3);
-        
+
         // Decode type-specific chunks (2 and 3)
         (, bytes[] memory chunks) = abi.decode(chunk, (uint8, bytes[]));
         d.type3 = _decodeTypeSpecificChunkType3(chunks[1], chunks[2]);
-        
+
         // Assemble structs
         d.commonTx = commonTx;
         d.receipt = receipt;
@@ -567,11 +567,11 @@ library EvmV1Decoder {
     function _decodeType4(bytes memory chunk) internal pure returns (DecodedTransactionType4 memory d) {
         CommonTxFields memory commonTx = _decodeCommonTxChunk(chunk);
         ReceiptFields memory receipt = _decodeReceiptChunk(chunk, 4);
-        
+
         // Decode type-specific chunks (2 and 3)
         (, bytes[] memory chunks) = abi.decode(chunk, (uint8, bytes[]));
         d.type4 = _decodeTypeSpecificChunkType4(chunks[1], chunks[2]);
-        
+
         // Assemble structs
         d.commonTx = commonTx;
         d.receipt = receipt;
