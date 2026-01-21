@@ -19,7 +19,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        command: [build, check-format]
+        command: [build, check-format, eslint]
 
     steps:
       - uses: actions/checkout@v6

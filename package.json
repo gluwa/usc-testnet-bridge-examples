@@ -8,12 +8,18 @@
     "start_worker": "tsx bridge-offchain-worker/worker.ts",
     "check_balance": "node check_balance.js",
     "check-format": "prettier --check .",
+    "eslint": "eslint -c .eslintrc.js --max-warnings 0 --ext .ts --ext .js .",
     "format": "prettier --write .",
     "build": "forge build"
   },
   "devDependencies": {
-    "tsx": "^4.20.3",
-    "prettier": "^3.8.0"
+    "@typescript-eslint/eslint-plugin": "8.40.0",
+    "@typescript-eslint/parser": "8.51.0",
+    "eslint": "^8.57.0",
+    "eslint-config-prettier": "^10.1.8",
+    "prettier": "^3.8.0",
+    "typescript": "5.9.2",
+    "tsx": "^4.20.3"
   },
   "dependencies": {
     "@gluwa/cc-next-query-builder": "0.5.1",
