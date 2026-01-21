@@ -96,7 +96,7 @@ export async function getGasLimit(
     });
     gasLimit = (estimatedGas * BigInt(GAS_BUFFER_MULTIPLIER)) / BigInt(100);
     console.log(`   Estimated gas: ${estimatedGas.toString()}, Gas limit with buffer: ${gasLimit.toString()}`);
-  } catch (gasEstimateError) {
+  } catch (gasEstimateError: any) {
     // Gas estimation can fail even when the call would succeed
     // This is a known issue with precompiles - pallet-evm doesn't always
     // properly propagate revert reasons during estimation mode
