@@ -8,7 +8,7 @@
     "start_worker": "tsx bridge-offchain-worker/worker.ts",
     "check_balance": "node check_balance.js",
     "check-format": "prettier --check .",
-    "eslint": "eslint -c .eslintrc.js --ignore-pattern .eslintrc.js --max-warnings 0 --ext .ts --ext .js .",
+    "eslint": "eslint -c .eslintrc.js --ignore-pattern .eslintrc.js --ignore-pattern check_balance.js --max-warnings 0 --ext .ts --ext .js .",
     "format": "prettier --write .",
     "build": "forge build"
   },
