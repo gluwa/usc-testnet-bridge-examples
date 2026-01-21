@@ -10,7 +10,8 @@
     "check-format": "prettier --check .",
     "eslint": "eslint -c .eslintrc.js --ignore-pattern .eslintrc.js --ignore-pattern check_balance.js --max-warnings 0 --ext .ts --ext .js .",
     "format": "prettier --write .",
-    "build": "forge build"
+    "build": "forge build",
+    "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "8.40.0",
