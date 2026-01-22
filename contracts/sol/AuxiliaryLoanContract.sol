@@ -20,7 +20,7 @@ contract AuxiliaryLoanContract is Ownable, ReentrancyGuard {
     // Events
     event LoanFunded(uint256 indexed loanId);
     event LoanRepaid(uint256 indexed loanId, uint256 amount);
-   
+
     // Mapping to track authorized tokens
     mapping(address => bool) public authorizedTokens;
 
@@ -33,7 +33,7 @@ contract AuxiliaryLoanContract is Ownable, ReentrancyGuard {
     // Mapping to track loan amounts to fund before loan is marked as funded
     mapping(uint256 => uint256) public loanFundAmounts;
     mapping(uint256 => bool) public loanFundRegistered;
-    
+
     // Mapping to track total repayment amount for each loan
     mapping(uint256 => uint256) public loanRepaymentAmounts;
     mapping(uint256 => bool) public loanRepaymentRegistered;
@@ -79,7 +79,7 @@ contract AuxiliaryLoanContract is Ownable, ReentrancyGuard {
         require(flow.to != address(0), "Invalid target address");
         require(flow.from != flow.to, "Source and target cannot be the same");
         require(authorizedTokens[flow.withToken], "Token not authorized");
-        
+
         return true;
     }
 
@@ -96,7 +96,7 @@ contract AuxiliaryLoanContract is Ownable, ReentrancyGuard {
         require(!loanFundRegistered[loanId], "Loan already registered");
         require(fundAmount > 0, "Fund amount must be greater than 0");
         require(validateFlow(flow), "Invalid loan flow structure");
-        
+
         loanFundAmounts[loanId] = fundAmount;
         loanFundFlows[loanId] = flow;
         loanFundRegistered[loanId] = true;
@@ -138,7 +138,7 @@ contract AuxiliaryLoanContract is Ownable, ReentrancyGuard {
         address token
     ) external nonReentrant {
         require(!expiredLoans[loanId], "Cannot fund an expired loan");
-        
+
         // Validate arguments
         require(msg.sender == from, "Only lender can initiate funding");
         require(amount > 0, "Amount must be greater than 0");
@@ -196,12 +196,12 @@ contract AuxiliaryLoanContract is Ownable, ReentrancyGuard {
         // Ensure the loan is registered for repayment and not already repaid
         require(loanRepaymentRegistered[loanId], "Loan not registered for repayment");
         require(loanRepaymentAmounts[loanId] > 0, "Loan already repaid");
-        
+
         // Validate that flow details match
         LoanFlow memory loanFlow = loanRepayFlows[loanId];
-        require(loanFlow.withToken == token, "Token mismatch for loan");       
+        require(loanFlow.withToken == token, "Token mismatch for loan");
         require(loanFlow.from == from, "Borrower address mismatch");
-        require(loanFlow.to == to, "Lender address mismatch");       
+        require(loanFlow.to == to, "Lender address mismatch");
 
         // If the repayment amount exceeds expected, cap it to expected
         uint256 expectedAmount = loanRepaymentAmounts[loanId];
