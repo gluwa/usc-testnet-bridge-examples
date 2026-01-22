@@ -98,6 +98,7 @@ const main = async () => {
       console.log('Allowance granted: ', approveTx.hash);
 
       // wait for 15 seconds to ensure approval is mined
+      console.log('Waiting 15 seconds for approval to be mined...');
       await new Promise((resolve) => setTimeout(resolve, 15000));
     }
   } catch (error: EthersError | any) {

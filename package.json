@@ -10,6 +10,7 @@
     "loan_flow:register_loan": "tsx loan-flow/register.ts",
     "loan_flow:fund_loan": "tsx loan-flow/fund_loan.ts",
     "loan_flow:repay_loan": "tsx loan-flow/repay_loan.ts",
+    "loan_flow:inspect_loan": "tsx loan-flow/inspect.ts",
     "loan_flow:start_worker": "tsx loan-flow/worker.ts",
     "utils:check_balance": "node utils/check_balance.js",
     "format": "prettier --write .",

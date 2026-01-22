@@ -140,14 +140,11 @@ Decimals for token micro unit: 18
 
 ## Conclusion
 
-Congratulations! You've completed the Creditcoin Universal Smart Contracts tutorial series!
-You've learned:
+Congratulations! You've managed to run your first offchain worker!
 
-1. How to interact with the Creditcoin Oracle
-2. How to deploy your own custom Universal Smart Contracts
-3. How to run an offchain worker to support smooth cross-chain user experience
-
-If you haven't already, take a look at the [USC Gitbook] for more information.
+The next tutorial will take what we've learned here and increase the complexity with a more real world
+example: a loan flow in which a user can lend tokens to another and through the oracle validate that the
+repayments truly happened.
 
 [Custom Contract Bridging]: ../custom-contracts-bridging/README.md
 [how to initiate a trustless bridge transaction]: ../hello-bridge/README.md

@@ -19,6 +19,8 @@ contract USCLoanManager is Ownable, ReentrancyGuard {
 
     // State variables
     mapping(uint256 => LoanOrder) public loanOrders;
+    mapping(uint256 => bool) public registeredLoans;
+
     uint256 public nextLoanId;
 
     // Events
@@ -97,6 +99,8 @@ contract USCLoanManager is Ownable, ReentrancyGuard {
             repaidAmount: 0
         });
 
+        registeredLoans[loanId] = true;
+
         emit LoanRegistered(
             loanId,
             fundFlow.from,
@@ -168,6 +172,8 @@ contract USCLoanManager is Ownable, ReentrancyGuard {
      * @return LoanOrder structure containing loan details
      */
     function getLoanOrder(uint256 loanId) external view returns (LoanOrder memory) {
+        require(registeredLoans[loanId], "Loan ID not registered");
+
         return loanOrders[loanId];
     }
 }

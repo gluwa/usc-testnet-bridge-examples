@@ -122,7 +122,7 @@ const main = async () => {
   // Track processed transaction hashes to avoid duplicates
   const processedTxs = new Set<string>();
 
-  console.log('Worker started! Listening for burn events...');
+  console.log('Worker started! Listening for events...');
   console.log(`Polling source chain from block ${sourceFromBlock}`);
   console.log(`Polling USC chain from block ${ccFromBlock}`);
 

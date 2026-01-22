@@ -25,6 +25,8 @@ if (process.argv.length === 5) {
   RPC_URL = process.env.CREDITCOIN_RPC_URL;
 }
 
+console.log(`🔗 Using RPC URL: ${RPC_URL}`);
+
 // === ERC20 ABI ===
 const ERC20_ABI = [
   'function balanceOf(address account) view returns (uint256)',

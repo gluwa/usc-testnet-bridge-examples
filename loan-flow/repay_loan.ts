@@ -1,9 +1,8 @@
 import dotenv from 'dotenv';
-import { Contract, ethers, InterfaceAbi } from 'ethers';
+import { Contract, ethers, InterfaceAbi, EthersError } from 'ethers';
 
 import loanHelperAbi from '../contracts/abi/AuxiliaryLoanContract.json';
 import ERC20Abi from '../contracts/abi/TestERC20Abi.json';
-import { EthersError } from 'ethers';
 import { isValidContractAddress, isValidPrivateKey } from '../utils';
 
 dotenv.config({ override: true });
@@ -98,6 +97,7 @@ const main = async () => {
       console.log('Allowance granted: ', approveTx.hash);
 
       // wait for 15 seconds to ensure approval is mined
+      console.log('Waiting 15 seconds for approval to be mined...');
       await new Promise((resolve) => setTimeout(resolve, 15000));
     }
   } catch (error: EthersError | any) {
