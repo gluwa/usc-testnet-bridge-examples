@@ -1,4 +1,4 @@
-import { Contract, JsonRpcApiProvider, TransactionReceipt, Log, LogDescription, EventLog, EthersError } from 'ethers';
+import { Contract, JsonRpcApiProvider, TransactionReceipt, Log, LogDescription, EventLog } from 'ethers';
 
 import { api, chainInfo, ContinuityResponse, ProofGenerationResult } from '@gluwa/cc-next-query-builder';
 
@@ -82,7 +82,7 @@ async function computeGasLimit(
     });
     gasLimit = (estimatedGas * BigInt(GAS_BUFFER_MULTIPLIER)) / BigInt(100);
     console.log(`   Estimated gas: ${estimatedGas.toString()}, Gas limit with buffer: ${gasLimit.toString()}`);
-  } catch (error: EthersError | any) {
+  } catch (error: any) {
     // Gas estimation can fail even when the call would succeed
     // This is a known issue with precompiles - pallet-evm doesn't always
     // properly propagate revert reasons during estimation mode
@@ -289,7 +289,7 @@ export async function pollEvents(
 
     // Return next block to query from
     return currentBlock + 1;
-  } catch (error: EthersError | any) {
+  } catch (error: any) {
     console.error(`Error polling ${eventName} events:`, error.shortMessage);
     // Add backoff delay on error to avoid hammering the RPC
     await new Promise((resolve) => setTimeout(resolve, ERROR_BACKOFF_MS));

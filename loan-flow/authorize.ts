@@ -1,5 +1,5 @@
 import dotenv from 'dotenv';
-import { Contract, ethers, EthersError, InterfaceAbi } from 'ethers';
+import { Contract, ethers, InterfaceAbi } from 'ethers';
 
 import loanHelperAbi from '../contracts/abi/AuxiliaryLoanContract.json';
 import { isValidContractAddress, isValidPrivateKey } from '../utils';
@@ -56,7 +56,7 @@ const main = async () => {
   try {
     const tx = await sourceChainLoanContract.addAuthorizedToken(tokenAddress);
     console.log('Token authorized with transaction hash: ', tx.hash);
-  } catch (error: EthersError | any) {
+  } catch (error: any) {
     console.error('Error authorizing token: ', error.shortMessage);
     process.exit(1);
   }

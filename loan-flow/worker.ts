@@ -1,5 +1,5 @@
 import dotenv from 'dotenv';
-import { Contract, ethers, EthersError, InterfaceAbi } from 'ethers';
+import { Contract, ethers, InterfaceAbi } from 'ethers';
 
 import loanManagerAbi from '../contracts/abi/USCLoanManager.json';
 import loanHelperAbi from '../contracts/abi/AuxiliaryLoanContract.json';
@@ -112,8 +112,8 @@ const main = async () => {
   );
 
   // 3. Initialize loan tracker, expiry tracker and other state
-  let loanTracker: Record<string, LoanInfo> = {};
-  let loanExpiriesAt: Record<number, number[]> = {};
+  const loanTracker: Record<string, LoanInfo> = {};
+  const loanExpiriesAt: Record<number, number[]> = {};
 
   // Get starting block numbers
   let sourceFromBlock = await sourceChainProvider.getBlockNumber();
@@ -127,30 +127,32 @@ const main = async () => {
   console.log(`Polling USC chain from block ${ccFromBlock}`);
 
   // 4. List on block production on USC chain to track loan expiries
-  ccProvider.on('block', async (blockNumber: number) => {
+  const _ = ccProvider.on('block', (blockNumber: number) => {
     const expiringLoans = loanExpiriesAt[blockNumber];
 
     // 4.1 Go through expiring loans in the current block and mark them as expired if not repaid
     if (expiringLoans && expiringLoans.length > 0) {
-      for (const loanId of expiringLoans) {
-        const loanInfo = loanTracker[loanId];
-        if (loanInfo && !loanInfo.repaid && !loanInfo.expired) {
-          console.log(`Loan ${loanId} has expired on USC chain at block ${blockNumber}`);
-          loanInfo.expired = true;
-
-          try {
-            const tx1 = await sourceChainLoanContract.markLoanAsExpired(loanId);
-            console.log(`Marked loan ${loanId} as expired on source chain, tx hash: ${tx1.hash}`);
-
-            const tx2 = await managerContract.markLoanAsExpired(loanId);
-            console.log(`Marked loan ${loanId} as expired on Creditcoin, tx hash: ${tx2.hash}`);
-
+      void (async () => {
+        for (const loanId of expiringLoans) {
+          const loanInfo = loanTracker[loanId];
+          if (loanInfo && !loanInfo.repaid && !loanInfo.expired) {
+            console.log(`Loan ${loanId} has expired on USC chain at block ${blockNumber}`);
             loanInfo.expired = true;
-          } catch (error: EthersError | any) {
-            console.error(`Error marking loan ${loanId} as expired: `, error.shortMessage);
+
+            try {
+              const tx1 = await sourceChainLoanContract.markLoanAsExpired(loanId);
+              console.log(`Marked loan ${loanId} as expired on source chain, tx hash: ${tx1.hash}`);
+
+              const tx2 = await managerContract.markLoanAsExpired(loanId);
+              console.log(`Marked loan ${loanId} as expired on Creditcoin, tx hash: ${tx2.hash}`);
+
+              loanInfo.expired = true;
+            } catch (error: any) {
+              console.error(`Error marking loan ${loanId} as expired: `, error.shortMessage);
+            }
           }
         }
-      }
+      })();
     }
   });
 
@@ -200,7 +202,7 @@ const main = async () => {
           console.log(`Registered loan ${loanId} for funding on source chain, tx hash: ${tx.hash}`);
 
           processedTxs.add(txHash);
-        } catch (error: EthersError | any) {
+        } catch (error: any) {
           console.error(`Error on LoanRegistered handle for ${loanId}: `, error.shortMessage);
         }
       }),
@@ -247,7 +249,6 @@ const main = async () => {
             );
             await submitProofToBlockProver(proverContract, proofResult.data!, gasLimit);
 
-            const loanInfo = loanTracker[loanId];
             loanInfo.funded = true;
 
             // 6.3 Register in source chain loan contract the repayment of the loan
@@ -271,7 +272,7 @@ const main = async () => {
             console.log(`Marked loan ${loanId} as funded on Creditcoin, tx hash: ${tx2.hash}`);
 
             processedTxs.add(txHash);
-          } catch (error: EthersError | any) {
+          } catch (error: any) {
             console.error(`Error on LoanFunded handle for ${loanId}: `, error.shortMessage);
           }
         } else {
@@ -321,7 +322,6 @@ const main = async () => {
             );
             await submitProofToBlockProver(proverContract, proofResult.data!, gasLimit);
 
-            const loanInfo = loanTracker[loanId];
             loanInfo.repayLeft -= amount;
 
             await new Promise((resolve) => setTimeout(resolve, 2000));
@@ -336,7 +336,7 @@ const main = async () => {
             }
 
             processedTxs.add(txHash);
-          } catch (error: EthersError | any) {
+          } catch (error: any) {
             console.error(`Error on LoanRepaid handle for ${loanId}: `, error.shortMessage);
           }
         } else {
@@ -344,7 +344,7 @@ const main = async () => {
         }
       }),
       // 8. Polling LoanFunded, LoanExpired, LoanPartiallyRepaid and LoanRepaid events on manager contract
-      pollEvents(managerContract, 'LoanFunded', ccFromBlock, async (event) => {
+      pollEvents(managerContract, 'LoanFunded', ccFromBlock, (event) => {
         const [loanId] = event.args;
         const txHash = event.transactionHash;
 
@@ -355,7 +355,7 @@ const main = async () => {
 
         console.log(`Loan ${loanId} has been marked as funded on Creditcoin.`);
       }),
-      pollEvents(managerContract, 'LoanExpired', ccFromBlock, async (event) => {
+      pollEvents(managerContract, 'LoanExpired', ccFromBlock, (event) => {
         const [loanId] = event.args;
         const txHash = event.transactionHash;
 
@@ -366,7 +366,7 @@ const main = async () => {
 
         console.log(`Loan ${loanId} has been marked as expired on Creditcoin.`);
       }),
-      pollEvents(managerContract, 'LoanPartiallyRepaid', ccFromBlock, async (event) => {
+      pollEvents(managerContract, 'LoanPartiallyRepaid', ccFromBlock, (event) => {
         const [loanId, amountRepaid] = event.args;
         const txHash = event.transactionHash;
 
@@ -377,7 +377,7 @@ const main = async () => {
 
         console.log(`Loan ${loanId} has been partially repaid on Creditcoin. Amount repaid: ${amountRepaid}`);
       }),
-      pollEvents(managerContract, 'LoanRepaid', ccFromBlock, async (event) => {
+      pollEvents(managerContract, 'LoanRepaid', ccFromBlock, (event) => {
         const [loanId] = event.args;
         const txHash = event.transactionHash;
 

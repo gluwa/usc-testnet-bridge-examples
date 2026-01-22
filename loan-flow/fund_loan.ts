@@ -1,5 +1,5 @@
 import dotenv from 'dotenv';
-import { Contract, ethers, EthersError, InterfaceAbi } from 'ethers';
+import { Contract, ethers, InterfaceAbi } from 'ethers';
 
 import loanHelperAbi from '../contracts/abi/AuxiliaryLoanContract.json';
 import ERC20Abi from '../contracts/abi/TestERC20Abi.json';
@@ -84,10 +84,19 @@ const main = async () => {
 
   // 2. Approve the loan contract to transfer lender's tokens
   try {
+    const balance: bigint = await sourceChainERC20Contract.balanceOf(lenderWallet.address);
+    console.log(`Lender wallet balance: ${balance}, required: ${loanAmount}`);
+    if (balance < BigInt(loanAmount)) {
+      console.log('Insufficient balance to fund the loan.');
+      process.exit(0);
+    }
+
     const approved: bigint = await sourceChainERC20Contract.allowance(
       lenderWallet.address,
       sourceChainLoanContractAddress
     );
+
+    console.log(`Current allowance for loan contract: ${approved}`);
 
     if (approved < BigInt(loanAmount)) {
       console.log(
@@ -101,7 +110,7 @@ const main = async () => {
       console.log('Waiting 15 seconds for approval to be mined...');
       await new Promise((resolve) => setTimeout(resolve, 15000));
     }
-  } catch (error: EthersError | any) {
+  } catch (error: any) {
     console.error('Error requesting allowance: ', error.shortMessage);
     process.exit(1);
   }
@@ -116,7 +125,7 @@ const main = async () => {
       sourceChainERC20ContractAddress
     );
     console.log('Loan funded: ', tx.hash);
-  } catch (error: EthersError | any) {
+  } catch (error: any) {
     console.error('Error funding loan: ', error.shortMessage);
     process.exit(1);
   }

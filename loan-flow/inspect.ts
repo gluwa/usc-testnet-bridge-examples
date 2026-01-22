@@ -1,5 +1,5 @@
 import dotenv from 'dotenv';
-import { Contract, ethers, InterfaceAbi, EthersError } from 'ethers';
+import { Contract, ethers, InterfaceAbi } from 'ethers';
 
 import loanManagerAbi from '../contracts/abi/USCLoanManager.json';
 import { isValidContractAddress } from '../utils';
@@ -128,7 +128,7 @@ const main = async () => {
     console.log(` Status: ${LoanStatus[parsedDetails.status]}`);
     console.log(` Repaid Amount: ${parsedDetails.repaidAmount}`);
     console.log(` Blocks until deadline: ${blocksUntilDeadline}`);
-  } catch (error: EthersError | any) {
+  } catch (error: any) {
     console.error('Error fetching loan details: ', error.shortMessage);
     process.exit(1);
   }

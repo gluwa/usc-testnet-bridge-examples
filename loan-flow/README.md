@@ -9,7 +9,7 @@ a more advanced example that includes not only communication but also state trac
 
 ## Loan Flow user story
 
-So, imagine we have two individuals, Alice and Bob which are doing business. Bob needs money for one of his projects
+So, imagine we have two individuals, Alice and Bob who are doing business. Bob needs money for one of his projects
 but alas, he doesn't have enough! That's where Alice comes in and says: maybe I can lend you some of mine?
 
 Oh! But is there any way to create such a loan? And not only that, but both Alice and Bob need a way to prove
@@ -23,9 +23,9 @@ The setup of this example is a bit more complex than previous ones. So let's go 
 
 ## 1.1 Smart contracts
 
-Our system will three contracts:
+Our system will have three contracts:
 
-- An ERC20 contract deployed on Sepolio, which will be the contract where the lending and borrowing will happen
+- An ERC20 contract deployed on Sepolia, which will be the contract where the lending and borrowing will happen
 - A loan manager USC contract deployed on Creditcoin, this will be where loan will be registered and their state updated from the worker
 - An auxiliary loan contract deployed on Sepolia, this is where both funding and repayment will happen
 
@@ -35,7 +35,7 @@ Make sure to first load your `.env` file with:
 source .env
 ```
 
-So, firs of all we start with deploying our ERC20 contract:
+So, first of all we start with deploying our ERC20 contract:
 
 ```sh
 forge create                \
@@ -109,7 +109,7 @@ Address:     0xBE7959cA1b19e159D8C0649860793dDcd125a2D5
 Private key: 0xb9c179ed56514accb60c23a862194fa2a6db8bdeb815d16e2c21aa4d7dc2845d
 ```
 
-Either if you decided to create two new accounts or just one, we can now update the `.env` with the final variables:
+Whether you decided to create two new accounts or just one, we can now update the `.env` with the final variables:
 
 ```env
 # Private key of the account to use as lender in the loan flow
@@ -117,6 +117,10 @@ LENDER_WALLET_PRIVATE_KEY="<your_lender_private_key>"
 # Private key of the account to use as borrower in the loan flow
 BORROWER_WALLET_PRIVATE_KEY="<your_borrower_private_key>"
 ```
+
+> [!CAUTION]
+> Make sure both accounts have enough ETH on Sepolia otherwise they won't
+> be able to execute the funding/repaying calls.
 
 ## 1.3 Funding accounts
 
@@ -207,8 +211,8 @@ Then run the following command to register a loan:
 yarn loan_flow:register_loan 1000 500 1000
 ```
 
-These are the loan parameters, the first is the loan amount, the second the intereset rate in base points and the last
-how many block in the Creditcoin chain will the loan last until it is considered expired.
+These are the loan parameters, the first is the loan amount, the second the interest rate in base points and the last
+how many blocks in the Creditcoin chain will the loan last until it is considered expired.
 
 After running the command you should see the following:
 
@@ -241,7 +245,7 @@ Detected LoanRegistered event for loanId: 5 - tx hash: 0xe7ae256f9786a4538703d19
 Registered loan 5 for funding on source chain, tx hash: 0xcc494f252ebe513499485344453d160e8445766d6a0e3c932f901359918615d4
 ```
 
-Keep track of the loand id, you will need it for the next steps. Additionally you can inspect the loan status at any moment
+Keep track of the loan id, you will need it for the next steps. Additionally you can inspect the loan status at any moment
 with the following command:
 
 ```sh
@@ -313,7 +317,7 @@ Marked loan 5 as funded on Creditcoin, tx hash: 0x30bbaf08809e8c2b80626a971fd63c
 Loan 5 has been marked as funded on Creditcoin.
 ```
 
-Now the borrower can begin repaying it's due!
+Now the borrower can begin repaying its due!
 
 ## 5. Repaying the loan
 
@@ -339,7 +343,7 @@ Latest attested height for chain key 2: 3210
 ```
 
 Before discounting the amount repaid in the manager contract, the worker once more first uses the Oracle to prove that such
-repayment really happened. Once proven the followin appears in the logs:
+repayment really happened. Once proven the following appears in the logs:
 
 ```sh
 Block 3236 attested! Generating proof...
@@ -351,8 +355,8 @@ Note loan 5 repayment, tx hash: 0xa1c22b43c37e51734d3d388fcd583afcb46fbe5bb682bc
 Loan 5 has been partially repaid on Creditcoin. Amount repaid: 1000
 ```
 
-Wait a minute... what do you mean partially repaid!? The loand was for 1000 tokens, this is not fair!
-Hmm... oh! The intereset! I forgot about that!
+Wait a minute... what do you mean partially repaid!? The loan was for 1000 tokens, this is not fair!
+Hmm... oh! The interest! I forgot about that!
 
 ```sh
 yarn loan_flow:repay_loan 5 50
@@ -382,7 +386,7 @@ Loan 5 has been marked as fully repaid on Creditcoin.
 ## 6. Check balances in source chain contract
 
 As a final check, we can take a look at the balance of both the lender and borrower accounts on source chain to confirm
-that the repayment has been succesfull:
+that the repayment has been successful:
 
 ```sh
 WALLET_ADDRESS=$(cast wallet address --private-key $BORROWER_WALLET_PRIVATE_KEY)
@@ -424,7 +428,7 @@ You've learned:
 1. How to interact with the Creditcoin Oracle
 2. How to deploy your own custom Universal Smart Contracts
 3. How to run an offchain worker to support smooth cross-chain user experience
-4. How to run a loan flow examples using the Oracle to obtain proof of the actions performen cross-chain
+4. How to run a loan flow example using the Oracle to obtain proof of the actions performed cross-chain
 
 If you haven't already, take a look at the [USC Gitbook] for more information.
 

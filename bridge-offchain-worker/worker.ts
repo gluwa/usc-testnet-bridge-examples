@@ -1,5 +1,5 @@
 import dotenv from 'dotenv';
-import { Contract, ethers, InterfaceAbi, EventLog } from 'ethers';
+import { Contract, ethers, InterfaceAbi } from 'ethers';
 
 import burnerAbi from '../contracts/abi/TestERC20Abi.json';
 import simpleMinterAbi from '../contracts/abi/SimpleMinterUSC.json';

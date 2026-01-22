@@ -1,5 +1,5 @@
 import dotenv from 'dotenv';
-import { Contract, ethers, InterfaceAbi, EthersError } from 'ethers';
+import { Contract, ethers, InterfaceAbi } from 'ethers';
 
 import loanHelperAbi from '../contracts/abi/AuxiliaryLoanContract.json';
 import ERC20Abi from '../contracts/abi/TestERC20Abi.json';
@@ -37,8 +37,6 @@ const main = async () => {
   // Environment Variables
   const sourceChainRpcUrl = process.env.SOURCE_CHAIN_RPC_URL;
 
-  const ccNextWalletPrivateKey = process.env.CREDITCOIN_WALLET_PRIVATE_KEY;
-
   const lenderPrivateKey = process.env.LENDER_WALLET_PRIVATE_KEY;
   const borrowerPrivateKey = process.env.BORROWER_WALLET_PRIVATE_KEY;
 
@@ -49,9 +47,6 @@ const main = async () => {
     throw new Error('SOURCE_CHAIN_RPC_URL environment variable is not configured or invalid');
   }
 
-  if (!isValidPrivateKey(ccNextWalletPrivateKey)) {
-    throw new Error('CREDITCOIN_WALLET_PRIVATE_KEY environment variable is not configured or invalid');
-  }
   if (!isValidPrivateKey(lenderPrivateKey)) {
     throw new Error('LENDER_WALLET_PRIVATE_KEY environment variable is not configured or invalid');
   }
@@ -83,10 +78,20 @@ const main = async () => {
 
   // 2. Approve the loan contract to transfer borrower's tokens
   try {
+    const balance: bigint = await sourceChainERC20Contract.balanceOf(borrowerWallet.address);
+    console.log(`Borrower balance: ${balance}, required: ${repayAmount}`);
+
+    if (balance < BigInt(repayAmount)) {
+      console.error('Insufficient balance to repay the loan');
+      process.exit(0);
+    }
+
     const approved: bigint = await sourceChainERC20Contract.allowance(
       borrowerWallet.address,
       sourceChainLoanContractAddress
     );
+
+    console.log(`Current allowance for loan contract: ${approved}`);
 
     if (approved < BigInt(repayAmount)) {
       const allowanceAmount = BigInt(repayAmount) - approved;
@@ -100,7 +105,7 @@ const main = async () => {
       console.log('Waiting 15 seconds for approval to be mined...');
       await new Promise((resolve) => setTimeout(resolve, 15000));
     }
-  } catch (error: EthersError | any) {
+  } catch (error: any) {
     console.error('Error requesting allowance: ', error.shortMessage);
     process.exit(1);
   }
@@ -115,8 +120,8 @@ const main = async () => {
       sourceChainERC20ContractAddress
     );
     console.log('Loan repaid: ', tx.hash);
-  } catch (error: EthersError | any) {
-    console.error('Error repaying loan: ', error.shortMessage);
+  } catch (error: any) {
+    console.error('Error repaying loan: ', error);
     process.exit(1);
   }
 

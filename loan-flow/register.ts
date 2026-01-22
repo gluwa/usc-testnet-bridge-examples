@@ -1,5 +1,5 @@
 import dotenv from 'dotenv';
-import { Contract, ethers, EthersError, InterfaceAbi } from 'ethers';
+import { Contract, ethers, InterfaceAbi } from 'ethers';
 
 import loanManagerAbi from '../contracts/abi/USCLoanManager.json';
 import { isValidContractAddress, isValidPrivateKey } from '../utils';
@@ -88,7 +88,7 @@ const main = async () => {
   };
 
   const loanTerm = {
-    loanAmount: loanAmount,
+    loanAmount,
     interestRate: interestBasisPoints,
     expectedRepaymentAmount: Math.floor(loanAmount + (loanAmount * interestBasisPoints) / 10000),
     deadlineBlockNumber: (await ccProvider.getBlockNumber()) + durationInBlocks,
@@ -134,7 +134,7 @@ const main = async () => {
   let loanRegistered = false;
 
   // 4. Listed to LoanRegistered events
-  managerContract.on('LoanRegistered', (loanId: number) => {
+  const _ = managerContract.on('LoanRegistered', (loanId: number) => {
     console.log(`Loan successfully registered with ID: ${loanId.toString()}`);
     loanRegistered = true;
   });
@@ -143,7 +143,7 @@ const main = async () => {
   try {
     const tx = await managerContract.registerLoan(fundFlow, repayFlow, loanTerm, lenderSignature, borrowerSignature);
     console.log('Loan registered with transaction hash: ', tx.hash);
-  } catch (error: EthersError | any) {
+  } catch (error: any) {
     console.error('Error registering loan: ', error.shortMessage);
     process.exit(1);
   }
