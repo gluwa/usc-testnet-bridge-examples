@@ -128,21 +128,19 @@ To make sure both accounts have enough ERC20 tokens to actually be able to lend/
 that you deployed has a handy method for this:
 
 ```sh
-WALLET_ADDRESS=$(cast wallet address --private-key $LENDER_WALLET_PRIVATE_KEY)
 cast send --rpc-url $SOURCE_CHAIN_RPC_URL \
     $SOURCE_CHAIN_ERC20_CONTRACT_ADDRESS  \
-    "mint(address,uint256)" $WALLET_ADDRESS 5000000000   \
-    --private-key $CREDITCOIN_WALLET_PRIVATE_KEY
+    "mint(uint256)" 5000000000   \
+    --private-key $LENDER_WALLET_PRIVATE_KEY
 ```
 
 And for our borrower:
 
 ```sh
-WALLET_ADDRESS=$(cast wallet address --private-key $BORROWER_WALLET_PRIVATE_KEY)
 cast send --rpc-url $SOURCE_CHAIN_RPC_URL \
     $SOURCE_CHAIN_ERC20_CONTRACT_ADDRESS  \
-    "mint(address,uint256)" $WALLET_ADDRESS 300000000   \
-    --private-key $CREDITCOIN_WALLET_PRIVATE_KEY
+    "mint(uint256)" 300000000   \
+    --private-key $BORROWER_WALLET_PRIVATE_KEY
 ```
 
 If only it was that easy in the real world huh? Anyways you can check both accounts balance like so:
