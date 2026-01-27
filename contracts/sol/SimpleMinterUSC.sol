@@ -76,7 +76,7 @@ contract SimpleMinterUSC is ERC20 {
         }
         return index;
     }
-    
+
     function _processTransferLogs(EvmV1Decoder.LogEntry[] memory transferLogs, address targetSourceAddress)
         internal
         pure
