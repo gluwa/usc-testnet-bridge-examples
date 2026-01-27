@@ -120,11 +120,11 @@ BORROWER_WALLET_PRIVATE_KEY="<your_borrower_private_key>"
 
 > [!CAUTION]
 > Make sure both accounts have enough ETH on Sepolia otherwise they won't
-> be able to execute the funding/repaying calls. You can request some 
-> Sepolia ETH tokens using a [🚰 testnet faucet]. We link to the Google 
+> be able to execute the funding/repaying calls. You can request some
+> Sepolia ETH tokens using a [🚰 testnet faucet]. We link to the Google
 > sepolia faucet here.
 
-Now that we've populated our .env file with all necessary variables, let's 
+Now that we've populated our .env file with all necessary variables, let's
 load those variables into our terminal.
 
 ```sh
