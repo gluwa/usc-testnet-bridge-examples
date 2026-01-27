@@ -67,12 +67,16 @@ contract SimpleMinterUSC is ERC20 {
         returns (uint256 index)
     {
         index = 0;
-        for (uint256 i = 0; i < proof.length; i++) {
-            index = index * 2 + (proof[i].isLeft ? 1 : 0);
+        // Iterate from root -> leaf
+        for (uint256 i = proof.length; i > 0; i--) {
+            // isLeft represents "sibling's" left or right, not "self" left or right
+            // isLeft == true means "sibling" is on the left, itself offset == 1
+            // isLeft == false means "sibling" is on the right, itself offset == 0
+            index = index * 2 + (proof[i - 1].isLeft ? 1 : 0);
         }
         return index;
     }
-
+    
     function _processTransferLogs(EvmV1Decoder.LogEntry[] memory transferLogs, address targetSourceAddress)
         internal
         pure
