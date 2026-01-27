@@ -443,5 +443,4 @@ If you haven't already, take a look at the [USC Gitbook] for more information.
 [Bridge Offchain Worker]: ../bridge-offchain-worker/README.md
 [Hello Bridge]: ../hello-bridge/README.md#11-generate-a-new-wallet-address
 [USC Gitbook]: https://docs.creditcoin.org/usc
-
 [🚰 testnet faucet]: https://cloud.google.com/application/web3/faucet/ethereum/sepolia
