@@ -257,7 +257,7 @@ Keep track of the loan id, you will need it for the next steps. Additionally you
 with the following command:
 
 ```sh
-yarn loan_flow:inspect_loan <loanId>
+yarn loan_flow:inspect_loan <your_loan_id>
 ```
 
 Which will output something like this:
@@ -284,7 +284,12 @@ Now the loan is registered in both Creditcoin and the source chain, but the amou
 To do it, use the following command:
 
 ```sh
-yarn loan_flow:fund_loan <loanId> 500
+yarn loan_flow:fund_loan <your_loan_id> <paymentamount>
+```
+In our example, this will be:
+
+```sh
+yarn loan_flow:fund_loan <your_loan_id> 500
 ```
 
 You should see something like that:
@@ -300,7 +305,7 @@ You may have noticed that we haven't actually fully funded the loan, as evidence
 Let's try finish the funding:
 
 ```sh
-yarn loan_flow:fund_loan <loanId> 500
+yarn loan_flow:fund_loan 5 500
 ```
 
 Now the worker seems to have noticed something:
@@ -332,7 +337,7 @@ Now the borrower can begin repaying its due!
 Much like funding, repaying is as easy as calling:
 
 ```sh
-yarn loan_flow:repay_loan <loanId> 1000
+yarn loan_flow:repay_loan <your_loan_id> 1000
 ```
 
 Which shows the following:
@@ -367,7 +372,7 @@ Wait a minute... what do you mean partially repaid!? The loan was for 1000 token
 Hmm... oh! The interest! I forgot about that!
 
 ```sh
-yarn loan_flow:repay_loan <loanId> 50
+yarn loan_flow:repay_loan <your_loan_id> 50
 ```
 
 Now let's see...
