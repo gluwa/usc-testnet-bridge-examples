@@ -286,6 +286,7 @@ To do it, use the following command:
 ```sh
 yarn loan_flow:fund_loan <your_loan_id> <paymentamount>
 ```
+
 In our example, this will be:
 
 ```sh
