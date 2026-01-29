@@ -999,6 +999,9 @@ jobs:
 
           # wait for off-chain worker to prove the event above
           sleep 240
+          echo "---- last 3 lines of offchain-worker.log for debugging ----"
+          tail -n 3 /var/tmp/loan-flow-logs/offchain-worker.log
+          echo "Printing LoanFunded result:"
           grep "Loan $LOAN_ID has been marked as funded on Creditcoin" /var/tmp/loan-flow-logs/offchain-worker.log
 
 
@@ -1017,6 +1020,9 @@ jobs:
 
           # wait for off-chain worker to prove the event above
           sleep 240
+          echo "---- last 3 lines of offchain-worker.log for debugging ----"
+          tail -n 3 /var/tmp/loan-flow-logs/offchain-worker.log
+          echo "Printing LoanRepaid result:"
           grep "Loan $LOAN_ID has been marked as fully repaid on Creditcoin" /var/tmp/loan-flow-logs/offchain-worker.log
 
 
