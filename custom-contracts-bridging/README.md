@@ -85,7 +85,7 @@ inside of the `mintFromQuery` function:
 _mint(msg.sender, burnValue);
 ```
 
-Update it so that your `SimpleMinterUSC` contract mints twice the `burnValue` 
+Update it so that your `SimpleMinterUSC` contract mints twice the `burnValue`
 of tokens it should on Creditcoin. The resulting line should look something like:
 
 ```sol

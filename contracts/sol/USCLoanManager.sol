@@ -180,7 +180,7 @@ contract USCLoanManager is Ownable, ReentrancyGuard {
         // First we check for replay attacks
         (bool isNotreplay, bytes32 txKey) = _checkForReplay(chainKey, blockHeight, siblings);
         require(isNotreplay, "Transaction contents validation failed");
-        
+
         // Now we need to verify that the repayment transaction actually took place
         // First we verify the proof
         bool verified = _verifyProof(
@@ -191,7 +191,7 @@ contract USCLoanManager is Ownable, ReentrancyGuard {
         // Next, we need to validate that the transaction actually contains our LoanRepaid event
         EvmV1Decoder.LogEntry[] memory repayEventLogs = _validateTransactionContents(encodedTransaction, REPAY_EVENT_SIGNATURE);
         (uint256 loanId, uint256 amount) = _processRepayLogs(repayEventLogs);
-        
+
         // Now we can proceed with marking the loan as partially or fully repaid
         LoanOrder storage loan = loanOrders[loanId];
         require(
