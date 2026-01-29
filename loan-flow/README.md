@@ -452,7 +452,7 @@ It should show something like this:
 Decimals for token micro unit: 18
 ```
 
-So the borrower ended up losing the 50 extra tokens of the interest and the lender got them instead. Sounds correct!
+So the borrower ended up losing the 50 extra micro units of the interest and the lender got them instead. Sounds correct!
 
 ## Conclusion
 
