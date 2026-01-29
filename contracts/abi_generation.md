@@ -9,8 +9,8 @@ generated here.
 yarn
 ```
 
-2. Then generate the new ABI Json:
+2. Then to generate the new ABI JSON from the root of the repository execute:
 
 ```sh
-solc --base-path . --include-path "node_modules" "contracts/sol/TestERC20.sol" --combined-json abi --overwrite --json-indent 2 | jq '.contracts["contracts/sol/TestERC20.sol:TestERC20"].abi' > contracts/abi/TestERC20Abi.json
+./contracts/abi-creator.sh
 ```
