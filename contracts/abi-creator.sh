@@ -12,5 +12,5 @@ for p in "$sol_directory"/*; do
     # Extract only the ABI from the combined JSON output
     solc --base-path . --include-path "node_modules" "$sol_directory/$file" \
         --combined-json abi --overwrite --json-indent 2 | \
-        jq ".contracts[\"$p:$contract_name\"].abi" > "$abi_directory/$file_with_extension"
+        jq ".contracts[\"$p:$contract_name\"].abi // {}" > "$abi_directory/$file_with_extension"
 done
