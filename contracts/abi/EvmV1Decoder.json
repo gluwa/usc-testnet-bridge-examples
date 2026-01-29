@@ -1,0 +1,1467 @@
+[
+  {
+    "inputs": [
+      {
+        "internalType": "bytes",
+        "name": "chunk",
+        "type": "bytes"
+      }
+    ],
+    "name": "decodeCommonTxFields",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "uint64",
+            "name": "nonce",
+            "type": "uint64"
+          },
+          {
+            "internalType": "uint64",
+            "name": "gasLimit",
+            "type": "uint64"
+          },
+          {
+            "internalType": "address",
+            "name": "from",
+            "type": "address"
+          },
+          {
+            "internalType": "bool",
+            "name": "toIsNull",
+            "type": "bool"
+          },
+          {
+            "internalType": "address",
+            "name": "to",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "value",
+            "type": "uint256"
+          },
+          {
+            "internalType": "bytes",
+            "name": "data",
+            "type": "bytes"
+          }
+        ],
+        "internalType": "struct EvmV1Decoder.CommonTxFields",
+        "name": "",
+        "type": "tuple"
+      }
+    ],
+    "stateMutability": "pure",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes",
+        "name": "chunk",
+        "type": "bytes"
+      }
+    ],
+    "name": "decodeReceiptFields",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "uint8",
+            "name": "receiptStatus",
+            "type": "uint8"
+          },
+          {
+            "internalType": "uint64",
+            "name": "receiptGasUsed",
+            "type": "uint64"
+          },
+          {
+            "components": [
+              {
+                "internalType": "address",
+                "name": "address_",
+                "type": "address"
+              },
+              {
+                "internalType": "bytes32[]",
+                "name": "topics",
+                "type": "bytes32[]"
+              },
+              {
+                "internalType": "bytes",
+                "name": "data",
+                "type": "bytes"
+              }
+            ],
+            "internalType": "struct EvmV1Decoder.LogEntry[]",
+            "name": "receiptLogs",
+            "type": "tuple[]"
+          },
+          {
+            "internalType": "bytes",
+            "name": "receiptLogsBloom",
+            "type": "bytes"
+          }
+        ],
+        "internalType": "struct EvmV1Decoder.ReceiptFields",
+        "name": "",
+        "type": "tuple"
+      }
+    ],
+    "stateMutability": "pure",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes",
+        "name": "chunk",
+        "type": "bytes"
+      }
+    ],
+    "name": "decodeTransactionType0",
+    "outputs": [
+      {
+        "components": [
+          {
+            "components": [
+              {
+                "internalType": "uint64",
+                "name": "nonce",
+                "type": "uint64"
+              },
+              {
+                "internalType": "uint64",
+                "name": "gasLimit",
+                "type": "uint64"
+              },
+              {
+                "internalType": "address",
+                "name": "from",
+                "type": "address"
+              },
+              {
+                "internalType": "bool",
+                "name": "toIsNull",
+                "type": "bool"
+              },
+              {
+                "internalType": "address",
+                "name": "to",
+                "type": "address"
+              },
+              {
+                "internalType": "uint256",
+                "name": "value",
+                "type": "uint256"
+              },
+              {
+                "internalType": "bytes",
+                "name": "data",
+                "type": "bytes"
+              }
+            ],
+            "internalType": "struct EvmV1Decoder.CommonTxFields",
+            "name": "commonTx",
+            "type": "tuple"
+          },
+          {
+            "components": [
+              {
+                "internalType": "uint128",
+                "name": "gasPrice",
+                "type": "uint128"
+              },
+              {
+                "internalType": "uint256",
+                "name": "v",
+                "type": "uint256"
+              },
+              {
+                "internalType": "bytes32",
+                "name": "r",
+                "type": "bytes32"
+              },
+              {
+                "internalType": "bytes32",
+                "name": "s",
+                "type": "bytes32"
+              }
+            ],
+            "internalType": "struct EvmV1Decoder.LegacyFields",
+            "name": "type0",
+            "type": "tuple"
+          },
+          {
+            "components": [
+              {
+                "internalType": "uint8",
+                "name": "receiptStatus",
+                "type": "uint8"
+              },
+              {
+                "internalType": "uint64",
+                "name": "receiptGasUsed",
+                "type": "uint64"
+              },
+              {
+                "components": [
+                  {
+                    "internalType": "address",
+                    "name": "address_",
+                    "type": "address"
+                  },
+                  {
+                    "internalType": "bytes32[]",
+                    "name": "topics",
+                    "type": "bytes32[]"
+                  },
+                  {
+                    "internalType": "bytes",
+                    "name": "data",
+                    "type": "bytes"
+                  }
+                ],
+                "internalType": "struct EvmV1Decoder.LogEntry[]",
+                "name": "receiptLogs",
+                "type": "tuple[]"
+              },
+              {
+                "internalType": "bytes",
+                "name": "receiptLogsBloom",
+                "type": "bytes"
+              }
+            ],
+            "internalType": "struct EvmV1Decoder.ReceiptFields",
+            "name": "receipt",
+            "type": "tuple"
+          }
+        ],
+        "internalType": "struct EvmV1Decoder.DecodedTransactionType0",
+        "name": "",
+        "type": "tuple"
+      }
+    ],
+    "stateMutability": "pure",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes",
+        "name": "chunk",
+        "type": "bytes"
+      }
+    ],
+    "name": "decodeTransactionType1",
+    "outputs": [
+      {
+        "components": [
+          {
+            "components": [
+              {
+                "internalType": "uint64",
+                "name": "nonce",
+                "type": "uint64"
+              },
+              {
+                "internalType": "uint64",
+                "name": "gasLimit",
+                "type": "uint64"
+              },
+              {
+                "internalType": "address",
+                "name": "from",
+                "type": "address"
+              },
+              {
+                "internalType": "bool",
+                "name": "toIsNull",
+                "type": "bool"
+              },
+              {
+                "internalType": "address",
+                "name": "to",
+                "type": "address"
+              },
+              {
+                "internalType": "uint256",
+                "name": "value",
+                "type": "uint256"
+              },
+              {
+                "internalType": "bytes",
+                "name": "data",
+                "type": "bytes"
+              }
+            ],
+            "internalType": "struct EvmV1Decoder.CommonTxFields",
+            "name": "commonTx",
+            "type": "tuple"
+          },
+          {
+            "components": [
+              {
+                "internalType": "uint64",
+                "name": "chainId",
+                "type": "uint64"
+              },
+              {
+                "internalType": "uint128",
+                "name": "gasPrice",
+                "type": "uint128"
+              },
+              {
+                "components": [
+                  {
+                    "internalType": "address",
+                    "name": "account",
+                    "type": "address"
+                  },
+                  {
+                    "internalType": "bytes32[]",
+                    "name": "storageKeys",
+                    "type": "bytes32[]"
+                  }
+                ],
+                "internalType": "struct EvmV1Decoder.AccessListEntry[]",
+                "name": "accessList",
+                "type": "tuple[]"
+              },
+              {
+                "internalType": "uint8",
+                "name": "yParity",
+                "type": "uint8"
+              },
+              {
+                "internalType": "bytes32",
+                "name": "r",
+                "type": "bytes32"
+              },
+              {
+                "internalType": "bytes32",
+                "name": "s",
+                "type": "bytes32"
+              }
+            ],
+            "internalType": "struct EvmV1Decoder.Type1Fields",
+            "name": "type1",
+            "type": "tuple"
+          },
+          {
+            "components": [
+              {
+                "internalType": "uint8",
+                "name": "receiptStatus",
+                "type": "uint8"
+              },
+              {
+                "internalType": "uint64",
+                "name": "receiptGasUsed",
+                "type": "uint64"
+              },
+              {
+                "components": [
+                  {
+                    "internalType": "address",
+                    "name": "address_",
+                    "type": "address"
+                  },
+                  {
+                    "internalType": "bytes32[]",
+                    "name": "topics",
+                    "type": "bytes32[]"
+                  },
+                  {
+                    "internalType": "bytes",
+                    "name": "data",
+                    "type": "bytes"
+                  }
+                ],
+                "internalType": "struct EvmV1Decoder.LogEntry[]",
+                "name": "receiptLogs",
+                "type": "tuple[]"
+              },
+              {
+                "internalType": "bytes",
+                "name": "receiptLogsBloom",
+                "type": "bytes"
+              }
+            ],
+            "internalType": "struct EvmV1Decoder.ReceiptFields",
+            "name": "receipt",
+            "type": "tuple"
+          }
+        ],
+        "internalType": "struct EvmV1Decoder.DecodedTransactionType1",
+        "name": "",
+        "type": "tuple"
+      }
+    ],
+    "stateMutability": "pure",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes",
+        "name": "chunk",
+        "type": "bytes"
+      }
+    ],
+    "name": "decodeTransactionType2",
+    "outputs": [
+      {
+        "components": [
+          {
+            "components": [
+              {
+                "internalType": "uint64",
+                "name": "nonce",
+                "type": "uint64"
+              },
+              {
+                "internalType": "uint64",
+                "name": "gasLimit",
+                "type": "uint64"
+              },
+              {
+                "internalType": "address",
+                "name": "from",
+                "type": "address"
+              },
+              {
+                "internalType": "bool",
+                "name": "toIsNull",
+                "type": "bool"
+              },
+              {
+                "internalType": "address",
+                "name": "to",
+                "type": "address"
+              },
+              {
+                "internalType": "uint256",
+                "name": "value",
+                "type": "uint256"
+              },
+              {
+                "internalType": "bytes",
+                "name": "data",
+                "type": "bytes"
+              }
+            ],
+            "internalType": "struct EvmV1Decoder.CommonTxFields",
+            "name": "commonTx",
+            "type": "tuple"
+          },
+          {
+            "components": [
+              {
+                "internalType": "uint64",
+                "name": "chainId",
+                "type": "uint64"
+              },
+              {
+                "internalType": "uint128",
+                "name": "maxPriorityFeePerGas",
+                "type": "uint128"
+              },
+              {
+                "internalType": "uint128",
+                "name": "maxFeePerGas",
+                "type": "uint128"
+              },
+              {
+                "components": [
+                  {
+                    "internalType": "address",
+                    "name": "account",
+                    "type": "address"
+                  },
+                  {
+                    "internalType": "bytes32[]",
+                    "name": "storageKeys",
+                    "type": "bytes32[]"
+                  }
+                ],
+                "internalType": "struct EvmV1Decoder.AccessListEntry[]",
+                "name": "accessList",
+                "type": "tuple[]"
+              },
+              {
+                "internalType": "uint8",
+                "name": "yParity",
+                "type": "uint8"
+              },
+              {
+                "internalType": "bytes32",
+                "name": "r",
+                "type": "bytes32"
+              },
+              {
+                "internalType": "bytes32",
+                "name": "s",
+                "type": "bytes32"
+              }
+            ],
+            "internalType": "struct EvmV1Decoder.Type2Fields",
+            "name": "type2",
+            "type": "tuple"
+          },
+          {
+            "components": [
+              {
+                "internalType": "uint8",
+                "name": "receiptStatus",
+                "type": "uint8"
+              },
+              {
+                "internalType": "uint64",
+                "name": "receiptGasUsed",
+                "type": "uint64"
+              },
+              {
+                "components": [
+                  {
+                    "internalType": "address",
+                    "name": "address_",
+                    "type": "address"
+                  },
+                  {
+                    "internalType": "bytes32[]",
+                    "name": "topics",
+                    "type": "bytes32[]"
+                  },
+                  {
+                    "internalType": "bytes",
+                    "name": "data",
+                    "type": "bytes"
+                  }
+                ],
+                "internalType": "struct EvmV1Decoder.LogEntry[]",
+                "name": "receiptLogs",
+                "type": "tuple[]"
+              },
+              {
+                "internalType": "bytes",
+                "name": "receiptLogsBloom",
+                "type": "bytes"
+              }
+            ],
+            "internalType": "struct EvmV1Decoder.ReceiptFields",
+            "name": "receipt",
+            "type": "tuple"
+          }
+        ],
+        "internalType": "struct EvmV1Decoder.DecodedTransactionType2",
+        "name": "",
+        "type": "tuple"
+      }
+    ],
+    "stateMutability": "pure",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes",
+        "name": "chunk",
+        "type": "bytes"
+      }
+    ],
+    "name": "decodeTransactionType3",
+    "outputs": [
+      {
+        "components": [
+          {
+            "components": [
+              {
+                "internalType": "uint64",
+                "name": "nonce",
+                "type": "uint64"
+              },
+              {
+                "internalType": "uint64",
+                "name": "gasLimit",
+                "type": "uint64"
+              },
+              {
+                "internalType": "address",
+                "name": "from",
+                "type": "address"
+              },
+              {
+                "internalType": "bool",
+                "name": "toIsNull",
+                "type": "bool"
+              },
+              {
+                "internalType": "address",
+                "name": "to",
+                "type": "address"
+              },
+              {
+                "internalType": "uint256",
+                "name": "value",
+                "type": "uint256"
+              },
+              {
+                "internalType": "bytes",
+                "name": "data",
+                "type": "bytes"
+              }
+            ],
+            "internalType": "struct EvmV1Decoder.CommonTxFields",
+            "name": "commonTx",
+            "type": "tuple"
+          },
+          {
+            "components": [
+              {
+                "internalType": "uint64",
+                "name": "chainId",
+                "type": "uint64"
+              },
+              {
+                "internalType": "uint128",
+                "name": "maxPriorityFeePerGas",
+                "type": "uint128"
+              },
+              {
+                "internalType": "uint128",
+                "name": "maxFeePerGas",
+                "type": "uint128"
+              },
+              {
+                "components": [
+                  {
+                    "internalType": "address",
+                    "name": "account",
+                    "type": "address"
+                  },
+                  {
+                    "internalType": "bytes32[]",
+                    "name": "storageKeys",
+                    "type": "bytes32[]"
+                  }
+                ],
+                "internalType": "struct EvmV1Decoder.AccessListEntry[]",
+                "name": "accessList",
+                "type": "tuple[]"
+              },
+              {
+                "internalType": "uint256",
+                "name": "maxFeePerBlobGas",
+                "type": "uint256"
+              },
+              {
+                "internalType": "bytes32[]",
+                "name": "blobVersionedHashes",
+                "type": "bytes32[]"
+              },
+              {
+                "internalType": "uint8",
+                "name": "yParity",
+                "type": "uint8"
+              },
+              {
+                "internalType": "bytes32",
+                "name": "r",
+                "type": "bytes32"
+              },
+              {
+                "internalType": "bytes32",
+                "name": "s",
+                "type": "bytes32"
+              }
+            ],
+            "internalType": "struct EvmV1Decoder.Type3Fields",
+            "name": "type3",
+            "type": "tuple"
+          },
+          {
+            "components": [
+              {
+                "internalType": "uint8",
+                "name": "receiptStatus",
+                "type": "uint8"
+              },
+              {
+                "internalType": "uint64",
+                "name": "receiptGasUsed",
+                "type": "uint64"
+              },
+              {
+                "components": [
+                  {
+                    "internalType": "address",
+                    "name": "address_",
+                    "type": "address"
+                  },
+                  {
+                    "internalType": "bytes32[]",
+                    "name": "topics",
+                    "type": "bytes32[]"
+                  },
+                  {
+                    "internalType": "bytes",
+                    "name": "data",
+                    "type": "bytes"
+                  }
+                ],
+                "internalType": "struct EvmV1Decoder.LogEntry[]",
+                "name": "receiptLogs",
+                "type": "tuple[]"
+              },
+              {
+                "internalType": "bytes",
+                "name": "receiptLogsBloom",
+                "type": "bytes"
+              }
+            ],
+            "internalType": "struct EvmV1Decoder.ReceiptFields",
+            "name": "receipt",
+            "type": "tuple"
+          }
+        ],
+        "internalType": "struct EvmV1Decoder.DecodedTransactionType3",
+        "name": "",
+        "type": "tuple"
+      }
+    ],
+    "stateMutability": "pure",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes",
+        "name": "chunk",
+        "type": "bytes"
+      }
+    ],
+    "name": "decodeTransactionType4",
+    "outputs": [
+      {
+        "components": [
+          {
+            "components": [
+              {
+                "internalType": "uint64",
+                "name": "nonce",
+                "type": "uint64"
+              },
+              {
+                "internalType": "uint64",
+                "name": "gasLimit",
+                "type": "uint64"
+              },
+              {
+                "internalType": "address",
+                "name": "from",
+                "type": "address"
+              },
+              {
+                "internalType": "bool",
+                "name": "toIsNull",
+                "type": "bool"
+              },
+              {
+                "internalType": "address",
+                "name": "to",
+                "type": "address"
+              },
+              {
+                "internalType": "uint256",
+                "name": "value",
+                "type": "uint256"
+              },
+              {
+                "internalType": "bytes",
+                "name": "data",
+                "type": "bytes"
+              }
+            ],
+            "internalType": "struct EvmV1Decoder.CommonTxFields",
+            "name": "commonTx",
+            "type": "tuple"
+          },
+          {
+            "components": [
+              {
+                "internalType": "uint64",
+                "name": "chainId",
+                "type": "uint64"
+              },
+              {
+                "internalType": "uint128",
+                "name": "maxPriorityFeePerGas",
+                "type": "uint128"
+              },
+              {
+                "internalType": "uint128",
+                "name": "maxFeePerGas",
+                "type": "uint128"
+              },
+              {
+                "components": [
+                  {
+                    "internalType": "address",
+                    "name": "account",
+                    "type": "address"
+                  },
+                  {
+                    "internalType": "bytes32[]",
+                    "name": "storageKeys",
+                    "type": "bytes32[]"
+                  }
+                ],
+                "internalType": "struct EvmV1Decoder.AccessListEntry[]",
+                "name": "accessList",
+                "type": "tuple[]"
+              },
+              {
+                "components": [
+                  {
+                    "internalType": "uint256",
+                    "name": "chainId",
+                    "type": "uint256"
+                  },
+                  {
+                    "internalType": "address",
+                    "name": "account",
+                    "type": "address"
+                  },
+                  {
+                    "internalType": "uint64",
+                    "name": "nonce",
+                    "type": "uint64"
+                  },
+                  {
+                    "internalType": "uint8",
+                    "name": "yParity",
+                    "type": "uint8"
+                  },
+                  {
+                    "internalType": "uint256",
+                    "name": "r",
+                    "type": "uint256"
+                  },
+                  {
+                    "internalType": "uint256",
+                    "name": "s",
+                    "type": "uint256"
+                  }
+                ],
+                "internalType": "struct EvmV1Decoder.AuthorizationListEntry[]",
+                "name": "authorizationList",
+                "type": "tuple[]"
+              },
+              {
+                "internalType": "uint8",
+                "name": "yParity",
+                "type": "uint8"
+              },
+              {
+                "internalType": "bytes32",
+                "name": "r",
+                "type": "bytes32"
+              },
+              {
+                "internalType": "bytes32",
+                "name": "s",
+                "type": "bytes32"
+              }
+            ],
+            "internalType": "struct EvmV1Decoder.Type4Fields",
+            "name": "type4",
+            "type": "tuple"
+          },
+          {
+            "components": [
+              {
+                "internalType": "uint8",
+                "name": "receiptStatus",
+                "type": "uint8"
+              },
+              {
+                "internalType": "uint64",
+                "name": "receiptGasUsed",
+                "type": "uint64"
+              },
+              {
+                "components": [
+                  {
+                    "internalType": "address",
+                    "name": "address_",
+                    "type": "address"
+                  },
+                  {
+                    "internalType": "bytes32[]",
+                    "name": "topics",
+                    "type": "bytes32[]"
+                  },
+                  {
+                    "internalType": "bytes",
+                    "name": "data",
+                    "type": "bytes"
+                  }
+                ],
+                "internalType": "struct EvmV1Decoder.LogEntry[]",
+                "name": "receiptLogs",
+                "type": "tuple[]"
+              },
+              {
+                "internalType": "bytes",
+                "name": "receiptLogsBloom",
+                "type": "bytes"
+              }
+            ],
+            "internalType": "struct EvmV1Decoder.ReceiptFields",
+            "name": "receipt",
+            "type": "tuple"
+          }
+        ],
+        "internalType": "struct EvmV1Decoder.DecodedTransactionType4",
+        "name": "",
+        "type": "tuple"
+      }
+    ],
+    "stateMutability": "pure",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes",
+        "name": "chunk",
+        "type": "bytes"
+      }
+    ],
+    "name": "decodeTypeSpecificFieldsType0",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "uint128",
+            "name": "gasPrice",
+            "type": "uint128"
+          },
+          {
+            "internalType": "uint256",
+            "name": "v",
+            "type": "uint256"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "r",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "s",
+            "type": "bytes32"
+          }
+        ],
+        "internalType": "struct EvmV1Decoder.LegacyFields",
+        "name": "",
+        "type": "tuple"
+      }
+    ],
+    "stateMutability": "pure",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes",
+        "name": "chunk",
+        "type": "bytes"
+      }
+    ],
+    "name": "decodeTypeSpecificFieldsType1",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "uint64",
+            "name": "chainId",
+            "type": "uint64"
+          },
+          {
+            "internalType": "uint128",
+            "name": "gasPrice",
+            "type": "uint128"
+          },
+          {
+            "components": [
+              {
+                "internalType": "address",
+                "name": "account",
+                "type": "address"
+              },
+              {
+                "internalType": "bytes32[]",
+                "name": "storageKeys",
+                "type": "bytes32[]"
+              }
+            ],
+            "internalType": "struct EvmV1Decoder.AccessListEntry[]",
+            "name": "accessList",
+            "type": "tuple[]"
+          },
+          {
+            "internalType": "uint8",
+            "name": "yParity",
+            "type": "uint8"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "r",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "s",
+            "type": "bytes32"
+          }
+        ],
+        "internalType": "struct EvmV1Decoder.Type1Fields",
+        "name": "",
+        "type": "tuple"
+      }
+    ],
+    "stateMutability": "pure",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes",
+        "name": "chunk",
+        "type": "bytes"
+      }
+    ],
+    "name": "decodeTypeSpecificFieldsType2",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "uint64",
+            "name": "chainId",
+            "type": "uint64"
+          },
+          {
+            "internalType": "uint128",
+            "name": "maxPriorityFeePerGas",
+            "type": "uint128"
+          },
+          {
+            "internalType": "uint128",
+            "name": "maxFeePerGas",
+            "type": "uint128"
+          },
+          {
+            "components": [
+              {
+                "internalType": "address",
+                "name": "account",
+                "type": "address"
+              },
+              {
+                "internalType": "bytes32[]",
+                "name": "storageKeys",
+                "type": "bytes32[]"
+              }
+            ],
+            "internalType": "struct EvmV1Decoder.AccessListEntry[]",
+            "name": "accessList",
+            "type": "tuple[]"
+          },
+          {
+            "internalType": "uint8",
+            "name": "yParity",
+            "type": "uint8"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "r",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "s",
+            "type": "bytes32"
+          }
+        ],
+        "internalType": "struct EvmV1Decoder.Type2Fields",
+        "name": "",
+        "type": "tuple"
+      }
+    ],
+    "stateMutability": "pure",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes",
+        "name": "chunk",
+        "type": "bytes"
+      }
+    ],
+    "name": "decodeTypeSpecificFieldsType3",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "uint64",
+            "name": "chainId",
+            "type": "uint64"
+          },
+          {
+            "internalType": "uint128",
+            "name": "maxPriorityFeePerGas",
+            "type": "uint128"
+          },
+          {
+            "internalType": "uint128",
+            "name": "maxFeePerGas",
+            "type": "uint128"
+          },
+          {
+            "components": [
+              {
+                "internalType": "address",
+                "name": "account",
+                "type": "address"
+              },
+              {
+                "internalType": "bytes32[]",
+                "name": "storageKeys",
+                "type": "bytes32[]"
+              }
+            ],
+            "internalType": "struct EvmV1Decoder.AccessListEntry[]",
+            "name": "accessList",
+            "type": "tuple[]"
+          },
+          {
+            "internalType": "uint256",
+            "name": "maxFeePerBlobGas",
+            "type": "uint256"
+          },
+          {
+            "internalType": "bytes32[]",
+            "name": "blobVersionedHashes",
+            "type": "bytes32[]"
+          },
+          {
+            "internalType": "uint8",
+            "name": "yParity",
+            "type": "uint8"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "r",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "s",
+            "type": "bytes32"
+          }
+        ],
+        "internalType": "struct EvmV1Decoder.Type3Fields",
+        "name": "",
+        "type": "tuple"
+      }
+    ],
+    "stateMutability": "pure",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes",
+        "name": "chunk",
+        "type": "bytes"
+      }
+    ],
+    "name": "decodeTypeSpecificFieldsType4",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "uint64",
+            "name": "chainId",
+            "type": "uint64"
+          },
+          {
+            "internalType": "uint128",
+            "name": "maxPriorityFeePerGas",
+            "type": "uint128"
+          },
+          {
+            "internalType": "uint128",
+            "name": "maxFeePerGas",
+            "type": "uint128"
+          },
+          {
+            "components": [
+              {
+                "internalType": "address",
+                "name": "account",
+                "type": "address"
+              },
+              {
+                "internalType": "bytes32[]",
+                "name": "storageKeys",
+                "type": "bytes32[]"
+              }
+            ],
+            "internalType": "struct EvmV1Decoder.AccessListEntry[]",
+            "name": "accessList",
+            "type": "tuple[]"
+          },
+          {
+            "components": [
+              {
+                "internalType": "uint256",
+                "name": "chainId",
+                "type": "uint256"
+              },
+              {
+                "internalType": "address",
+                "name": "account",
+                "type": "address"
+              },
+              {
+                "internalType": "uint64",
+                "name": "nonce",
+                "type": "uint64"
+              },
+              {
+                "internalType": "uint8",
+                "name": "yParity",
+                "type": "uint8"
+              },
+              {
+                "internalType": "uint256",
+                "name": "r",
+                "type": "uint256"
+              },
+              {
+                "internalType": "uint256",
+                "name": "s",
+                "type": "uint256"
+              }
+            ],
+            "internalType": "struct EvmV1Decoder.AuthorizationListEntry[]",
+            "name": "authorizationList",
+            "type": "tuple[]"
+          },
+          {
+            "internalType": "uint8",
+            "name": "yParity",
+            "type": "uint8"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "r",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "s",
+            "type": "bytes32"
+          }
+        ],
+        "internalType": "struct EvmV1Decoder.Type4Fields",
+        "name": "",
+        "type": "tuple"
+      }
+    ],
+    "stateMutability": "pure",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "components": [
+          {
+            "internalType": "address",
+            "name": "address_",
+            "type": "address"
+          },
+          {
+            "internalType": "bytes32[]",
+            "name": "topics",
+            "type": "bytes32[]"
+          },
+          {
+            "internalType": "bytes",
+            "name": "data",
+            "type": "bytes"
+          }
+        ],
+        "internalType": "struct EvmV1Decoder.LogEntry[]",
+        "name": "logs",
+        "type": "tuple[]"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "eventSignature",
+        "type": "bytes32"
+      }
+    ],
+    "name": "getLogsByEventSignature",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "address",
+            "name": "address_",
+            "type": "address"
+          },
+          {
+            "internalType": "bytes32[]",
+            "name": "topics",
+            "type": "bytes32[]"
+          },
+          {
+            "internalType": "bytes",
+            "name": "data",
+            "type": "bytes"
+          }
+        ],
+        "internalType": "struct EvmV1Decoder.LogEntry[]",
+        "name": "",
+        "type": "tuple[]"
+      }
+    ],
+    "stateMutability": "pure",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "components": [
+          {
+            "internalType": "uint8",
+            "name": "receiptStatus",
+            "type": "uint8"
+          },
+          {
+            "internalType": "uint64",
+            "name": "receiptGasUsed",
+            "type": "uint64"
+          },
+          {
+            "components": [
+              {
+                "internalType": "address",
+                "name": "address_",
+                "type": "address"
+              },
+              {
+                "internalType": "bytes32[]",
+                "name": "topics",
+                "type": "bytes32[]"
+              },
+              {
+                "internalType": "bytes",
+                "name": "data",
+                "type": "bytes"
+              }
+            ],
+            "internalType": "struct EvmV1Decoder.LogEntry[]",
+            "name": "receiptLogs",
+            "type": "tuple[]"
+          },
+          {
+            "internalType": "bytes",
+            "name": "receiptLogsBloom",
+            "type": "bytes"
+          }
+        ],
+        "internalType": "struct EvmV1Decoder.ReceiptFields",
+        "name": "receipt",
+        "type": "tuple"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "eventSignature",
+        "type": "bytes32"
+      }
+    ],
+    "name": "getLogsByEventSignature",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "address",
+            "name": "address_",
+            "type": "address"
+          },
+          {
+            "internalType": "bytes32[]",
+            "name": "topics",
+            "type": "bytes32[]"
+          },
+          {
+            "internalType": "bytes",
+            "name": "data",
+            "type": "bytes"
+          }
+        ],
+        "internalType": "struct EvmV1Decoder.LogEntry[]",
+        "name": "",
+        "type": "tuple[]"
+      }
+    ],
+    "stateMutability": "pure",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes",
+        "name": "encodedTx",
+        "type": "bytes"
+      }
+    ],
+    "name": "getTransactionType",
+    "outputs": [
+      {
+        "internalType": "uint8",
+        "name": "txType",
+        "type": "uint8"
+      }
+    ],
+    "stateMutability": "pure",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint8",
+        "name": "txType",
+        "type": "uint8"
+      }
+    ],
+    "name": "isValidTransactionType",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "pure",
+    "type": "function"
+  }
+]

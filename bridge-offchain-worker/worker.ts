@@ -1,7 +1,7 @@
 import dotenv from 'dotenv';
 import { Contract, ethers, InterfaceAbi } from 'ethers';
 
-import burnerAbi from '../contracts/abi/TestERC20Abi.json';
+import burnerAbi from '../contracts/abi/TestERC20.json';
 import simpleMinterAbi from '../contracts/abi/SimpleMinterUSC.json';
 import {
   generateProofFor,
