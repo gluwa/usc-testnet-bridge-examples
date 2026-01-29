@@ -35,3 +35,41 @@ jobs:
           yarn install
 
           ~/.foundry/bin/forge build
+
+  check-abi-on-disk:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install Solidity compiler
+        run: |
+          sudo .github/install-solidity-compiler.sh
+
+      - name: Install Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+      - run: npm install -g yarn
+
+      - name: Regenerate the ABI
+        run: |
+          yarn install
+
+          solc --version
+          ./contracts/abi-creator.sh
+
+      - name: Check for mismatch
+        run: |
+          echo "========== DEBUG DEBUG DEBUG =========="
+          git status --short
+          git diff
+          echo "======================================="
+
+          if [ -n "$(git status --short)" ]; then
+              echo "FAIL: found ABI mismatch on disk vs. freshly generated from source"
+              echo "TODO: update ABI on disk and commit the changes to git"
+              exit 1
+          else
+              echo "PASS: ABI on disk matches freshly generated from source"
+              exit 0
+          fi
