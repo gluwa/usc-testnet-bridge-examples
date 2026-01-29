@@ -12,6 +12,7 @@ This guide explains how to deploy the `SimpleMinterUSC` contract to Creditcoin U
    ```
 
 2. **Funded wallet**: You need a wallet with native tokens (CTC) on the target network to pay for gas fees.
+
    - Request test tokens from the [Creditcoin Discord faucet]
 
 3. **Private key**: Have your wallet's private key ready (make sure it's a test wallet with no real funds).

@@ -104,7 +104,7 @@ export async function computeGasLimitForLoanManager(
   contract: Contract,
   proofData: ContinuityResponse,
   signerAddress: string,
-  is_repayment: boolean,
+  is_repayment: boolean
 ): Promise<bigint> {
   const chainKey = proofData.chainKey;
   const height = proofData.headerNumber;
@@ -156,26 +156,6 @@ export async function computeGasLimitForMinter(
 }
 
 /**
- * Submits the proof to the USC block prover contract.
- * @param contract A block prover contract instance, must have the verifyAndEmit method with the correct signature.
- * @param proofData A proof data object obtained from the proof generation process.
- * @returns A promise that resolves to the transaction response of the verifyAndEmit call.
- */
-export async function submitProofToBlockProver(
-  contract: Contract,
-  proofData: ContinuityResponse,
-  gasLimit: bigint
-): Promise<any> {
-  const chainKey = proofData.chainKey;
-  const height = proofData.headerNumber;
-  const encodedTransaction = proofData.txBytes;
-  const merkleProof = proofData.merkleProof;
-  const continuityProof = proofData.continuityProof;
-
-  return await contract.verifyAndEmit(chainKey, height, encodedTransaction, merkleProof, continuityProof, { gasLimit });
-}
-
-/**
  * Submits the proof of a LoanFunded event to the USCLoanManager contract
  * @param contract The loan manager contract. Must have the function markLoanAsFunded.
  * @param proofData A proof data object obtained from the proof generation process.
@@ -184,7 +164,7 @@ export async function submitProofToBlockProver(
 export async function submitFundProofToLoanManager(
   contract: Contract,
   proofData: ContinuityResponse,
-  gasLimit: bigint,
+  gasLimit: bigint
 ): Promise<any> {
   const chainKey = proofData.chainKey;
   const height = proofData.headerNumber;
@@ -215,7 +195,7 @@ export async function submitFundProofToLoanManager(
 export async function submitRepayProofToLoanManager(
   contract: Contract,
   proofData: ContinuityResponse,
-  gasLimit: bigint,
+  gasLimit: bigint
 ): Promise<any> {
   const chainKey = proofData.chainKey;
   const height = proofData.headerNumber;

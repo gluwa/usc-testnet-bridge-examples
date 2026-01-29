@@ -13,7 +13,7 @@ import {
   pollEvents,
   POLLING_INTERVAL_MS,
   submitFundProofToLoanManager,
-  submitRepayProofToLoanManager
+  submitRepayProofToLoanManager,
 } from '../utils';
 
 dotenv.config({ override: true });
@@ -42,8 +42,6 @@ interface LoanInfo {
   repaid: boolean;
   expired: boolean;
 }
-
-const proverContractAddress = '0x0000000000000000000000000000000000000FD2';
 
 const main = async () => {
   console.log('Starting loan worker...');
@@ -101,7 +99,6 @@ const main = async () => {
     loanManagerAbi as unknown as InterfaceAbi,
     ccWallet
   );
-  const proverContract = new Contract(proverContractAddress, blockProverAbi as unknown as InterfaceAbi, ccWallet);
 
   // 2. Connect to source chain loan contract
   const sourceChainProvider = new ethers.JsonRpcProvider(sourceChainRpcUrl);
@@ -243,7 +240,13 @@ const main = async () => {
         if (proofResult.success) {
           try {
             // 6.3 Mark loan as funded on Creditcoin
-            const gasLimit = await computeGasLimitForLoanManager(ccProvider, managerContract, proofResult.data!, ccWallet.address, false);
+            const gasLimit = await computeGasLimitForLoanManager(
+              ccProvider,
+              managerContract,
+              proofResult.data!,
+              ccWallet.address,
+              false
+            );
             const response = await submitFundProofToLoanManager(managerContract, proofResult.data!, gasLimit);
             await new Promise((resolve) => setTimeout(resolve, 2000));
             loanInfo.funded = true;
@@ -293,7 +296,13 @@ const main = async () => {
           try {
             // 7.3 Note loan repayment on Creditcoin, depending on whether the loan is fully repaid or not
             // will trigger either partial or full repayment events
-            const gasLimit = await computeGasLimitForLoanManager(ccProvider, managerContract, proofResult.data!, ccWallet.address, true);
+            const gasLimit = await computeGasLimitForLoanManager(
+              ccProvider,
+              managerContract,
+              proofResult.data!,
+              ccWallet.address,
+              true
+            );
             const response = await submitRepayProofToLoanManager(managerContract, proofResult.data!, gasLimit);
             await new Promise((resolve) => setTimeout(resolve, 2000));
             console.log(`Marked loan ${loanId} as repaid on Creditcoin, tx hash: ${response.hash}`);
