@@ -222,8 +222,8 @@ jobs:
           echo "INFO: Verify bridged tokens"
           OUTPUT=$(yarn utils:check_balance $USC_MINTER_CONTRACT_ADDRESS "${{ steps.setup.outputs.creditcoin_wallet_address }}")
           echo "$OUTPUT"
-          echo "$OUTPUT" | grep "Raw Balance: 1000"
-          echo "$OUTPUT" | grep "Formatted Balance: 0.000000000000001 TEST"
+          echo "$OUTPUT" | grep "Raw Balance: 50000000000000000000"
+          echo "$OUTPUT" | grep "Formatted Balance: 50.0 TEST"
 
       - name: Collect logs
         if: always()
@@ -447,8 +447,8 @@ jobs:
           echo "INFO: Verify bridged tokens"
           OUTPUT=$(yarn utils:check_balance "$USC_CUSTOM_MINTER_CONTRACT_ADDRESS" "${{ steps.setup.outputs.creditcoin_wallet_address }}")
           echo "$OUTPUT"
-          echo "$OUTPUT" | grep "Raw Balance: 2000"
-          echo "$OUTPUT" | grep "Formatted Balance: 0.000000000000002 TEST"
+          echo "$OUTPUT" | grep "Raw Balance: 50000000000000000000"
+          echo "$OUTPUT" | grep "Formatted Balance: 50.0 TEST"
           # WARNING: this is 2x compared to hello-bridge example
 
       - name: Collect logs
@@ -674,8 +674,8 @@ jobs:
           echo "INFO: Verify bridged tokens"
           OUTPUT=$(yarn utils:check_balance "$USC_CUSTOM_MINTER_CONTRACT_ADDRESS" "${{ steps.setup.outputs.creditcoin_wallet_address }}")
           echo "$OUTPUT"
-          echo "$OUTPUT" | grep "Raw Balance: 3000"
-          echo "$OUTPUT" | grep "Formatted Balance: 0.000000000000003 TEST"
+          echo "$OUTPUT" | grep "Raw Balance: 50000000000000000000"
+          echo "$OUTPUT" | grep "Formatted Balance: 50.0 TEST"
           # WARNING: this is 3x compared to hello-bridge example
 
       - name: Collect logs
