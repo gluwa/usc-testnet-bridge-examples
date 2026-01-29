@@ -3,7 +3,6 @@ import { Contract, ethers, InterfaceAbi } from 'ethers';
 
 import loanManagerAbi from '../contracts/abi/USCLoanManager.json';
 import loanHelperAbi from '../contracts/abi/AuxiliaryLoanContract.json';
-import blockProverAbi from '../contracts/abi/BlockProver.json';
 import {
   computeGasLimitForLoanManager,
   generateProofFor,
@@ -236,10 +235,9 @@ const main = async () => {
           sourceChainProvider
         );
 
-        // 6.2 Using previously generated proof, submit to USC prover contract
         if (proofResult.success) {
           try {
-            // 6.3 Mark loan as funded on Creditcoin
+            // 6.2 Mark loan as funded on Creditcoin
             const gasLimit = await computeGasLimitForLoanManager(
               ccProvider,
               managerContract,
@@ -294,7 +292,7 @@ const main = async () => {
 
         if (proofResult.success) {
           try {
-            // 7.3 Note loan repayment on Creditcoin, depending on whether the loan is fully repaid or not
+            // 7.2 Note loan repayment on Creditcoin, depending on whether the loan is fully repaid or not
             // will trigger either partial or full repayment events
             const gasLimit = await computeGasLimitForLoanManager(
               ccProvider,
