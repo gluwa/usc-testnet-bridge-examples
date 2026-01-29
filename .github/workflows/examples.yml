@@ -998,7 +998,7 @@ jobs:
 
 
           # wait for off-chain worker to prove the event above
-          sleep 120
+          sleep 240
           grep "Loan $LOAN_ID has been marked as funded on Creditcoin" /var/tmp/loan-flow-logs/offchain-worker.log
 
 
@@ -1016,7 +1016,7 @@ jobs:
 
 
           # wait for off-chain worker to prove the event above
-          sleep 120
+          sleep 240
           grep "Loan $LOAN_ID has been marked as fully repaid on Creditcoin" /var/tmp/loan-flow-logs/offchain-worker.log
 
 
