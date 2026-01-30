@@ -3,16 +3,16 @@ import { Contract, ethers, InterfaceAbi } from 'ethers';
 
 import loanManagerAbi from '../contracts/abi/USCLoanManager.json';
 import loanHelperAbi from '../contracts/abi/AuxiliaryLoanContract.json';
-import blockProverAbi from '../contracts/abi/BlockProver.json';
 import {
-  computeGasLimitForProver,
+  computeGasLimitForLoanManager,
   generateProofFor,
   isValidContractAddress,
   isValidPrivateKey,
   MAX_PROCESSED_TXS,
   pollEvents,
   POLLING_INTERVAL_MS,
-  submitProofToBlockProver,
+  submitFundProofToLoanManager,
+  submitRepayProofToLoanManager,
 } from '../utils';
 
 dotenv.config({ override: true });
@@ -41,8 +41,6 @@ interface LoanInfo {
   repaid: boolean;
   expired: boolean;
 }
-
-const proverContractAddress = '0x0000000000000000000000000000000000000FD2';
 
 const main = async () => {
   console.log('Starting loan worker...');
@@ -100,7 +98,6 @@ const main = async () => {
     loanManagerAbi as unknown as InterfaceAbi,
     ccWallet
   );
-  const proverContract = new Contract(proverContractAddress, blockProverAbi as unknown as InterfaceAbi, ccWallet);
 
   // 2. Connect to source chain loan contract
   const sourceChainProvider = new ethers.JsonRpcProvider(sourceChainRpcUrl);
@@ -198,7 +195,7 @@ const main = async () => {
             withToken: sourceChainERC20ContractAddress,
           };
 
-          const tx = await sourceChainLoanContract.registerLoanFund(loanId, fundFlow, loanAmount);
+          const tx = await sourceChainLoanContract.registerLoanFund(loanId, fundFlow, loanAmount, repayAmount);
           console.log(`Registered loan ${loanId} for funding on source chain, tx hash: ${tx.hash}`);
 
           processedTxs.add(txHash);
@@ -215,7 +212,7 @@ const main = async () => {
           return;
         }
 
-        console.log(`Detected LoanFunded event for loanId: ${loanId} - tx hash: ${txHash}`);
+        console.log(`Detected LoanFunded event for loanId: ${loanId}, tx hash: ${txHash}`);
 
         const loanInfo = loanTracker[loanId];
 
@@ -238,38 +235,20 @@ const main = async () => {
           sourceChainProvider
         );
 
-        // 6.2 Using previously generated proof, submit to USC prover contract
         if (proofResult.success) {
           try {
-            const gasLimit = await computeGasLimitForProver(
+            // 6.2 Mark loan as funded on Creditcoin
+            const gasLimit = await computeGasLimitForLoanManager(
               ccProvider,
-              proverContract,
+              managerContract,
               proofResult.data!,
-              ccWallet.address
+              ccWallet.address,
+              false
             );
-            await submitProofToBlockProver(proverContract, proofResult.data!, gasLimit);
-
-            loanInfo.funded = true;
-
-            // 6.3 Register in source chain loan contract the repayment of the loan
-            const repaymentFlow = {
-              from: loanInfo.borrower,
-              to: loanInfo.lender,
-              withToken: sourceChainERC20ContractAddress,
-            };
-
-            const tx1 = await sourceChainLoanContract.registerLoanRepayment(
-              loanId,
-              repaymentFlow,
-              loanInfo.repayAmount
-            );
-            console.log(`Registered loan ${loanId} for repayment on source chain, tx hash: ${tx1.hash}`);
-
+            const response = await submitFundProofToLoanManager(managerContract, proofResult.data!, gasLimit);
             await new Promise((resolve) => setTimeout(resolve, 2000));
-
-            // 6.4 Mark loan as funded on Creditcoin
-            const tx2 = await managerContract.markLoanAsFunded(loanId);
-            console.log(`Marked loan ${loanId} as funded on Creditcoin, tx hash: ${tx2.hash}`);
+            loanInfo.funded = true;
+            console.log(`Marked loan ${loanId} as funded on Creditcoin, tx hash: ${response.hash}`);
 
             processedTxs.add(txHash);
           } catch (error: any) {
@@ -288,7 +267,7 @@ const main = async () => {
           return;
         }
 
-        console.log(`Detected LoanRepaid event for loanId: ${loanId} - tx hash: ${txHash}`);
+        console.log(`Detected LoanRepaid event for loanId: ${loanId}, tx hash: ${txHash}`);
 
         const loanInfo = loanTracker[loanId];
 
@@ -311,25 +290,22 @@ const main = async () => {
           sourceChainProvider
         );
 
-        // 7.2 Using previously generated proof, submit to USC prover contract
         if (proofResult.success) {
           try {
-            const gasLimit = await computeGasLimitForProver(
+            // 7.2 Note loan repayment on Creditcoin, depending on whether the loan is fully repaid or not
+            // will trigger either partial or full repayment events
+            const gasLimit = await computeGasLimitForLoanManager(
               ccProvider,
-              proverContract,
+              managerContract,
               proofResult.data!,
-              ccWallet.address
+              ccWallet.address,
+              true
             );
-            await submitProofToBlockProver(proverContract, proofResult.data!, gasLimit);
+            const response = await submitRepayProofToLoanManager(managerContract, proofResult.data!, gasLimit);
+            await new Promise((resolve) => setTimeout(resolve, 2000));
+            console.log(`Marked loan ${loanId} as repaid on Creditcoin, tx hash: ${response.hash}`);
 
             loanInfo.repayLeft -= amount;
-
-            await new Promise((resolve) => setTimeout(resolve, 2000));
-
-            // 7.3 Note loan repayment on Creditcoin, depending on whether the loan is fully repaid or not
-            // will trigger either partial or full repayment events
-            const tx1 = await managerContract.noteLoanRepayment(loanId, amount);
-            console.log(`Note loan ${loanId} repayment, tx hash: ${tx1.hash}`);
 
             if (loanInfo.repayLeft <= 0) {
               loanInfo.repaid = true;

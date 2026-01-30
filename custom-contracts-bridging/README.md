@@ -82,14 +82,14 @@ Start by opening the file `contracts/sol/SimpleMinterUSC.sol`. Next, navigate to
 inside of the `mintFromQuery` function:
 
 ```sol
-_mint(msg.sender, MINT_AMOUNT);
+_mint(msg.sender, burnValue);
 ```
 
-Update it so that your `SimpleMinterUSC` contract mints twice
-the `MINT_AMOUNT` of tokens it should on Creditcoin. The resulting line should look something like:
+Update it so that your `SimpleMinterUSC` contract mints twice the `burnValue`
+of tokens it should on Creditcoin. The resulting line should look something like:
 
 ```sol
-_mint(msg.sender, MINT_AMOUNT * 2);
+_mint(msg.sender, burnValue * 2);
 ```
 
 ### 3.2 Deploy Your Decoder Library and Modified Contract

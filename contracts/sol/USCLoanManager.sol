@@ -9,6 +9,8 @@ import {MessageHashUtils} from "@openzeppelin/contracts/utils/cryptography/Messa
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
 import {LoanFlow, LoanStatus, LoanOrder, LoanTerms} from "./LoanTypes.sol";
+import {EvmV1Decoder} from "./EvmV1Decoder.sol";
+import {INativeQueryVerifier, NativeQueryVerifierLib} from "./VerifierInterface.sol";
 
 /**
  * @title USCLoanManager
@@ -17,9 +19,22 @@ import {LoanFlow, LoanStatus, LoanOrder, LoanTerms} from "./LoanTypes.sol";
 contract USCLoanManager is Ownable, ReentrancyGuard {
     using ECDSA for bytes32;
 
+    /// @notice The Native Query Verifier precompile instance
+    /// @dev Address: 0x0000000000000000000000000000000000000FD2 (4050 decimal)
+    INativeQueryVerifier public immutable VERIFIER;
+
+    // ERC20 LoanFunded event signature: keccak256("LoanFunded(uint256)")
+    bytes32 public constant FUND_EVENT_SIGNATURE =
+        0x9e71d2fb732e68272b7e74ecfd14638673c1d77e19a5d390a3ffff054d57c44b;
+
+    // ERC20 LoanRepaid event signature: keccak256("LoanRepaid(uint256,uint256)")
+    bytes32 public constant REPAY_EVENT_SIGNATURE =
+        0x040cee90ee4799897c30ca04e5feb6fa43dbba9b6d084b4b257cdafd84ba013e;
+
     // State variables
     mapping(uint256 => LoanOrder) public loanOrders;
     mapping(uint256 => bool) public registeredLoans;
+    mapping(bytes32 => bool) public processedQueries;
 
     uint256 public nextLoanId;
 
@@ -38,8 +53,9 @@ contract USCLoanManager is Ownable, ReentrancyGuard {
     event LoanExpired(uint256 indexed loanId);
 
     constructor() Ownable(msg.sender) {
-        // Get the precompile instance using the helper library
         nextLoanId = 1;
+        // Get the precompile instance using the helper library
+        VERIFIER = NativeQueryVerifierLib.getVerifier();
     }
 
     /**
@@ -116,25 +132,67 @@ contract USCLoanManager is Ownable, ReentrancyGuard {
         return loanId;
     }
 
-    /**
-     * @dev Mark a loan as funded, can only be called by the contract owner
-     * @param loanId ID of the loan to fund
-     */
-    function markLoanAsFunded(uint256 loanId) external onlyOwner {
+    function markLoanAsFunded(
+        uint64 chainKey,
+        uint64 blockHeight,
+        bytes calldata encodedTransaction,
+        bytes32 merkleRoot,
+        INativeQueryVerifier.MerkleProofEntry[] calldata siblings,
+        bytes32 lowerEndpointDigest,
+        bytes32[] calldata continuityRoots
+        ) external onlyOwner {
+        // First we check for replay attacks
+        (bool isNotreplay, bytes32 txKey) = _checkForReplay(chainKey, blockHeight, siblings);
+        require(isNotreplay, "Transaction contents validation failed");
+
+        // Now we need to validate that the funding transaction actually took place
+        // First we verify the proof
+        bool verified = _verifyProof(
+            chainKey, blockHeight, encodedTransaction, merkleRoot, siblings, lowerEndpointDigest, continuityRoots
+        );
+        require(verified, "Verification failed");
+
+        // Next, we need to validate that the transaction actually contains our LoanFunded event
+        EvmV1Decoder.LogEntry[] memory fundEventLogs = _validateTransactionContents(encodedTransaction, FUND_EVENT_SIGNATURE);
+        uint256 loanId = _processFundLogs(fundEventLogs);
+
+        // Now we can proceed with marking the loan as funded
         LoanOrder storage loan = loanOrders[loanId];
         require(loan.status == LoanStatus.Created, "Loan is not in Created status");
         require(block.number <= loan.terms.deadlineBlockNumber, "Loan has expired");
 
         loan.status = LoanStatus.Funded;
         emit LoanFunded(loanId);
+
+        // Mark the query as processed
+        processedQueries[txKey] = true;
     }
 
-    /**
-     * @dev Note a repayment for a loan, can only be called by the contract owner
-     * @param loanId ID of the loan being repaid
-     * @param amount Amount being repaid
-     */
-    function noteLoanRepayment(uint256 loanId, uint256 amount) external onlyOwner {
+    function noteLoanRepayment(
+        uint64 chainKey,
+        uint64 blockHeight,
+        bytes calldata encodedTransaction,
+        bytes32 merkleRoot,
+        INativeQueryVerifier.MerkleProofEntry[] calldata siblings,
+        bytes32 lowerEndpointDigest,
+        bytes32[] calldata continuityRoots
+        ) external onlyOwner {
+        // First we check for replay attacks
+        (bool isNotreplay, bytes32 txKey) = _checkForReplay(chainKey, blockHeight, siblings);
+        require(isNotreplay, "Transaction contents validation failed");
+
+        // Now we need to verify that the repayment transaction actually took place
+        // First we verify the proof
+        bool verified = _verifyProof(
+            chainKey, blockHeight, encodedTransaction, merkleRoot, siblings, lowerEndpointDigest, continuityRoots
+        );
+        require(verified, "Verification failed");
+
+        // Next, we need to validate that the transaction actually contains our LoanRepaid event
+        EvmV1Decoder.LogEntry[] memory repayEventLogs = _validateTransactionContents(encodedTransaction, REPAY_EVENT_SIGNATURE);
+        (uint256 loanId, uint256 amount) = _processRepayLogs(repayEventLogs);
+
+        // Now we can proceed with marking the loan as partially or fully repaid
         LoanOrder storage loan = loanOrders[loanId];
         require(
             loan.status == LoanStatus.Funded || loan.status == LoanStatus.PartlyRepaid,
@@ -151,6 +209,9 @@ contract USCLoanManager is Ownable, ReentrancyGuard {
             loan.status = LoanStatus.PartlyRepaid;
             emit LoanPartiallyRepaid(loanId, amount);
         }
+
+        // Mark the query as processed
+        processedQueries[txKey] = true;
     }
 
     /**
@@ -175,5 +236,102 @@ contract USCLoanManager is Ownable, ReentrancyGuard {
         require(registeredLoans[loanId], "Loan ID not registered");
 
         return loanOrders[loanId];
+    }
+
+    function _validateTransactionContents(bytes memory encodedTransaction, bytes32 eventSignature) internal pure returns (EvmV1Decoder.LogEntry[] memory selectedEventLogs) {
+        // Validate transaction type
+        uint8 txType = EvmV1Decoder.getTransactionType(encodedTransaction);
+        require(EvmV1Decoder.isValidTransactionType(txType), "Unsupported transaction type");
+
+        // Decode and validate receipt status
+        EvmV1Decoder.ReceiptFields memory receipt = EvmV1Decoder.decodeReceiptFields(encodedTransaction);
+        require(receipt.receiptStatus == 1, "Transaction did not succeed");
+
+        // Find events and validate
+        selectedEventLogs = EvmV1Decoder.getLogsByEventSignature(receipt, eventSignature);
+        require(selectedEventLogs.length > 0, "No events of type required type found");
+
+        return selectedEventLogs;
+    }
+
+    function _processFundLogs(EvmV1Decoder.LogEntry[] memory fundLogs)
+        internal
+        pure
+        returns (uint256 loanId)
+    {
+        // For this demonstration we only process the first fund log found within a transaction.
+        // We only expect a single fund log to exist per transaction anyways
+        require(fundLogs.length > 0);
+        EvmV1Decoder.LogEntry memory log = fundLogs[0];
+
+        require(log.topics.length == 2, "Invalid LoanFunded topics");
+        require(log.topics[0] == FUND_EVENT_SIGNATURE, "Not LoanFunded event");
+
+        loanId = uint256(log.topics[1]);
+
+        return loanId;
+    }
+
+    function _processRepayLogs(EvmV1Decoder.LogEntry[] memory repayLogs)
+        internal
+        pure
+        returns (uint256 loanId, uint256 amount)
+    {
+        // For this demonstration we only process the first repay log found within a transaction.
+        // We only expect a single repay log to exist per transaction anyways
+        require(repayLogs.length > 0);
+        EvmV1Decoder.LogEntry memory log = repayLogs[0];
+
+        require(log.topics.length == 2, "Invalid LoanRepaid topics");
+        require(log.topics[0] == REPAY_EVENT_SIGNATURE, "Not LoanRepaid event");
+        require(log.data.length == 32, "Invalid LoanRepaid data");
+
+        loanId = uint256(log.topics[1]);
+        amount = abi.decode(log.data, (uint256));
+
+        return (loanId, amount);
+    }
+
+    function _checkForReplay(
+        uint64 chainKey,
+        uint64 blockHeight,
+        INativeQueryVerifier.MerkleProofEntry[] calldata siblings
+        ) internal view returns (bool isNotReplay, bytes32 txKey)
+    {
+        // Calculate transaction index from merkle proof path
+        uint256 transactionIndex = NativeQueryVerifierLib._calculateTransactionIndex(siblings);
+
+        // Check if the query has already been processed
+        {
+            assembly {
+                let ptr := mload(0x40)
+                mstore(ptr, chainKey)
+                mstore(add(ptr, 32), shl(192, blockHeight))
+                mstore(add(ptr, 40), transactionIndex)
+                txKey := keccak256(ptr, 72)
+            }
+            return (!processedQueries[txKey], txKey);
+        }
+    }
+
+    function _verifyProof(
+        uint64 chainKey,
+        uint64 blockHeight,
+        bytes calldata encodedTransaction,
+        bytes32 merkleRoot,
+        INativeQueryVerifier.MerkleProofEntry[] calldata siblings,
+        bytes32 lowerEndpointDigest,
+        bytes32[] calldata continuityRoots
+    ) internal returns (bool verified) {
+        INativeQueryVerifier.MerkleProof memory merkleProof =
+            INativeQueryVerifier.MerkleProof({root: merkleRoot, siblings: siblings});
+
+        INativeQueryVerifier.ContinuityProof memory continuityProof =
+            INativeQueryVerifier.ContinuityProof({lowerEndpointDigest: lowerEndpointDigest, roots: continuityRoots});
+
+        // Verify inclusion proof
+        verified = VERIFIER.verifyAndEmit(chainKey, blockHeight, encodedTransaction, merkleProof, continuityProof);
+
+        return verified;
     }
 }
