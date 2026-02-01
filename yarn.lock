@@ -169,10 +169,10 @@
   resolved "https://registry.yarnpkg.com/@eslint/js/-/js-8.57.1.tgz#de633db3ec2ef6a3c89e2f19038063e8a122e2c2"
   integrity sha512-d9zaMRSTIKDLhctzH12MtXvJKSSUhaHcjV+2Z+GK+EEY7XKpP5yR4x+N3TAcHTcu963nIr+TMcCb4DBCYX1z6Q==
 
-"@gluwa/cc-next-query-builder@0.5.1":
-  version "0.5.1"
-  resolved "https://registry.yarnpkg.com/@gluwa/cc-next-query-builder/-/cc-next-query-builder-0.5.1.tgz#54c196388f4aabc84fe2b53753d8fbc9e1bd964f"
-  integrity sha512-6nkZr7GeWl7L29LS3e2kTA+9Vf3BySBElg7nObGGazwi12iq6GBU8e+vWODB+B+dj9THjzriUfhIC91SLOPCAw==
+"@gluwa/cc-next-query-builder@0.6.1":
+  version "0.6.1"
+  resolved "https://registry.yarnpkg.com/@gluwa/cc-next-query-builder/-/cc-next-query-builder-0.6.1.tgz#becf0048332eb256d9cc836b3f7cac75f43012c0"
+  integrity sha512-gdiUCvy6BTodHtpNBvsUb34unkgssGIah2vPK1gJ4E+HSXJjLH287t99X1MAEHzYC3YAq2D0m+PT2ZCKLvIiew==
   dependencies:
     axios "^1.13.2"
     dotenv "^17.2.3"
@@ -242,10 +242,10 @@
   dependencies:
     undici-types "~6.19.2"
 
-"@types/node@^25.0.9":
-  version "25.0.9"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-25.0.9.tgz#81ce3579ddf67cae812a9d49c8a0ab90c82e7782"
-  integrity sha512-/rpCXHlCWeqClNBwUhDcusJxXYDjZTyE8v5oTO7WbL8eij2nKhUeU89/6xgjU7N4/Vh3He0BtyhJdQbDyhiXAw==
+"@types/node@^25.1.0":
+  version "25.1.0"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-25.1.0.tgz#95cc584f1f478301efc86de4f1867e5875e83571"
+  integrity sha512-t7frlewr6+cbx+9Ohpl0NOTKXZNV9xHRmNOvql47BFJKcEG1CxtxlPEEe+gR9uhVWM4DwhnvTF110mIL4yP9RA==
   dependencies:
     undici-types "~7.16.0"
 
