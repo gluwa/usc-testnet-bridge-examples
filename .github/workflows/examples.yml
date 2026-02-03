@@ -222,8 +222,8 @@ jobs:
           echo "INFO: Verify bridged tokens"
           OUTPUT=$(yarn utils:check_balance $USC_MINTER_CONTRACT_ADDRESS "${{ steps.setup.outputs.creditcoin_wallet_address }}")
           echo "$OUTPUT"
-          echo "$OUTPUT" | grep "Raw Balance: 1000"
-          echo "$OUTPUT" | grep "Formatted Balance: 0.000000000000001 TEST"
+          echo "$OUTPUT" | grep "Raw Balance: 50000000000000000000"
+          echo "$OUTPUT" | grep "Formatted Balance: 50.0 TEST"
 
       - name: Collect logs
         if: always()
@@ -390,7 +390,7 @@ jobs:
           DECODER_CONTRACT_ADDRESS=$(echo "$OUTPUT" | grep "Deployed to:" | cut -f2 -d: | tr -d " ")
 
           echo "INFO: Modify SimpleMinterUSC.sol to mint 2x"
-          sed -i "s/_mint(msg.sender, MINT_AMOUNT);/_mint(msg.sender, MINT_AMOUNT * 2);/" contracts/sol/SimpleMinterUSC.sol
+          sed -i "s/_mint(msg.sender, burnValue);/_mint(msg.sender, burnValue * 2);/" contracts/sol/SimpleMinterUSC.sol
           git diff
 
           echo "INFO: deploy SimpleMinterUSC.sol to Creditcoin chain"
@@ -447,8 +447,8 @@ jobs:
           echo "INFO: Verify bridged tokens"
           OUTPUT=$(yarn utils:check_balance "$USC_CUSTOM_MINTER_CONTRACT_ADDRESS" "${{ steps.setup.outputs.creditcoin_wallet_address }}")
           echo "$OUTPUT"
-          echo "$OUTPUT" | grep "Raw Balance: 2000"
-          echo "$OUTPUT" | grep "Formatted Balance: 0.000000000000002 TEST"
+          echo "$OUTPUT" | grep "Raw Balance: 100000000000000000000"
+          echo "$OUTPUT" | grep "Formatted Balance: 100.0 TEST"
           # WARNING: this is 2x compared to hello-bridge example
 
       - name: Collect logs
@@ -674,8 +674,8 @@ jobs:
           echo "INFO: Verify bridged tokens"
           OUTPUT=$(yarn utils:check_balance "$USC_CUSTOM_MINTER_CONTRACT_ADDRESS" "${{ steps.setup.outputs.creditcoin_wallet_address }}")
           echo "$OUTPUT"
-          echo "$OUTPUT" | grep "Raw Balance: 3000"
-          echo "$OUTPUT" | grep "Formatted Balance: 0.000000000000003 TEST"
+          echo "$OUTPUT" | grep "Raw Balance: 50000000000000000000"
+          echo "$OUTPUT" | grep "Formatted Balance: 50.0 TEST"
           # WARNING: this is 3x compared to hello-bridge example
 
       - name: Collect logs
@@ -844,11 +844,22 @@ jobs:
           AUX_LOAN_CONTRACT_ADDRESS=$(echo "$OUTPUT" | grep "Deployed to:" | cut -f2 -d: | tr -d " ")
           echo "aux_loan_contract_address=$AUX_LOAN_CONTRACT_ADDRESS" >> "$GITHUB_OUTPUT"
 
+          echo "INFO: deploy EvmV1Decoder.sol to Creditcoin chain"
+          # note: this is Alith's PK
+          OUTPUT=$(~/.foundry/bin/forge create \
+            --broadcast \
+            --rpc-url "$CREDITCOIN_RPC_URL" \
+            --private-key "$WALLET_PK" \
+            contracts/sol/EvmV1Decoder.sol:EvmV1Decoder)
+          echo "$OUTPUT"
+          DECODER_CONTRACT_ADDRESS=$(echo "$OUTPUT" | grep "Deployed to:" | cut -f2 -d: | tr -d " ")
+
           echo "INFO: deploy USCLoanManager.sol to Creditcoin"
           OUTPUT=$(~/.foundry/bin/forge create \
                 --broadcast                    \
                 --rpc-url "$CREDITCOIN_RPC_URL"  \
                 --private-key "$WALLET_PK"   \
+                --libraries "contracts/sol/EvmV1Decoder.sol:EvmV1Decoder:$DECODER_CONTRACT_ADDRESS" \
                 contracts/sol/USCLoanManager.sol:USCLoanManager)
           echo "$OUTPUT"
           USC_LOAN_MANAGER_CONTRACT_ADDRESS=$(echo "$OUTPUT" | grep "Deployed to:" | cut -f2 -d: | tr -d " ")
@@ -987,7 +998,10 @@ jobs:
 
 
           # wait for off-chain worker to prove the event above
-          sleep 120
+          sleep 240
+          echo "---- last 3 lines of offchain-worker.log for debugging ----"
+          tail -n 3 /var/tmp/loan-flow-logs/offchain-worker.log
+          echo "Printing LoanFunded result:"
           grep "Loan $LOAN_ID has been marked as funded on Creditcoin" /var/tmp/loan-flow-logs/offchain-worker.log
 
 
@@ -1005,7 +1019,10 @@ jobs:
 
 
           # wait for off-chain worker to prove the event above
-          sleep 120
+          sleep 240
+          echo "---- last 3 lines of offchain-worker.log for debugging ----"
+          tail -n 3 /var/tmp/loan-flow-logs/offchain-worker.log
+          echo "Printing LoanRepaid result:"
           grep "Loan $LOAN_ID has been marked as fully repaid on Creditcoin" /var/tmp/loan-flow-logs/offchain-worker.log
 
 

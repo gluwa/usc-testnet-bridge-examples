@@ -4,39 +4,7 @@ pragma solidity ^0.8.23;
 import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 import {EvmV1Decoder} from "./EvmV1Decoder.sol";
-
-interface INativeQueryVerifier {
-    struct MerkleProofEntry {
-        bytes32 hash;
-        bool isLeft;
-    }
-
-    struct MerkleProof {
-        bytes32 root;
-        MerkleProofEntry[] siblings;
-    }
-
-    struct ContinuityProof {
-        bytes32 lowerEndpointDigest;
-        bytes32[] roots;
-    }
-
-    function verifyAndEmit(
-        uint64 chainKey,
-        uint64 height,
-        bytes calldata encodedTransaction,
-        MerkleProof calldata merkleProof,
-        ContinuityProof calldata continuityProof
-    ) external returns (bool);
-}
-
-library NativeQueryVerifierLib {
-    address constant PRECOMPILE_ADDRESS = 0x0000000000000000000000000000000000000FD2;
-
-    function getVerifier() internal pure returns (INativeQueryVerifier) {
-        return INativeQueryVerifier(PRECOMPILE_ADDRESS);
-    }
-}
+import {INativeQueryVerifier, NativeQueryVerifierLib} from "./VerifierInterface.sol";
 
 contract SimpleMinterUSC is ERC20 {
     /// @notice The Native Query Verifier precompile instance
@@ -47,8 +15,6 @@ contract SimpleMinterUSC is ERC20 {
     bytes32 public constant TRANSFER_EVENT_SIGNATURE =
         0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef;
 
-    uint256 constant MINT_AMOUNT = 1_000;
-
     event TokensMinted(address indexed token, address indexed recipient, uint256 amount, bytes32 indexed queryId);
 
     mapping(bytes32 => bool) public processedQueries;
@@ -58,29 +24,10 @@ contract SimpleMinterUSC is ERC20 {
         VERIFIER = NativeQueryVerifierLib.getVerifier();
     }
 
-    /**
-     * @notice Calculates the transaction index from the merkle proof path
-     */
-    function _calculateTransactionIndex(INativeQueryVerifier.MerkleProofEntry[] memory proof)
-        internal
-        pure
-        returns (uint256 index)
-    {
-        index = 0;
-        // Iterate from root -> leaf
-        for (uint256 i = proof.length; i > 0; i--) {
-            // isLeft represents "sibling's" left or right, not "self" left or right
-            // isLeft == true means "sibling" is on the left, itself offset == 1
-            // isLeft == false means "sibling" is on the right, itself offset == 0
-            index = index * 2 + (proof[i - 1].isLeft ? 1 : 0);
-        }
-        return index;
-    }
-
     function _processTransferLogs(EvmV1Decoder.LogEntry[] memory transferLogs, address targetSourceAddress)
         internal
         pure
-        returns (bool found)
+        returns (bool found, uint256 value)
     {
         found = false;
 
@@ -96,13 +43,17 @@ contract SimpleMinterUSC is ERC20 {
 
             // If transfer is from targetSourceAddress to address(128) or lower, consider it a burn
             if (from == targetSourceAddress && to < address(128)) {
+                // Now that we've found a burn transaction, let's get its value
+                require(log.data.length == 32, "Not ERC20 Transfer: data len");
+                // data is a single uint256 (32 bytes)
+                value = abi.decode(log.data, (uint256));
                 found = true;
 
                 break;
             }
         }
 
-        return found;
+        return (found, value);
     }
 
     function _verifyProof(
@@ -126,7 +77,7 @@ contract SimpleMinterUSC is ERC20 {
         return verified;
     }
 
-    function _validateTransactionContents(bytes memory encodedTransaction) internal pure returns (bool valid) {
+    function _validateTransactionContents(bytes memory encodedTransaction) internal pure returns (bool valid, uint256 value) {
         // Validate transaction type
         uint8 txType = EvmV1Decoder.getTransactionType(encodedTransaction);
         require(EvmV1Decoder.isValidTransactionType(txType), "Unsupported transaction type");
@@ -144,10 +95,10 @@ contract SimpleMinterUSC is ERC20 {
         EvmV1Decoder.CommonTxFields memory txFields = EvmV1Decoder.decodeCommonTxFields(encodedTransaction);
 
         // Check if there's an actual burn transfer from the sender
-        bool found = _processTransferLogs(transferLogs, txFields.from);
+        (bool found, uint256 burnValue) = _processTransferLogs(transferLogs, txFields.from);
         require(found, "No valid burn transfer found");
 
-        return true;
+        return (true, burnValue);
     }
 
     function mintFromQuery(
@@ -160,7 +111,7 @@ contract SimpleMinterUSC is ERC20 {
         bytes32[] calldata continuityRoots
     ) external returns (bool success) {
         // Calculate transaction index from merkle proof path
-        uint256 transactionIndex = _calculateTransactionIndex(siblings);
+        uint256 transactionIndex = NativeQueryVerifierLib._calculateTransactionIndex(siblings);
 
         // Check if the query has already been processed
         bytes32 txKey;
@@ -185,13 +136,13 @@ contract SimpleMinterUSC is ERC20 {
         processedQueries[txKey] = true;
 
         // Next we validate the transaction contents
-        bool valid = _validateTransactionContents(encodedTransaction);
+        (bool valid, uint256 burnValue) = _validateTransactionContents(encodedTransaction);
         require(valid, "Transaction contents validation failed");
 
         // If the transaction validation passes, mint tokens to the sender
-        _mint(msg.sender, MINT_AMOUNT);
+        _mint(msg.sender, burnValue);
 
-        emit TokensMinted(address(this), msg.sender, MINT_AMOUNT, txKey);
+        emit TokensMinted(address(this), msg.sender, burnValue, txKey);
 
         return true;
     }

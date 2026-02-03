@@ -99,23 +99,29 @@ async function computeGasLimit(
   return gasLimit;
 }
 
-export async function computeGasLimitForProver(
+export async function computeGasLimitForLoanManager(
   provider: JsonRpcApiProvider,
   contract: Contract,
   proofData: ContinuityResponse,
-  signerAddress: string
+  signerAddress: string,
+  is_repayment: boolean
 ): Promise<bigint> {
   const chainKey = proofData.chainKey;
   const height = proofData.headerNumber;
   const encodedTransaction = proofData.txBytes;
-  const merkleProof = proofData.merkleProof;
-  const continuityProof = proofData.continuityProof;
+  const merkleRoot = proofData.merkleProof.root;
+  const siblings = proofData.merkleProof.siblings;
+  const lowerEndpointDigest = proofData.continuityProof.lowerEndpointDigest;
+  const continuityRoots = proofData.continuityProof.roots;
 
   const iface = contract.interface;
-  const funcFragment = iface.getFunction(
-    'verifyAndEmit(uint64,uint64,bytes,(bytes32,(bytes32,bool)[]),(bytes32,bytes32[]))'
-  );
-  const params = [chainKey, height, encodedTransaction, merkleProof, continuityProof];
+
+  const signature = is_repayment
+    ? 'noteLoanRepayment(uint64,uint64,bytes,bytes32,(bytes32,bool)[],bytes32,bytes32[])'
+    : 'markLoanAsFunded(uint64,uint64,bytes,bytes32,(bytes32,bool)[],bytes32,bytes32[])';
+  const funcFragment = iface.getFunction(signature);
+
+  const params = [chainKey, height, encodedTransaction, merkleRoot, siblings, lowerEndpointDigest, continuityRoots];
   const data = iface.encodeFunctionData(funcFragment!, params);
 
   const continuityBlocks = proofData.continuityProof.roots?.length || 1;
@@ -150,12 +156,12 @@ export async function computeGasLimitForMinter(
 }
 
 /**
- * Submits the proof to the USC block prover contract.
- * @param contract A block prover contract instance, must have the verifyAndEmit method with the correct signature.
+ * Submits the proof of a LoanFunded event to the USCLoanManager contract
+ * @param contract The loan manager contract. Must have the function markLoanAsFunded.
  * @param proofData A proof data object obtained from the proof generation process.
- * @returns A promise that resolves to the transaction response of the verifyAndEmit call.
+ * * @returns A promise that resolves to the transaction response of the markLoanAsFunded call.
  */
-export async function submitProofToBlockProver(
+export async function submitFundProofToLoanManager(
   contract: Contract,
   proofData: ContinuityResponse,
   gasLimit: bigint
@@ -163,10 +169,52 @@ export async function submitProofToBlockProver(
   const chainKey = proofData.chainKey;
   const height = proofData.headerNumber;
   const encodedTransaction = proofData.txBytes;
-  const merkleProof = proofData.merkleProof;
-  const continuityProof = proofData.continuityProof;
+  const merkleRoot = proofData.merkleProof.root;
+  const siblings = proofData.merkleProof.siblings;
+  const lowerEndpointDigest = proofData.continuityProof.lowerEndpointDigest;
+  const continuityRoots = proofData.continuityProof.roots;
 
-  return await contract.verifyAndEmit(chainKey, height, encodedTransaction, merkleProof, continuityProof, { gasLimit });
+  return await contract.markLoanAsFunded(
+    chainKey,
+    height,
+    encodedTransaction,
+    merkleRoot,
+    siblings,
+    lowerEndpointDigest,
+    continuityRoots,
+    { gasLimit }
+  );
+}
+
+/**
+ * Submits the proof of a LoanRepaid event to the USCLoanManager contract
+ * @param contract The loan manager contract. Must have the function noteLoanRepayment.
+ * @param proofData A proof data object obtained from the proof generation process.
+ * * @returns A promise that resolves to the transaction response of the noteLoanRepayment call.
+ */
+export async function submitRepayProofToLoanManager(
+  contract: Contract,
+  proofData: ContinuityResponse,
+  gasLimit: bigint
+): Promise<any> {
+  const chainKey = proofData.chainKey;
+  const height = proofData.headerNumber;
+  const encodedTransaction = proofData.txBytes;
+  const merkleRoot = proofData.merkleProof.root;
+  const siblings = proofData.merkleProof.siblings;
+  const lowerEndpointDigest = proofData.continuityProof.lowerEndpointDigest;
+  const continuityRoots = proofData.continuityProof.roots;
+
+  return await contract.noteLoanRepayment(
+    chainKey,
+    height,
+    encodedTransaction,
+    merkleRoot,
+    siblings,
+    lowerEndpointDigest,
+    continuityRoots,
+    { gasLimit }
+  );
 }
 
 /**

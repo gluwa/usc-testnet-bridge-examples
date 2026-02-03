@@ -63,7 +63,7 @@ faucet here.
 
 ### 1.3 Get some test funds (`Creditcoin`)
 
-You will also need to fund your account on the Creditcoin Testnet, otherwise our oracle query
+You will also need to fund your account on the Creditcoin Testnet v2, otherwise our oracle query
 submission will fail due to lack of funds. Head to the [🚰 creditcoin discord faucet] to request
 some test tokens there.
 
@@ -218,7 +218,7 @@ Such teams will want to define and deploy their own contracts as shown in the [c
 bridging] tutorial.
 
 [🚰 testnet faucet]: https://cloud.google.com/application/web3/faucet/ethereum/sepolia
-[🚰 creditcoin discord faucet]: https://discord.com/channels/762302877518528522/1414985542235459707
+[🚰 creditcoin discord faucet]: https://discord.com/channels/762302877518528522/1463257679827828962
 
 <!-- markdown-link-check-disable -->
 

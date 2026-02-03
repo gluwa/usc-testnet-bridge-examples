@@ -72,13 +72,15 @@ contract AuxiliaryLoanContract is Ownable, ReentrancyGuard {
 
     /**
      * @dev Validate a flow structure
-     * @param flow Flow structure to validate
+     * @param from Address which will send tokens
+     * @param to Address which will receive tokens
+     * @param withToken Address of token contract
      */
-    function validateFlow(LoanFlow calldata flow) private view returns (bool) {
-        require(flow.from != address(0), "Invalid source address");
-        require(flow.to != address(0), "Invalid target address");
-        require(flow.from != flow.to, "Source and target cannot be the same");
-        require(authorizedTokens[flow.withToken], "Token not authorized");
+    function validateFlow(address from, address to, address withToken) private view returns (bool) {
+        require(from != address(0), "Invalid source address");
+        require(to != address(0), "Invalid target address");
+        require(from != to, "Source and target cannot be the same");
+        require(authorizedTokens[withToken], "Token not authorized");
 
         return true;
     }
@@ -88,38 +90,22 @@ contract AuxiliaryLoanContract is Ownable, ReentrancyGuard {
      * @param loanId ID of the loan being registered
      * @param flow Flow structure for the loan funding
      * @param fundAmount Amount to be funded for the loan
+     * @param repayAmount Amount to be repaid for the loan
      */
-    function registerLoanFund(uint256 loanId, LoanFlow calldata flow, uint256 fundAmount) external onlyOwner {
+    function registerLoanFund(uint256 loanId, LoanFlow calldata flow, uint256 fundAmount, uint256 repayAmount) external onlyOwner {
         require(!expiredLoans[loanId], "Cannot register a loan for funding that is expired");
 
         // Validate inputs
         require(!loanFundRegistered[loanId], "Loan already registered");
         require(fundAmount > 0, "Fund amount must be greater than 0");
-        require(validateFlow(flow), "Invalid loan flow structure");
+        require(validateFlow(flow.from, flow.to, flow.withToken), "Invalid loan flow structure");
 
         loanFundAmounts[loanId] = fundAmount;
         loanFundFlows[loanId] = flow;
         loanFundRegistered[loanId] = true;
 
-    }
-
-    /**
-     * @dev Register a repayment for a loan, can only be called by the owner (USC system) to avoid setting arbitrary amounts
-     * @param loanId ID of the loan being repaid
-     * @param flow Flow structure for the loan repayment
-     * @param repayAmount Amount to be repaid for the loan
-     */
-    function registerLoanRepayment(uint256 loanId, LoanFlow calldata flow, uint256 repayAmount) external onlyOwner {
-        require(!expiredLoans[loanId], "Cannot register a loan for repayment that is expired");
-
-        // Validate inputs
-        require(!loanRepaymentRegistered[loanId], "Loan already registered");
-        require(repayAmount > 0, "Repay amount must be greater than 0");
-        require(validateFlow(flow), "Invalid loan flow structure");
-
+        // We store the repayment amount here so it is available for use once funding is complete
         loanRepaymentAmounts[loanId] = repayAmount;
-        loanRepayFlows[loanId] = flow;
-        loanRepaymentRegistered[loanId] = true;
     }
 
     /**
@@ -148,10 +134,10 @@ contract AuxiliaryLoanContract is Ownable, ReentrancyGuard {
         require(loanFundAmounts[loanId] > 0, "Loan already funded");
 
         // Validate that flow details match
-        LoanFlow memory loanFlow = loanFundFlows[loanId];
-        require(loanFlow.withToken == token, "Token mismatch for loan");
-        require(loanFlow.from == from, "Lender address mismatch");
-        require(loanFlow.to == to, "Borrower address mismatch");
+        LoanFlow memory fundingFlow = loanFundFlows[loanId];
+        require(fundingFlow.withToken == token, "Token mismatch for loan");
+        require(fundingFlow.from == from, "Lender address mismatch");
+        require(fundingFlow.to == to, "Borrower address mismatch");
 
         // If the funded amount exceeds expected, cap it to expected
         uint256 expectedAmount = loanFundAmounts[loanId];
@@ -165,10 +151,26 @@ contract AuxiliaryLoanContract is Ownable, ReentrancyGuard {
         // Decrease the remaining amount to be funded
         loanFundAmounts[loanId] -= amount;
 
-        // If fully funded, emit event
+        // If fully funded, emit event and register the loan for repayment
         if (loanFundAmounts[loanId] == 0) {
             // Emit event for USC worker to listen to
             emit LoanFunded(loanId);
+
+            // Register repayment flow
+            LoanFlow memory repaymentFlow = LoanFlow({
+                from: fundingFlow.to,
+                to: fundingFlow.from,
+                withToken: fundingFlow.withToken
+            });
+
+            // Validate inputs
+            require(!loanRepaymentRegistered[loanId], "Loan already registered");
+            require(loanRepaymentAmounts[loanId] > 0, "Repay amount must be greater than 0");
+            require(validateFlow(repaymentFlow.from, repaymentFlow.to, repaymentFlow.withToken), "Invalid loan flow structure");
+
+            // loanRepayAmounts should already have an entry set up in registerLoanFund
+            loanRepayFlows[loanId] = repaymentFlow;
+            loanRepaymentRegistered[loanId] = true;
         }
     }
 

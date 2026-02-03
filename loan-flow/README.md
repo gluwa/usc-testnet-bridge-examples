@@ -57,6 +57,25 @@ Grab this address and add it to the `.env` file at the root of the repository wi
 SOURCE_CHAIN_ERC20_CONTRACT_ADDRESS=<erc20_contract_address>
 ```
 
+Now we need to deploy a `EvmV1Decoder` library so that we can reference it in our
+`USCLoanManager`. We do so like this:
+
+```bash
+forge create \
+  --broadcast \
+  --rpc-url $CREDITCOIN_RPC_URL \
+  --private-key $CREDITCOIN_WALLET_PRIVATE_KEY \
+  contracts/sol/EvmV1Decoder.sol:EvmV1Decoder
+```
+
+You should get some output with the address of the library you just deployed:
+
+```bash
+Deployed to: 0x73684e10cE6d6E344BfdD4F92a79e0D6Cd931b52
+```
+
+Save the address of the contract. You will be needing it for the second half of this step.
+
 Then, we deploy the USC manager contract:
 
 ```sh
@@ -64,6 +83,7 @@ forge create                \
     --broadcast              \
     --rpc-url $CREDITCOIN_RPC_URL \
     --private-key $CREDITCOIN_WALLET_PRIVATE_KEY \
+    --libraries contracts/sol/EvmV1Decoder.sol:EvmV1Decoder:<decoder_library_address> \
     contracts/sol/USCLoanManager.sol:USCLoanManager
 ```
 
@@ -432,7 +452,7 @@ It should show something like this:
 Decimals for token micro unit: 18
 ```
 
-So the borrower ended up losing the 50 extra tokens of the interest and the lender got them instead. Sounds correct!
+So the borrower ended up losing the 50 extra micro units of the interest and the lender got them instead. Sounds correct!
 
 ## Conclusion
 
