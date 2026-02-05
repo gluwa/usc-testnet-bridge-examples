@@ -1,6 +1,6 @@
 import { Contract, JsonRpcApiProvider, TransactionReceipt, Log, LogDescription, EventLog } from 'ethers';
 
-import { api, chainInfo, ContinuityResponse, ProofGenerationResult } from '@gluwa/cc-next-query-builder';
+import { proofGenerator, chainInfo } from '@gluwa/cc-next-query-builder';
 
 /**
  * Tries to generate a proof for the given transaction hash on the specified chain. Will fail if the
@@ -20,7 +20,7 @@ export async function generateProofFor(
   proofServerUrl: string,
   creditcoinRpc: JsonRpcApiProvider,
   sourceChainRpc: JsonRpcApiProvider
-): Promise<ProofGenerationResult> {
+): Promise<proofGenerator.ProofGenerationResult> {
   // First, we need to ensure that the transaction exists on the source chain
   const transaction = await sourceChainRpc.getTransaction(txHash);
   if (!transaction) {
@@ -50,10 +50,10 @@ export async function generateProofFor(
   console.log(`Block ${blockNumber} attested! Generating proof...`);
 
   // We can now proceed to generate the proof using the prover API
-  const proofGenerator = new api.ProverAPIProofGenerator(chainKey, proofServerUrl);
+  const proofGenApi = new proofGenerator.api.ProverAPIProofGenerator(chainKey, proofServerUrl);
 
   try {
-    const proof = await proofGenerator.generateProof(txHash);
+    const proof = await proofGenApi.generateProof(txHash);
     console.log('Proof generation successful!');
     return proof;
   } catch (error) {
@@ -102,7 +102,7 @@ async function computeGasLimit(
 export async function computeGasLimitForLoanManager(
   provider: JsonRpcApiProvider,
   contract: Contract,
-  proofData: ContinuityResponse,
+  proofData: proofGenerator.ContinuityResponse,
   signerAddress: string,
   is_repayment: boolean
 ): Promise<bigint> {
@@ -132,7 +132,7 @@ export async function computeGasLimitForLoanManager(
 export async function computeGasLimitForMinter(
   provider: JsonRpcApiProvider,
   contract: Contract,
-  proofData: ContinuityResponse,
+  proofData: proofGenerator.ContinuityResponse,
   signerAddress: string
 ): Promise<bigint> {
   const chainKey = proofData.chainKey;
@@ -163,7 +163,7 @@ export async function computeGasLimitForMinter(
  */
 export async function submitFundProofToLoanManager(
   contract: Contract,
-  proofData: ContinuityResponse,
+  proofData: proofGenerator.ContinuityResponse,
   gasLimit: bigint
 ): Promise<any> {
   const chainKey = proofData.chainKey;
@@ -194,7 +194,7 @@ export async function submitFundProofToLoanManager(
  */
 export async function submitRepayProofToLoanManager(
   contract: Contract,
-  proofData: ContinuityResponse,
+  proofData: proofGenerator.ContinuityResponse,
   gasLimit: bigint
 ): Promise<any> {
   const chainKey = proofData.chainKey;
@@ -225,7 +225,7 @@ export async function submitRepayProofToLoanManager(
  */
 export async function submitProofToMinter(
   contract: Contract,
-  proofData: ContinuityResponse,
+  proofData: proofGenerator.ContinuityResponse,
   gasLimit: bigint
 ): Promise<any> {
   const chainKey = proofData.chainKey;
@@ -269,7 +269,7 @@ export interface MintResult {
  */
 export async function submitProofToMinterAndAwait(
   contract: Contract,
-  proofData: ContinuityResponse,
+  proofData: proofGenerator.ContinuityResponse,
   gasLimit: bigint
 ): Promise<MintResult> {
   const response = await submitProofToMinter(contract, proofData, gasLimit);
