@@ -390,7 +390,7 @@ jobs:
           DECODER_CONTRACT_ADDRESS=$(echo "$OUTPUT" | grep "Deployed to:" | cut -f2 -d: | tr -d " ")
 
           echo "INFO: Modify SimpleMinterUSC.sol to mint 2x"
-          sed -i "s/_mint(msg.sender, burnValue);/_mint(msg.sender, burnValue * 2);/" contracts/sol/SimpleMinterUSC.sol
+          sed -i "s/_mint(burnSender, burnValue);/_mint(burnSender, burnValue * 2);/" contracts/sol/SimpleMinterUSC.sol
           git diff
 
           echo "INFO: deploy SimpleMinterUSC.sol to Creditcoin chain"
