@@ -99,7 +99,7 @@ const main = async () => {
           `Tokens minted! Contract: ${contract}, To: ${to}, Amount: ${amount.toString()}, QueryId: ${queryId}`
         );
       }),
-      pollEvents(burnerContract, 'TokensBurned', burnerFromBlock, async (event) => {
+      pollEvents(burnerContract, 'TokensBurnedForBridging', burnerFromBlock, async (event) => {
         const [from, amount] = event.args;
         const txHash = event.transactionHash;
         const contractAddress = event.address;
