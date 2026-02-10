@@ -615,10 +615,6 @@ jobs:
           echo "$OUTPUT"
           DECODER_CONTRACT_ADDRESS=$(echo "$OUTPUT" | grep "Deployed to:" | cut -f2 -d: | tr -d " ")
 
-          echo "INFO: Modify SimpleMinterUSC.sol to mint 3x"
-          sed -i "s/_mint(msg.sender, MINT_AMOUNT);/_mint(msg.sender, MINT_AMOUNT * 3);/" contracts/sol/SimpleMinterUSC.sol
-          git diff
-
           echo "INFO: deploy SimpleMinterUSC.sol to Creditcoin chain"
           OUTPUT=$(~/.foundry/bin/forge create \
               --broadcast \
@@ -666,9 +662,14 @@ jobs:
             "burn(uint256)" 50000000000000000000        \
             --private-key "$CREDITCOIN_WALLET_PRIVATE_KEY")
           echo "$OUTPUT"
+          sleep 20
+
+          # Log that our token burn was detected
+          grep "Detected burn of" /var/tmp/bridge-offchain-worker-logs/offchain-worker.log
 
           # wait for attestations for the source block where we burned the tokens
-          sleep 500
+          echo "INFO: Wait for mint query to be processed by the USC contract"
+          sleep 480
           grep "Tokens minted!" /var/tmp/bridge-offchain-worker-logs/offchain-worker.log
 
           echo "INFO: Verify bridged tokens"
