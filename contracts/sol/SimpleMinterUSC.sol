@@ -38,7 +38,7 @@ contract SimpleMinterUSC is ERC20 {
         require(log.topics[0] == BURN_EVENT_SIGNATURE, "Not TokensBurnedForBridging event");
 
         from = address(uint160(uint256(log.topics[1])));
-                
+
         // data is a single uint256 (32 bytes)
         require(log.data.length == 32, "Not burn event: data len");
         value = abi.decode(log.data, (uint256));
