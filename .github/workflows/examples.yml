@@ -677,7 +677,6 @@ jobs:
           echo "$OUTPUT"
           echo "$OUTPUT" | grep "Raw Balance: 50000000000000000000"
           echo "$OUTPUT" | grep "Formatted Balance: 50.0 TEST"
-          # WARNING: this is 3x compared to hello-bridge example
 
       - name: Collect logs
         if: always()
