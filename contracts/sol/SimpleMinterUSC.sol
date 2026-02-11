@@ -11,9 +11,9 @@ contract SimpleMinterUSC is ERC20 {
     /// @dev Address: 0x0000000000000000000000000000000000000FD2 (4050 decimal)
     INativeQueryVerifier public immutable VERIFIER;
 
-    // ERC20 Transfer event signature: keccak256("Transfer(address,address,uint256)")
-    bytes32 public constant TRANSFER_EVENT_SIGNATURE =
-        0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef;
+    // TokensBurnedForBridging event signature: keccak256("TokensBurnedForBridging(address,uint256)")
+    bytes32 public constant BURN_EVENT_SIGNATURE =
+        0x17dc4d6f69d484e59be774c29b47d2fa4c14af2e01df42fc5643ac968f4d427e;
 
     event TokensMinted(address indexed token, address indexed recipient, uint256 amount, bytes32 indexed queryId);
 
@@ -24,36 +24,26 @@ contract SimpleMinterUSC is ERC20 {
         VERIFIER = NativeQueryVerifierLib.getVerifier();
     }
 
-    function _processTransferLogs(EvmV1Decoder.LogEntry[] memory transferLogs, address targetSourceAddress)
+    function _processBurnLogs(EvmV1Decoder.LogEntry[] memory burnLogs)
         internal
         pure
-        returns (bool found, uint256 value)
+        returns (address from, uint256 value)
     {
-        found = false;
+        // For this demonstration we only process the first burn log found within a transaction.
+        // We only expect a single burn log per transaction in this demo anyways
+        require(burnLogs.length > 0, "No burn logs");
+        EvmV1Decoder.LogEntry memory log = burnLogs[0];
 
-        for (uint256 i = 0; i < transferLogs.length; i++) {
-            EvmV1Decoder.LogEntry memory log = transferLogs[i];
+        require(log.topics.length == 2, "Invalid TokensBurnedForBridging topics");
+        require(log.topics[0] == BURN_EVENT_SIGNATURE, "Not TokensBurnedForBridging event");
 
-            // Transfer event has 3 topics: [signature, from, to]
-            // and data: value (uint256)
-            //require(log.topics.length >= 3, "Invalid Transfer event format");
+        from = address(uint160(uint256(log.topics[1])));
 
-            address from = address(uint160(uint256(log.topics[1])));
-            address to = address(uint160(uint256(log.topics[2])));
+        // data is a single uint256 (32 bytes)
+        require(log.data.length == 32, "Not burn event: data len");
+        value = abi.decode(log.data, (uint256));
 
-            // If transfer is from targetSourceAddress to address(128) or lower, consider it a burn
-            if (from == targetSourceAddress && to < address(128)) {
-                // Now that we've found a burn transaction, let's get its value
-                require(log.data.length == 32, "Not ERC20 Transfer: data len");
-                // data is a single uint256 (32 bytes)
-                value = abi.decode(log.data, (uint256));
-                found = true;
-
-                break;
-            }
-        }
-
-        return (found, value);
+        return (from, value);
     }
 
     function _verifyProof(
@@ -77,7 +67,7 @@ contract SimpleMinterUSC is ERC20 {
         return verified;
     }
 
-    function _validateTransactionContents(bytes memory encodedTransaction) internal pure returns (bool valid, uint256 value) {
+    function _validateTransactionContents(bytes memory encodedTransaction) internal pure returns (address sender, uint256 value) {
         // Validate transaction type
         uint8 txType = EvmV1Decoder.getTransactionType(encodedTransaction);
         require(EvmV1Decoder.isValidTransactionType(txType), "Unsupported transaction type");
@@ -86,19 +76,15 @@ contract SimpleMinterUSC is ERC20 {
         EvmV1Decoder.ReceiptFields memory receipt = EvmV1Decoder.decodeReceiptFields(encodedTransaction);
         require(receipt.receiptStatus == 1, "Transaction did not succeed");
 
-        // Find transfer events and validate
-        EvmV1Decoder.LogEntry[] memory transferLogs =
-            EvmV1Decoder.getLogsByEventSignature(receipt, TRANSFER_EVENT_SIGNATURE);
-        require(transferLogs.length > 0, "No transfer events found");
+        // Find burn events and validate
+        EvmV1Decoder.LogEntry[] memory burnLogs =
+            EvmV1Decoder.getLogsByEventSignature(receipt, BURN_EVENT_SIGNATURE);
+        require(burnLogs.length > 0, "No burn events found");
 
-        // Get the original sender
-        EvmV1Decoder.CommonTxFields memory txFields = EvmV1Decoder.decodeCommonTxFields(encodedTransaction);
+        // Check if the burn is valid
+        (address burnSender, uint256 burnValue) = _processBurnLogs(burnLogs);
 
-        // Check if there's an actual burn transfer from the sender
-        (bool found, uint256 burnValue) = _processTransferLogs(transferLogs, txFields.from);
-        require(found, "No valid burn transfer found");
-
-        return (true, burnValue);
+        return (burnSender, burnValue);
     }
 
     function mintFromQuery(
@@ -136,13 +122,12 @@ contract SimpleMinterUSC is ERC20 {
         processedQueries[txKey] = true;
 
         // Next we validate the transaction contents
-        (bool valid, uint256 burnValue) = _validateTransactionContents(encodedTransaction);
-        require(valid, "Transaction contents validation failed");
+        (address burnSender, uint256 burnValue) = _validateTransactionContents(encodedTransaction);
 
         // If the transaction validation passes, mint tokens to the sender
-        _mint(msg.sender, burnValue);
+        _mint(burnSender, burnValue);
 
-        emit TokensMinted(address(this), msg.sender, burnValue, txKey);
+        emit TokensMinted(address(this), burnSender, burnValue, txKey);
 
         return true;
     }

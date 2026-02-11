@@ -9,7 +9,7 @@ contract TestERC20 is ERC20 {
     /// @notice Emitted when tokens are burned (sent to the burn address).
     /// @param from The address burning their tokens
     /// @param value The amount of tokens burned
-    event TokensBurned(address indexed from, uint256 value);
+    event TokensBurnedForBridging(address indexed from, uint256 value);
 
     constructor() ERC20("Burn Test", "TEST") {
         // Mint sender initial supply
@@ -20,7 +20,7 @@ contract TestERC20 is ERC20 {
     /// @dev This does NOT reduce totalSupply; it only makes tokens inaccessible.
     function burn(uint256 amount) external returns (bool) {
         _transfer(msg.sender, BURN_ADDRESS, amount);
-        emit TokensBurned(msg.sender, amount);
+        emit TokensBurnedForBridging(msg.sender, amount);
         return true;
     }
 

@@ -173,7 +173,7 @@
   },
   {
     "inputs": [],
-    "name": "TRANSFER_EVENT_SIGNATURE",
+    "name": "BURN_EVENT_SIGNATURE",
     "outputs": [
       {
         "internalType": "bytes32",
