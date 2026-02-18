@@ -4,7 +4,6 @@ pragma solidity ^0.8.23;
 import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
-import {IUSCMinter} from "./USCMinter.sol";
 
 bytes32 constant USC_MINTER = keccak256("USC_MINTER");
 

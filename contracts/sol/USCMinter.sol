@@ -5,11 +5,7 @@ import {USCMintableToken, USC_MINTER} from "./MintableToken.sol";
 import {USCBaseBridge} from "./USCBaseBridge.sol";
 import {EvmV1Decoder} from "./EvmV1Decoder.sol";
 
-interface IUSCMinter {
-    function wrapOriginToken(address originToken, address targetToken) external;
-}
-
-contract USCMinter is USCBaseBridge, IUSCMinter {
+contract USCMinter is USCBaseBridge {
     // TokensBurnedForBridging event signature: keccak256("TokensBurnedForBridging(address,uint256)")
     bytes32 public constant BURN_EVENT_SIGNATURE =
         0x17dc4d6f69d484e59be774c29b47d2fa4c14af2e01df42fc5643ac968f4d427e;
