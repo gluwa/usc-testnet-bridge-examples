@@ -142,7 +142,7 @@ contract USCLoanManager is Ownable, ReentrancyGuard {
         bytes32[] calldata continuityRoots
         ) external onlyOwner {
         // First we check for replay attacks
-        (bool isNotreplay, bytes32 txKey) = _checkForReplay(chainKey, blockHeight, siblings);
+        (bool isNotreplay, bytes32 txKey) = _checkForReplay(chainKey, blockHeight, merkleRoot, siblings);
         require(isNotreplay, "Transaction contents validation failed");
 
         // Now we need to validate that the funding transaction actually took place
@@ -178,7 +178,7 @@ contract USCLoanManager is Ownable, ReentrancyGuard {
         bytes32[] calldata continuityRoots
         ) external onlyOwner {
         // First we check for replay attacks
-        (bool isNotreplay, bytes32 txKey) = _checkForReplay(chainKey, blockHeight, siblings);
+        (bool isNotreplay, bytes32 txKey) = _checkForReplay(chainKey, blockHeight, merkleRoot, siblings);
         require(isNotreplay, "Transaction contents validation failed");
 
         // Now we need to verify that the repayment transaction actually took place
@@ -295,11 +295,16 @@ contract USCLoanManager is Ownable, ReentrancyGuard {
     function _checkForReplay(
         uint64 chainKey,
         uint64 blockHeight,
+        bytes32 merkleRoot,
         INativeQueryVerifier.MerkleProofEntry[] calldata siblings
         ) internal view returns (bool isNotReplay, bytes32 txKey)
     {
         // Calculate transaction index from merkle proof path
-        uint256 transactionIndex = NativeQueryVerifierLib._calculateTransactionIndex(siblings);
+        INativeQueryVerifier.MerkleProof memory merkle_proof = INativeQueryVerifier.MerkleProof ({
+            root: merkleRoot,
+            siblings: siblings
+        });
+        uint256 transactionIndex = VERIFIER.calculateTxIndex(merkle_proof);
 
         // Check if the query has already been processed
         {
