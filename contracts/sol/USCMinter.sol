@@ -27,7 +27,7 @@ contract USCMinter is USCBaseBridge, IUSCMinter {
 
         wrappedTokens[originToken] = targetToken;
     }
-        
+
     function _processAndEmitEvent(bytes32 queryId, bytes memory encodedTransaction) internal override {
         // Validate transaction type
         uint8 txType = EvmV1Decoder.getTransactionType(encodedTransaction);
@@ -43,7 +43,7 @@ contract USCMinter is USCBaseBridge, IUSCMinter {
 
         // Check if the burn is valid
         (address originTokenAddress, address burntFrom, uint256 burntValue) = _processBurnLogs(burnLogs);
-        
+
         address wrappedTokenAddress = wrappedTokens[originTokenAddress];
 
         // will revert if not registered in wrappedTokens or not mintable

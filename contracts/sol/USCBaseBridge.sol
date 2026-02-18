@@ -28,7 +28,7 @@ abstract contract USCBaseBridge {
         INativeQueryVerifier.MerkleProofEntry[] calldata siblings,
         bytes32 lowerEndpointDigest,
         bytes32[] calldata continuityRoots
-    ) external returns (bool success) {        
+    ) external returns (bool success) {
         // Calculate transaction index from merkle proof path
         uint256 transactionIndex = NativeQueryVerifierLib._calculateTransactionIndex(siblings);
 
@@ -68,7 +68,7 @@ abstract contract USCBaseBridge {
         INativeQueryVerifier.MerkleProofEntry[] calldata siblings,
         bytes32 lowerEndpointDigest,
         bytes32[] calldata continuityRoots
-    ) external returns (bool success) {        
+    ) external returns (bool success) {
         // Calculate transaction index from merkle proof path
         uint256 transactionIndex = NativeQueryVerifierLib._calculateTransactionIndex(siblings);
 
