@@ -30,7 +30,11 @@ abstract contract USCBaseBridge {
         bytes32[] calldata continuityRoots
     ) external returns (bool success) {
         // Calculate transaction index from merkle proof path
-        uint256 transactionIndex = NativeQueryVerifierLib._calculateTransactionIndex(siblings);
+        INativeQueryVerifier.MerkleProof memory merkle_proof = INativeQueryVerifier.MerkleProof ({
+            root: merkleRoot,
+            siblings: siblings
+        });
+        uint256 transactionIndex = VERIFIER.calculateTxIndex(merkle_proof);
 
         // Check if the query has already been processed
         bytes32 queryId;
@@ -70,7 +74,11 @@ abstract contract USCBaseBridge {
         bytes32[] calldata continuityRoots
     ) external returns (bool success) {
         // Calculate transaction index from merkle proof path
-        uint256 transactionIndex = NativeQueryVerifierLib._calculateTransactionIndex(siblings);
+        INativeQueryVerifier.MerkleProof memory merkle_proof = INativeQueryVerifier.MerkleProof ({
+            root: merkleRoot,
+            siblings: siblings
+        });
+        uint256 transactionIndex = VERIFIER.calculateTxIndex(merkle_proof);
 
         // Check if the query has already been processed
         bytes32 queryId;
@@ -82,7 +90,7 @@ abstract contract USCBaseBridge {
                 mstore(add(ptr, 40), transactionIndex)
                 queryId := keccak256(ptr, 72)
             }
-//            require(!processedQueries[queryId], "Query already processed");
+        // require(!processedQueries[queryId], "Query already processed");
         }
 
         // First we verify the proof
