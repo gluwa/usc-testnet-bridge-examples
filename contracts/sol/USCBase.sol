@@ -48,35 +48,6 @@ abstract contract USCBase {
         return true;
     }
 
-    // allows for bypassing the processed queries check
-    function executeDev(
-        uint8 action,
-        uint64 chainKey,
-        uint64 blockHeight,
-        bytes calldata encodedTransaction,
-        bytes32 merkleRoot,
-        INativeQueryVerifier.MerkleProofEntry[] calldata siblings,
-        bytes32 lowerEndpointDigest,
-        bytes32[] calldata continuityRoots
-    ) external returns (bool success) {
-        bytes32 queryId = _computeQueryId(chainKey, blockHeight, merkleRoot, siblings);
-        
-        //require(!processedQueries[queryId], "Query already processed");
-
-        // First we verify the proof
-        bool verified = _verifyProof(
-            chainKey, blockHeight, encodedTransaction, merkleRoot, siblings, lowerEndpointDigest, continuityRoots
-        );
-        require(verified, "Proof of inclusion verification failed");
-
-        // Mark the query as processed
-        processedQueries[queryId] = true;
-
-        _processAndEmitEvent(action, queryId, encodedTransaction);
-
-        return true;
-    }
-
     function _verifyProof(
         uint64 chainKey,
         uint64 blockHeight,
