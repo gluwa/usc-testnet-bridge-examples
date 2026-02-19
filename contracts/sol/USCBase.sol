@@ -6,7 +6,7 @@ import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {EvmV1Decoder} from "./EvmV1Decoder.sol";
 import {INativeQueryVerifier, NativeQueryVerifierLib} from "./VerifierInterface.sol";
 
-abstract contract USCBaseBridge {
+abstract contract USCBase {
     /// @notice The Native Query Verifier precompile instance
     /// @dev Address: 0x0000000000000000000000000000000000000FD2 (4050 decimal)
     INativeQueryVerifier public immutable VERIFIER;
@@ -18,9 +18,10 @@ abstract contract USCBaseBridge {
         VERIFIER = NativeQueryVerifierLib.getVerifier();
     }
 
-    function _processAndEmitEvent(bytes32 queryId, bytes memory encodedTransaction) internal virtual;
+    function _processAndEmitEvent(uint8 action, bytes32 queryId, bytes memory encodedTransaction) internal virtual;
 
     function execute(
+        uint8 action,
         uint64 chainKey,
         uint64 blockHeight,
         bytes calldata encodedTransaction,
@@ -58,13 +59,14 @@ abstract contract USCBaseBridge {
         // Mark the query as processed
         processedQueries[queryId] = true;
 
-        _processAndEmitEvent(queryId, encodedTransaction);
+        _processAndEmitEvent(action, queryId, encodedTransaction);
 
         return true;
     }
 
     // allows for bypassing the processed queries check
     function executeDev(
+        uint8 action,
         uint64 chainKey,
         uint64 blockHeight,
         bytes calldata encodedTransaction,
@@ -102,7 +104,7 @@ abstract contract USCBaseBridge {
         // Mark the query as processed
         processedQueries[queryId] = true;
 
-        _processAndEmitEvent(queryId, encodedTransaction);
+        _processAndEmitEvent(action, queryId, encodedTransaction);
 
         return true;
     }

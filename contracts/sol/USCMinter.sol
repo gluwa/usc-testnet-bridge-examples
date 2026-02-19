@@ -2,10 +2,15 @@
 pragma solidity ^0.8.23;
 
 import {USCMintableToken, USC_MINTER} from "./MintableToken.sol";
-import {USCBaseBridge} from "./USCBaseBridge.sol";
+import {USCBase} from "./USCBase.sol";
 import {EvmV1Decoder} from "./EvmV1Decoder.sol";
 
-contract USCMinter is USCBaseBridge {
+contract USCMinter is USCBase {
+    enum MinterActions {
+        Mint // 0
+    }
+    error InvalidAction(uint8 action);
+
     // TokensBurnedForBridging event signature: keccak256("TokensBurnedForBridging(address,uint256)")
     bytes32 public constant BURN_EVENT_SIGNATURE =
         0x17dc4d6f69d484e59be774c29b47d2fa4c14af2e01df42fc5643ac968f4d427e;
@@ -24,7 +29,15 @@ contract USCMinter is USCBaseBridge {
         wrappedTokens[originToken] = targetToken;
     }
 
-    function _processAndEmitEvent(bytes32 queryId, bytes memory encodedTransaction) internal override {
+    function _processAndEmitEvent(uint8 action, bytes32 queryId, bytes memory encodedTransaction) internal override {
+        if (action == uint8(MinterActions.Mint)) {
+            _processMint(queryId, encodedTransaction);
+        } else {
+            revert InvalidAction(action);
+        }
+    }
+
+    function _processMint(bytes32 queryId, bytes memory encodedTransaction) internal {
         // Validate transaction type
         uint8 txType = EvmV1Decoder.getTransactionType(encodedTransaction);
         require(EvmV1Decoder.isValidTransactionType(txType), "Unsupported transaction type");
