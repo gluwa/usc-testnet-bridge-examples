@@ -15,6 +15,11 @@
   {
     "inputs": [
       {
+        "internalType": "uint8",
+        "name": "action",
+        "type": "uint8"
+      },
+      {
         "internalType": "uint64",
         "name": "chainKey",
         "type": "uint64"
@@ -75,6 +80,11 @@
   },
   {
     "inputs": [
+      {
+        "internalType": "uint8",
+        "name": "action",
+        "type": "uint8"
+      },
       {
         "internalType": "uint64",
         "name": "chainKey",

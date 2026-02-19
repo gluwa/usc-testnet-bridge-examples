@@ -1,5 +1,16 @@
 [
   {
+    "inputs": [
+      {
+        "internalType": "uint8",
+        "name": "action",
+        "type": "uint8"
+      }
+    ],
+    "name": "InvalidAction",
+    "type": "error"
+  },
+  {
     "anonymous": false,
     "inputs": [
       {
@@ -58,6 +69,11 @@
   },
   {
     "inputs": [
+      {
+        "internalType": "uint8",
+        "name": "action",
+        "type": "uint8"
+      },
       {
         "internalType": "uint64",
         "name": "chainKey",
@@ -119,6 +135,11 @@
   },
   {
     "inputs": [
+      {
+        "internalType": "uint8",
+        "name": "action",
+        "type": "uint8"
+      },
       {
         "internalType": "uint64",
         "name": "chainKey",
