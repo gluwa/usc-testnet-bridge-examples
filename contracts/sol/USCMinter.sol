@@ -55,7 +55,11 @@ contract USCMinter is USCBase {
 
         address wrappedTokenAddress = wrappedTokens[originTokenAddress];
 
-        // will revert if not registered in wrappedTokens or not mintable
+        require(
+            wrappedTokenAddress != address(0),
+            "Origin token not registered in wrapped tokens!"
+        );
+
         USCMintableToken(wrappedTokenAddress).mint(burntFrom, burntValue);
 
         emit TokensMinted(wrappedTokenAddress, burntFrom, burntValue, queryId);
