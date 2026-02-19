@@ -30,25 +30,9 @@ abstract contract USCBase {
         bytes32 lowerEndpointDigest,
         bytes32[] calldata continuityRoots
     ) external returns (bool success) {
-        // Calculate transaction index from merkle proof path
-        INativeQueryVerifier.MerkleProof memory merkle_proof = INativeQueryVerifier.MerkleProof ({
-            root: merkleRoot,
-            siblings: siblings
-        });
-        uint256 transactionIndex = VERIFIER.calculateTxIndex(merkle_proof);
+        bytes32 queryId = _computeQueryId(chainKey, blockHeight, merkleRoot, siblings);
 
-        // Check if the query has already been processed
-        bytes32 queryId;
-        {
-            assembly {
-                let ptr := mload(0x40)
-                mstore(ptr, chainKey)
-                mstore(add(ptr, 32), shl(192, blockHeight))
-                mstore(add(ptr, 40), transactionIndex)
-                queryId := keccak256(ptr, 72)
-            }
-            require(!processedQueries[queryId], "Query already processed");
-        }
+        require(!processedQueries[queryId], "Query already processed");
 
         // First we verify the proof
         bool verified = _verifyProof(
@@ -75,25 +59,9 @@ abstract contract USCBase {
         bytes32 lowerEndpointDigest,
         bytes32[] calldata continuityRoots
     ) external returns (bool success) {
-        // Calculate transaction index from merkle proof path
-        INativeQueryVerifier.MerkleProof memory merkle_proof = INativeQueryVerifier.MerkleProof ({
-            root: merkleRoot,
-            siblings: siblings
-        });
-        uint256 transactionIndex = VERIFIER.calculateTxIndex(merkle_proof);
-
-        // Check if the query has already been processed
-        bytes32 queryId;
-        {
-            assembly {
-                let ptr := mload(0x40)
-                mstore(ptr, chainKey)
-                mstore(add(ptr, 32), shl(192, blockHeight))
-                mstore(add(ptr, 40), transactionIndex)
-                queryId := keccak256(ptr, 72)
-            }
-        // require(!processedQueries[queryId], "Query already processed");
-        }
+        bytes32 queryId = _computeQueryId(chainKey, blockHeight, merkleRoot, siblings);
+        
+        //require(!processedQueries[queryId], "Query already processed");
 
         // First we verify the proof
         bool verified = _verifyProof(
@@ -128,5 +96,25 @@ abstract contract USCBase {
         verified = VERIFIER.verifyAndEmit(chainKey, blockHeight, encodedTransaction, merkleProof, continuityProof);
 
         return verified;
+    }
+
+    function _computeQueryId(
+        uint64 chainKey,
+        uint64 blockHeight,
+        bytes32 merkleRoot,
+        INativeQueryVerifier.MerkleProofEntry[] calldata siblings
+    ) internal view returns (bytes32 queryId) {
+        INativeQueryVerifier.MerkleProof memory merkle_proof =
+            INativeQueryVerifier.MerkleProof({ root: merkleRoot, siblings: siblings });
+
+        uint256 txIndex = VERIFIER.calculateTxIndex(merkle_proof);
+
+        assembly {
+            let ptr := mload(0x40)
+            mstore(ptr, chainKey)
+            mstore(add(ptr, 32), shl(192, blockHeight))
+            mstore(add(ptr, 40), txIndex)
+            queryId := keccak256(ptr, 72)
+        }
     }
 }
