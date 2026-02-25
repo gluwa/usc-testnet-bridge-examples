@@ -1,0 +1,99 @@
+---
+name: examples-devnet
+
+"on":
+  pull_request:
+  schedule:
+    # at 9:20, every Thursday
+    - cron: "20 9 * * 4"
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.ref }}-${{ github.workflow }}
+  cancel-in-progress: true
+
+permissions: read-all
+
+env:
+  # must exist both on Sepolia and USC Devnet and must have
+  # funds on both chains to pay transaction fees
+  # this is the NEW_LENDER_ account in 1Password
+  WALLET_ADDRESS: "0x2C317383b8A99537c61042B63C4fB042Df51033a"
+  WALLET_PK: ${{ secrets.DEVNET_EVM_PK }}
+  SEPOLIA_API_KEY: ${{ secrets.GOOGLE_SEPOLIA_RPC_KEY }}
+
+jobs:
+  hello-bridge:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install Foundry
+        run: |
+          export FOUNDRY_DIR="$HOME/.foundry"
+          # first install it
+          curl -L https://foundry.paradigm.xyz | bash
+          ~/.foundry/bin/foundryup
+
+      - name: Install Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+      - run: npm install -g yarn
+
+      - name: Prepare local .env
+        run: |
+          echo "SOURCE_CHAIN_KEY=3" > .env
+          echo "PROVER_API_URL='https://proof-gen-api.usc-devnet.creditcoin.network'" >> .env
+          echo "SOURCE_CHAIN_CONTRACT_ADDRESS='0x15166Ba9d24aBfa477C0c88dD1E6321297214eC8'" >> .env
+          echo "CREDITCOIN_RPC_URL='https://rpc.usc-devnet.creditcoin.network'" >> .env
+          echo "SOURCE_CHAIN_RPC_URL='https://blockchain.googleapis.com/v1/projects/usc-integration-test/locations/asia-east1/endpoints/ethereum-sepolia/rpc?key=${{ env.SEPOLIA_API_KEY }}'" >> .env
+          echo "USC_MINTER_CONTRACT_ADDRESS='0x9d960f72121189de0ca0bcE0133359a1285a4a7C'" >> .env
+          echo "CREDITCOIN_WALLET_PRIVATE_KEY='${{ env.WALLET_PK }}'" >> .env
+
+          echo "===== DEBUG ====="
+          cat .env
+          echo "===== END DEBUG ====="
+
+      - name: Setup
+        id: setup
+        run: |
+          yarn install
+
+          source .env
+
+          echo "INFO: mint tokens on source chain"
+          ~/.foundry/bin/cast send --rpc-url "$SOURCE_CHAIN_RPC_URL" \
+            "$SOURCE_CHAIN_CONTRACT_ADDRESS"  \
+            "mint(uint256)" 50000000000000000000        \
+            --private-key "${{ env.WALLET_PK }}"
+
+          echo "INFO: burn the tokens (on source chain) we want to bridge"
+          OUTPUT=$(~/.foundry/bin/cast send --rpc-url "$SOURCE_CHAIN_RPC_URL" \
+            "$SOURCE_CHAIN_CONTRACT_ADDRESS"  \
+            "burn(uint256)" 50000000000000000000  \
+            --private-key "${{ env.WALLET_PK }}")
+          echo "$OUTPUT"
+          BURN_TX_HASH=$(echo "$OUTPUT" | grep "transactionHash " | tr -s " " | cut -f2 -d" ")
+          echo "burn_tx_hash=$BURN_TX_HASH" >> "$GITHUB_OUTPUT"
+
+      - name: Exercise example
+        run: |
+          source .env
+
+          echo "INFO: Should not have any bridged tokens initially"
+          OUTPUT=$(yarn utils:check_balance $USC_MINTER_CONTRACT_ADDRESS "${{ env.WALLET_ADDRESS }}")
+          echo "$OUTPUT"
+          echo "$OUTPUT" | grep "Raw Balance: 0"
+          echo "$OUTPUT" | grep "Formatted Balance: 0.0 TEST"
+
+          echo "INFO: Submit a mint query to the USC contract"
+          OUTPUT=$(yarn hello_bridge:submit_query "${{ steps.setup.outputs.burn_tx_hash }}")
+          echo "$OUTPUT"
+          echo "$OUTPUT" | grep "Minting completed"
+
+          echo "INFO: Verify bridged tokens"
+          OUTPUT=$(yarn utils:check_balance $USC_MINTER_CONTRACT_ADDRESS "${{ env.WALLET_ADDRESS }}")
+          echo "$OUTPUT"
+          echo "$OUTPUT" | grep "Raw Balance: 50000000000000000000"
+          echo "$OUTPUT" | grep "Formatted Balance: 50.0 TEST"
