@@ -135,6 +135,7 @@ export async function computeGasLimitForMinter(
   proofData: proofGenerator.ContinuityResponse,
   signerAddress: string
 ): Promise<bigint> {
+  const action = 0; // Mint action (see MinterActions in USCMinter)
   const chainKey = proofData.chainKey;
   const height = proofData.headerNumber;
   const encodedTransaction = proofData.txBytes;
@@ -145,9 +146,9 @@ export async function computeGasLimitForMinter(
 
   const iface = contract.interface;
   const funcFragment = iface.getFunction(
-    'mintFromQuery(uint64,uint64,bytes,bytes32,(bytes32,bool)[],bytes32,bytes32[])'
+    "execute(uint8,uint64,uint64,bytes,bytes32,tuple(bytes32,bool)[],bytes32,bytes32[])"
   );
-  const params = [chainKey, height, encodedTransaction, merkleRoot, siblings, lowerEndpointDigest, continuityRoots];
+  const params = [action, chainKey, height, encodedTransaction, merkleRoot, siblings, lowerEndpointDigest, continuityRoots];
   const data = iface.encodeFunctionData(funcFragment!, params);
 
   const continuityBlocks = proofData.continuityProof.roots?.length || 1;
@@ -228,6 +229,7 @@ export async function submitProofToMinter(
   proofData: proofGenerator.ContinuityResponse,
   gasLimit: bigint
 ): Promise<any> {
+  const action = 0; // Mint action (see MinterActions in USCMinter)
   const chainKey = proofData.chainKey;
   const height = proofData.headerNumber;
   const encodedTransaction = proofData.txBytes;
@@ -236,7 +238,8 @@ export async function submitProofToMinter(
   const lowerEndpointDigest = proofData.continuityProof.lowerEndpointDigest;
   const continuityRoots = proofData.continuityProof.roots;
 
-  return await contract.mintFromQuery(
+  return await contract.execute(
+    action,
     chainKey,
     height,
     encodedTransaction,
