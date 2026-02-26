@@ -179,8 +179,8 @@ jobs:
               --broadcast \
               --rpc-url "$CREDITCOIN_RPC_URL" \
               --private-key "$WALLET_PK" \
-              contracts/sol/BridgeTestToken.sol:BridgeTestToken) \
-              --constructor-args "$USC_MINTER_CONTRACT_ADDRESS"
+              contracts/sol/BridgeTestToken.sol:BridgeTestToken \
+              --constructor-args "$USC_MINTER_CONTRACT_ADDRESS")
           echo "$OUTPUT"
           USC_MINTABLE_TOKEN=$(echo "$OUTPUT" | grep "Deployed to:" | cut -f2 -d: | tr -d " ")
           echo "mintable_token_contract_address=$USC_MINTABLE_TOKEN" >> "$GITHUB_OUTPUT"
@@ -427,8 +427,8 @@ jobs:
               --broadcast \
               --rpc-url "$CREDITCOIN_RPC_URL" \
               --private-key "$WALLET_PK" \
-              contracts/sol/BridgeTestToken.sol:BridgeTestToken) \
-              --constructor-args "$USC_MINTER_CONTRACT_ADDRESS"
+              contracts/sol/BridgeTestToken.sol:BridgeTestToken \
+              --constructor-args "$USC_MINTER_CONTRACT_ADDRESS")
           echo "$OUTPUT"
           USC_MINTABLE_TOKEN=$(echo "$OUTPUT" | grep "Deployed to:" | cut -f2 -d: | tr -d " ")
           echo "mintable_token_contract_address=$USC_MINTABLE_TOKEN" >> "$GITHUB_OUTPUT"

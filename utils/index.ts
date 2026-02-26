@@ -146,9 +146,18 @@ export async function computeGasLimitForMinter(
 
   const iface = contract.interface;
   const funcFragment = iface.getFunction(
-    "execute(uint8,uint64,uint64,bytes,bytes32,tuple(bytes32,bool)[],bytes32,bytes32[])"
+    'execute(uint8,uint64,uint64,bytes,bytes32,tuple(bytes32,bool)[],bytes32,bytes32[])'
   );
-  const params = [action, chainKey, height, encodedTransaction, merkleRoot, siblings, lowerEndpointDigest, continuityRoots];
+  const params = [
+    action,
+    chainKey,
+    height,
+    encodedTransaction,
+    merkleRoot,
+    siblings,
+    lowerEndpointDigest,
+    continuityRoots,
+  ];
   const data = iface.encodeFunctionData(funcFragment!, params);
 
   const continuityBlocks = proofData.continuityProof.roots?.length || 1;
