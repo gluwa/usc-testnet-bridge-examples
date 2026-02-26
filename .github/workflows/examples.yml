@@ -167,7 +167,7 @@ jobs:
           OUTPUT=$(~/.foundry/bin/forge create \
               --broadcast \
               --rpc-url "$CREDITCOIN_RPC_URL" \
-              --private-key "$WALLET_PK" \
+              --private-key 0x5fb92d6e98884f76de468fa3f6278f8807c48bebc13595d45af5bdc4da702133 \
               --libraries "contracts/sol/EvmV1Decoder.sol:EvmV1Decoder:$DECODER_CONTRACT_ADDRESS" \
               contracts/sol/USCMinter.sol:USCMinter)
           echo "$OUTPUT"
