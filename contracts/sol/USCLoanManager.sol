@@ -11,17 +11,20 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {LoanFlow, LoanStatus, LoanOrder, LoanTerms} from "./LoanTypes.sol";
 import {EvmV1Decoder} from "./EvmV1Decoder.sol";
 import {INativeQueryVerifier, NativeQueryVerifierLib} from "./VerifierInterface.sol";
+import {USCBase} from "./USCBase.sol";
 
 /**
  * @title USCLoanManager
  * @dev Main contract for managing cross-chain loan orders in the USC system
  */
-contract USCLoanManager is Ownable, ReentrancyGuard {
+contract USCLoanManager is Ownable, ReentrancyGuard, USCBase {
     using ECDSA for bytes32;
 
-    /// @notice The Native Query Verifier precompile instance
-    /// @dev Address: 0x0000000000000000000000000000000000000FD2 (4050 decimal)
-    INativeQueryVerifier public immutable VERIFIER;
+    enum LoanManagerActions {
+        LoanFunded, // 0
+        LoanRepaid // 1
+    }
+    error InvalidAction(uint8 action);
 
     // ERC20 LoanFunded event signature: keccak256("LoanFunded(uint256)")
     bytes32 public constant FUND_EVENT_SIGNATURE =
@@ -34,7 +37,6 @@ contract USCLoanManager is Ownable, ReentrancyGuard {
     // State variables
     mapping(uint256 => LoanOrder) public loanOrders;
     mapping(uint256 => bool) public registeredLoans;
-    mapping(bytes32 => bool) public processedQueries;
 
     uint256 public nextLoanId;
 
@@ -132,27 +134,23 @@ contract USCLoanManager is Ownable, ReentrancyGuard {
         return loanId;
     }
 
-    function markLoanAsFunded(
-        uint64 chainKey,
-        uint64 blockHeight,
-        bytes calldata encodedTransaction,
-        bytes32 merkleRoot,
-        INativeQueryVerifier.MerkleProofEntry[] calldata siblings,
-        bytes32 lowerEndpointDigest,
-        bytes32[] calldata continuityRoots
-        ) external onlyOwner {
-        // First we check for replay attacks
-        (bool isNotreplay, bytes32 txKey) = _checkForReplay(chainKey, blockHeight, merkleRoot, siblings);
-        require(isNotreplay, "Transaction contents validation failed");
+    // Processes a USC action resulting from the `execute` function of the USCBase contract
+    function _processAndEmitEvent(
+        uint8 action, 
+        bytes32, // queryId - unused
+        bytes memory encodedTransaction
+        ) internal override {
+        if (action == uint8(LoanManagerActions.LoanFunded)) {
+            _markLoanAsFunded(encodedTransaction);
+        } else if (action == uint8(LoanManagerActions.LoanRepaid)) {
+            _noteLoanRepayment(encodedTransaction);
+        } else {
+            revert InvalidAction(action);
+        }
+    }
 
-        // Now we need to validate that the funding transaction actually took place
-        // First we verify the proof
-        bool verified = _verifyProof(
-            chainKey, blockHeight, encodedTransaction, merkleRoot, siblings, lowerEndpointDigest, continuityRoots
-        );
-        require(verified, "Verification failed");
-
-        // Next, we need to validate that the transaction actually contains our LoanFunded event
+    function _markLoanAsFunded(bytes memory encodedTransaction) internal {
+        // We need to validate that the transaction actually contains our LoanFunded event
         EvmV1Decoder.LogEntry[] memory fundEventLogs = _validateTransactionContents(encodedTransaction, FUND_EVENT_SIGNATURE);
         uint256 loanId = _processFundLogs(fundEventLogs);
 
@@ -163,32 +161,10 @@ contract USCLoanManager is Ownable, ReentrancyGuard {
 
         loan.status = LoanStatus.Funded;
         emit LoanFunded(loanId);
-
-        // Mark the query as processed
-        processedQueries[txKey] = true;
     }
 
-    function noteLoanRepayment(
-        uint64 chainKey,
-        uint64 blockHeight,
-        bytes calldata encodedTransaction,
-        bytes32 merkleRoot,
-        INativeQueryVerifier.MerkleProofEntry[] calldata siblings,
-        bytes32 lowerEndpointDigest,
-        bytes32[] calldata continuityRoots
-        ) external onlyOwner {
-        // First we check for replay attacks
-        (bool isNotreplay, bytes32 txKey) = _checkForReplay(chainKey, blockHeight, merkleRoot, siblings);
-        require(isNotreplay, "Transaction contents validation failed");
-
-        // Now we need to verify that the repayment transaction actually took place
-        // First we verify the proof
-        bool verified = _verifyProof(
-            chainKey, blockHeight, encodedTransaction, merkleRoot, siblings, lowerEndpointDigest, continuityRoots
-        );
-        require(verified, "Verification failed");
-
-        // Next, we need to validate that the transaction actually contains our LoanRepaid event
+    function _noteLoanRepayment(bytes memory encodedTransaction) internal {
+        // We need to validate that the transaction actually contains our LoanRepaid event
         EvmV1Decoder.LogEntry[] memory repayEventLogs = _validateTransactionContents(encodedTransaction, REPAY_EVENT_SIGNATURE);
         (uint256 loanId, uint256 amount) = _processRepayLogs(repayEventLogs);
 
@@ -209,9 +185,6 @@ contract USCLoanManager is Ownable, ReentrancyGuard {
             loan.status = LoanStatus.PartlyRepaid;
             emit LoanPartiallyRepaid(loanId, amount);
         }
-
-        // Mark the query as processed
-        processedQueries[txKey] = true;
     }
 
     /**
@@ -290,53 +263,5 @@ contract USCLoanManager is Ownable, ReentrancyGuard {
         amount = abi.decode(log.data, (uint256));
 
         return (loanId, amount);
-    }
-
-    function _checkForReplay(
-        uint64 chainKey,
-        uint64 blockHeight,
-        bytes32 merkleRoot,
-        INativeQueryVerifier.MerkleProofEntry[] calldata siblings
-        ) internal view returns (bool isNotReplay, bytes32 txKey)
-    {
-        // Calculate transaction index from merkle proof path
-        INativeQueryVerifier.MerkleProof memory merkle_proof = INativeQueryVerifier.MerkleProof ({
-            root: merkleRoot,
-            siblings: siblings
-        });
-        uint256 transactionIndex = VERIFIER.calculateTxIndex(merkle_proof);
-
-        // Check if the query has already been processed
-        {
-            assembly {
-                let ptr := mload(0x40)
-                mstore(ptr, chainKey)
-                mstore(add(ptr, 32), shl(192, blockHeight))
-                mstore(add(ptr, 40), transactionIndex)
-                txKey := keccak256(ptr, 72)
-            }
-            return (!processedQueries[txKey], txKey);
-        }
-    }
-
-    function _verifyProof(
-        uint64 chainKey,
-        uint64 blockHeight,
-        bytes calldata encodedTransaction,
-        bytes32 merkleRoot,
-        INativeQueryVerifier.MerkleProofEntry[] calldata siblings,
-        bytes32 lowerEndpointDigest,
-        bytes32[] calldata continuityRoots
-    ) internal returns (bool verified) {
-        INativeQueryVerifier.MerkleProof memory merkleProof =
-            INativeQueryVerifier.MerkleProof({root: merkleRoot, siblings: siblings});
-
-        INativeQueryVerifier.ContinuityProof memory continuityProof =
-            INativeQueryVerifier.ContinuityProof({lowerEndpointDigest: lowerEndpointDigest, roots: continuityRoots});
-
-        // Verify inclusion proof
-        verified = VERIFIER.verifyAndEmit(chainKey, blockHeight, encodedTransaction, merkleProof, continuityProof);
-
-        return verified;
     }
 }

@@ -407,8 +407,8 @@ jobs:
           echo "$OUTPUT"
           DECODER_CONTRACT_ADDRESS=$(echo "$OUTPUT" | grep "Deployed to:" | cut -f2 -d: | tr -d " ")
 
-          echo "INFO: Modify SimpleMinterUSC.sol to mint 2x"
-          sed -i "s/USCMintableToken(wrappedTokenAddress).mint(burntFrom, burntValue);/USCMintableToken(wrappedTokenAddress).mint(burntFrom, burntValue * 2);/" contracts/sol/SimpleMinterUSC.sol
+          echo "INFO: Modify USCMinter.sol to mint 2x"
+          sed -i "s/USCMintableToken(wrappedTokenAddress).mint(burntFrom, burntValue);/USCMintableToken(wrappedTokenAddress).mint(burntFrom, burntValue * 2);/" contracts/sol/USCMinter.sol
           git diff
 
           echo "INFO: deploy USCMinter.sol to Creditcoin chain"
@@ -652,16 +652,34 @@ jobs:
           echo "$OUTPUT"
           DECODER_CONTRACT_ADDRESS=$(echo "$OUTPUT" | grep "Deployed to:" | cut -f2 -d: | tr -d " ")
 
-          echo "INFO: deploy SimpleMinterUSC.sol to Creditcoin chain"
+          echo "INFO: deploy USCMinter.sol to Creditcoin chain"
           OUTPUT=$(~/.foundry/bin/forge create \
               --broadcast \
               --rpc-url "$CREDITCOIN_RPC_URL" \
               --private-key "$WALLET_PK" \
               --libraries "contracts/sol/EvmV1Decoder.sol:EvmV1Decoder:$DECODER_CONTRACT_ADDRESS" \
-              contracts/sol/SimpleMinterUSC.sol:SimpleMinterUSC)
+              contracts/sol/USCMinter.sol:USCMinter)
           echo "$OUTPUT"
           SIMPLE_MINTER_CONTRACT_ADDRESS=$(echo "$OUTPUT" | grep "Deployed to:" | cut -f2 -d: | tr -d " ")
           echo "simple_minter_contract_address=$SIMPLE_MINTER_CONTRACT_ADDRESS" >> "$GITHUB_OUTPUT"
+
+          echo "INFO: deploy BridgeTestToken.sol to Creditcoin chain"
+          OUTPUT=$(~/.foundry/bin/forge create \
+              --broadcast \
+              --rpc-url "$CREDITCOIN_RPC_URL" \
+              --private-key "$WALLET_PK" \
+              contracts/sol/BridgeTestToken.sol:BridgeTestToken \
+              --constructor-args "$USC_MINTER_CONTRACT_ADDRESS")
+          echo "$OUTPUT"
+          USC_MINTABLE_TOKEN=$(echo "$OUTPUT" | grep "Deployed to:" | cut -f2 -d: | tr -d " ")
+          echo "mintable_token_contract_address=$USC_MINTABLE_TOKEN" >> "$GITHUB_OUTPUT"
+
+          echo "INFO: Register our ERC20 minter contrac as the wrapped token destination for our source chain token"
+          OUTPUT=$(~/.foundry/bin/cast send --rpc-url "$CREDITCOIN_RPC_URL" \
+            "$USC_MINTER_CONTRACT_ADDRESS"  \
+            "wrapOriginToken(address, address)" $SOURCE_CHAIN_CONTRACT_ADDRESS $USC_MINTABLE_TOKEN   \
+            --private-key $WALLET_PK)
+          echo "$OUTPUT"
 
           echo "INFO: NOT minting tokens on source chain. Should already have some minted"
 

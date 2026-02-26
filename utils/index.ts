@@ -106,6 +106,7 @@ export async function computeGasLimitForLoanManager(
   signerAddress: string,
   is_repayment: boolean
 ): Promise<bigint> {
+  const action = is_repayment ? 1 : 0; // See LoanManagerActions in USCLoanManager.sol
   const chainKey = proofData.chainKey;
   const height = proofData.headerNumber;
   const encodedTransaction = proofData.txBytes;
@@ -115,13 +116,11 @@ export async function computeGasLimitForLoanManager(
   const continuityRoots = proofData.continuityProof.roots;
 
   const iface = contract.interface;
+  const funcFragment = iface.getFunction(
+    'execute(uint8,uint64,uint64,bytes,bytes32,tuple(bytes32,bool)[],bytes32,bytes32[])'
+  );
 
-  const signature = is_repayment
-    ? 'noteLoanRepayment(uint64,uint64,bytes,bytes32,(bytes32,bool)[],bytes32,bytes32[])'
-    : 'markLoanAsFunded(uint64,uint64,bytes,bytes32,(bytes32,bool)[],bytes32,bytes32[])';
-  const funcFragment = iface.getFunction(signature);
-
-  const params = [chainKey, height, encodedTransaction, merkleRoot, siblings, lowerEndpointDigest, continuityRoots];
+  const params = [action, chainKey, height, encodedTransaction, merkleRoot, siblings, lowerEndpointDigest, continuityRoots];
   const data = iface.encodeFunctionData(funcFragment!, params);
 
   const continuityBlocks = proofData.continuityProof.roots?.length || 1;
@@ -176,6 +175,7 @@ export async function submitFundProofToLoanManager(
   proofData: proofGenerator.ContinuityResponse,
   gasLimit: bigint
 ): Promise<any> {
+  const action = 0; // `LoanFunded` in LoanManagerActions
   const chainKey = proofData.chainKey;
   const height = proofData.headerNumber;
   const encodedTransaction = proofData.txBytes;
@@ -184,7 +184,8 @@ export async function submitFundProofToLoanManager(
   const lowerEndpointDigest = proofData.continuityProof.lowerEndpointDigest;
   const continuityRoots = proofData.continuityProof.roots;
 
-  return await contract.markLoanAsFunded(
+  return await contract.execute(
+    action,
     chainKey,
     height,
     encodedTransaction,
@@ -207,6 +208,7 @@ export async function submitRepayProofToLoanManager(
   proofData: proofGenerator.ContinuityResponse,
   gasLimit: bigint
 ): Promise<any> {
+  const action = 1; // `LoanRepaid` in LoanManagerActions
   const chainKey = proofData.chainKey;
   const height = proofData.headerNumber;
   const encodedTransaction = proofData.txBytes;
@@ -215,7 +217,8 @@ export async function submitRepayProofToLoanManager(
   const lowerEndpointDigest = proofData.continuityProof.lowerEndpointDigest;
   const continuityRoots = proofData.continuityProof.roots;
 
-  return await contract.noteLoanRepayment(
+  return await contract.execute(
+    action,
     chainKey,
     height,
     encodedTransaction,
