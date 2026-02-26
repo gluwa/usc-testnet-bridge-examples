@@ -188,8 +188,8 @@ jobs:
           echo "INFO: Register our ERC20 minter contrac as the wrapped token destination for our source chain token"
           OUTPUT=$(~/.foundry/bin/cast send --rpc-url "$CREDITCOIN_RPC_URL" \
             "$USC_MINTER_CONTRACT_ADDRESS"  \
-            "wrapOriginToken(address, address)" $SOURCE_CHAIN_CONTRACT_ADDRESS $USC_MINTABLE_TOKEN   \
-            --private-key $WALLET_PK)
+            "wrapOriginToken(address, address)" "$SOURCE_CHAIN_CONTRACT_ADDRESS" "$USC_MINTABLE_TOKEN"   \
+            --private-key "$WALLET_PK")
           echo "$OUTPUT"
 
           echo "INFO: mint tokens on source chain"
@@ -227,7 +227,7 @@ jobs:
           source .env
 
           echo "INFO: Should not have any bridged tokens initially"
-          OUTPUT=$(yarn utils:check_balance $USC_MINTER_CONTRACT_ADDRESS "${{ steps.setup.outputs.creditcoin_wallet_address }}")
+          OUTPUT=$(yarn utils:check_balance "$USC_MINTER_CONTRACT_ADDRESS" "${{ steps.setup.outputs.creditcoin_wallet_address }}")
           echo "$OUTPUT"
           echo "$OUTPUT" | grep "Raw Balance: 0"
           echo "$OUTPUT" | grep "Formatted Balance: 0.0 TEST"
@@ -238,7 +238,7 @@ jobs:
           echo "$OUTPUT" | grep "Minting completed"
 
           echo "INFO: Verify bridged tokens"
-          OUTPUT=$(yarn utils:check_balance $USC_MINTER_CONTRACT_ADDRESS "${{ steps.setup.outputs.creditcoin_wallet_address }}")
+          OUTPUT=$(yarn utils:check_balance "$USC_MINTER_CONTRACT_ADDRESS" "${{ steps.setup.outputs.creditcoin_wallet_address }}")
           echo "$OUTPUT"
           echo "$OUTPUT" | grep "Raw Balance: 50000000000000000000"
           echo "$OUTPUT" | grep "Formatted Balance: 50.0 TEST"
@@ -433,11 +433,11 @@ jobs:
           USC_MINTABLE_TOKEN=$(echo "$OUTPUT" | grep "Deployed to:" | cut -f2 -d: | tr -d " ")
           echo "mintable_token_contract_address=$USC_MINTABLE_TOKEN" >> "$GITHUB_OUTPUT"
 
-          echo "INFO: Register our ERC20 minter contrac as the wrapped token destination for our source chain token"
+          echo "INFO: Register our ERC20 minter contract as the wrapped token destination for our source chain token"
           OUTPUT=$(~/.foundry/bin/cast send --rpc-url "$CREDITCOIN_RPC_URL" \
             "$USC_MINTER_CONTRACT_ADDRESS"  \
-            "wrapOriginToken(address, address)" $SOURCE_CHAIN_CONTRACT_ADDRESS $USC_MINTABLE_TOKEN   \
-            --private-key $WALLET_PK)
+            "wrapOriginToken(address, address)" "$SOURCE_CHAIN_CONTRACT_ADDRESS" "$USC_MINTABLE_TOKEN"   \
+            --private-key "$WALLET_PK")
           echo "$OUTPUT"
 
           echo "INFO: NOT minting tokens on source chain. Should already have some minted"
@@ -660,8 +660,8 @@ jobs:
               --libraries "contracts/sol/EvmV1Decoder.sol:EvmV1Decoder:$DECODER_CONTRACT_ADDRESS" \
               contracts/sol/USCMinter.sol:USCMinter)
           echo "$OUTPUT"
-          SIMPLE_MINTER_CONTRACT_ADDRESS=$(echo "$OUTPUT" | grep "Deployed to:" | cut -f2 -d: | tr -d " ")
-          echo "simple_minter_contract_address=$SIMPLE_MINTER_CONTRACT_ADDRESS" >> "$GITHUB_OUTPUT"
+          USC_MINTER_CONTRACT_ADDRESS=$(echo "$OUTPUT" | grep "Deployed to:" | cut -f2 -d: | tr -d " ")
+          echo "usc_minter_contract_address=$USC_MINTER_CONTRACT_ADDRESS" >> "$GITHUB_OUTPUT"
 
           echo "INFO: deploy BridgeTestToken.sol to Creditcoin chain"
           OUTPUT=$(~/.foundry/bin/forge create \
@@ -677,8 +677,8 @@ jobs:
           echo "INFO: Register our ERC20 minter contrac as the wrapped token destination for our source chain token"
           OUTPUT=$(~/.foundry/bin/cast send --rpc-url "$CREDITCOIN_RPC_URL" \
             "$USC_MINTER_CONTRACT_ADDRESS"  \
-            "wrapOriginToken(address, address)" $SOURCE_CHAIN_CONTRACT_ADDRESS $USC_MINTABLE_TOKEN   \
-            --private-key $WALLET_PK)
+            "wrapOriginToken(address, address)" "$SOURCE_CHAIN_CONTRACT_ADDRESS" "$USC_MINTABLE_TOKEN"   \
+            --private-key "$WALLET_PK")
           echo "$OUTPUT"
 
           echo "INFO: NOT minting tokens on source chain. Should already have some minted"
@@ -690,7 +690,7 @@ jobs:
           echo "SOURCE_CHAIN_CUSTOM_CONTRACT_ADDRESS='${{ steps.setup.outputs.source_chain_contract_address }}'" >> .env
           echo "CREDITCOIN_RPC_URL='http://127.0.0.1:9944'" >> .env
           echo "SOURCE_CHAIN_RPC_URL='http://127.0.0.1:8141'" >> .env
-          echo "USC_CUSTOM_MINTER_CONTRACT_ADDRESS='${{ steps.setup.outputs.simple_minter_contract_address }}'" >> .env
+          echo "USC_CUSTOM_MINTER_CONTRACT_ADDRESS='${{ steps.setup.outputs.usc_minter_contract_address }}'" >> .env
           echo "CREDITCOIN_WALLET_PRIVATE_KEY='${{ steps.setup.outputs.creditcoin_wallet_pk }}'" >> .env
 
           echo "===== DEBUG ====="
