@@ -14,7 +14,7 @@ Search for your contract address to see deployment details and transaction histo
 - **Token Name**: "Mintable (BTKT)"
 - **Token Symbol**: "BTKT"
 - **Decimals**: 18 (inherited from OpenZeppelin ERC20)
-- **Mint Amount**: 5 tokens per successful query (* 10^18 for micro units)
+- **Mint Amount**: 5 tokens per successful query (\* 10^18 for micro units)
 - **Constructor**: No parameters required
 
 ## Network Information
