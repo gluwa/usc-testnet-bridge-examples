@@ -185,7 +185,7 @@ jobs:
           USC_MINTABLE_TOKEN=$(echo "$OUTPUT" | grep "Deployed to:" | cut -f2 -d: | tr -d " ")
           echo "mintable_token_contract_address=$USC_MINTABLE_TOKEN" >> "$GITHUB_OUTPUT"
 
-          echo "INFO: Register our ERC20 minter contrac as the wrapped token destination for our source chain token"
+          echo "INFO: Register our ERC20 minter contract as the wrapped token destination for our source chain token"
           OUTPUT=$(~/.foundry/bin/cast send --rpc-url "$CREDITCOIN_RPC_URL" \
             "$USC_MINTER_CONTRACT_ADDRESS"  \
             "wrapOriginToken(address, address)" "$SOURCE_CHAIN_CONTRACT_ADDRESS" "$USC_MINTABLE_TOKEN"   \
@@ -674,7 +674,7 @@ jobs:
           USC_MINTABLE_TOKEN=$(echo "$OUTPUT" | grep "Deployed to:" | cut -f2 -d: | tr -d " ")
           echo "mintable_token_contract_address=$USC_MINTABLE_TOKEN" >> "$GITHUB_OUTPUT"
 
-          echo "INFO: Register our ERC20 minter contrac as the wrapped token destination for our source chain token"
+          echo "INFO: Register our ERC20 minter contract as the wrapped token destination for our source chain token"
           OUTPUT=$(~/.foundry/bin/cast send --rpc-url "$CREDITCOIN_RPC_URL" \
             "$USC_MINTER_CONTRACT_ADDRESS"  \
             "wrapOriginToken(address, address)" "$SOURCE_CHAIN_CONTRACT_ADDRESS" "$USC_MINTABLE_TOKEN"   \
