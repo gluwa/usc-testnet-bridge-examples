@@ -192,9 +192,9 @@ WALLET_ADDRESS=$(cast wallet address --private-key $CREDITCOIN_WALLET_PRIVATE_KE
 yarn utils:check_balance $USC_MINTABLE_TOKEN $WALLET_ADDRESS
 ```
 
-This will return your balance in whole (TEST) token units.
+This will return your balance in whole (BTKT) token units.
 
-The contract address and your wallet address should show your minted TEST tokens from the bridging process.
+The contract address and your wallet address should show your minted BTKT tokens from the bridging process.
 
 It should show something like this:
 

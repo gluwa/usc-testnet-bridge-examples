@@ -130,6 +130,8 @@ You should get some output with the address of the contract you just deployed:
 Deployed to: 0x7d8726B05e4A48850E819639549B50beCB893506
 ```
 
+If you have issues with deployment during this step, see the [Deployment Troubleshooting Guide]
+
 ### 3.3 Update environment with your USC contract address
 
 Save the address of the contract. And modify the following entry in the `.env` file found at the root of the
@@ -255,7 +257,7 @@ WALLET_ADDRESS=$(cast wallet address --private-key $CREDITCOIN_WALLET_PRIVATE_KE
 yarn utils:check_balance $USC_CUSTOM_MINTABLE_TOKEN $WALLET_ADDRESS
 ```
 
-This will return your balance in whole (TEST) token units.
+This will return your balance in whole (BTKT) token units.
 
 Notice how you now have _twice_ the amount of tokens you originally burned on Sepolia!
 
@@ -288,4 +290,4 @@ for more information!
 [step 3.2]: #32-deploy-your-modified-contract
 [step 5]: #5-submit-a-mint-query-to-the-usc-contract
 [bridge offchain worker]: ../bridge-offchain-worker/README.md
-[Deployment Guide]: ../contracts/DEPLOY.md
+[Deployment Troubleshooting Guide]: ../contracts/DEPLOY.md
