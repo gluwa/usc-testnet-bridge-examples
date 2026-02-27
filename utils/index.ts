@@ -44,8 +44,9 @@ export async function generateProofFor(
   const latestAttested = await info.getLatestAttestedHeightAndHash(chainKey);
   console.log(`Latest attested height for chain key ${chainKey}: ${latestAttested.height}`);
 
-  // We wait for at most 5 minutes for the attestation to be available
-  await info.waitUntilHeightAttested(chainKey, blockNumber + 10, 5_000, 300_000);
+  // We wait for at most 20 minutes for the attestation to be available
+  // In practice this should take about 8 minutes, but we're being conservative to make the examples robust.
+  await info.waitUntilHeightAttested(chainKey, blockNumber + 10, 5_000, 1_200_000);
 
   console.log(`Block ${blockNumber} attested! Generating proof...`);
 
