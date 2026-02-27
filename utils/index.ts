@@ -44,8 +44,9 @@ export async function generateProofFor(
   const latestAttested = await info.getLatestAttestedHeightAndHash(chainKey);
   console.log(`Latest attested height for chain key ${chainKey}: ${latestAttested.height}`);
 
-  // We wait for at most 5 minutes for the attestation to be available
-  await info.waitUntilHeightAttested(chainKey, blockNumber, 5_000, 300_000);
+  // We wait for at most 20 minutes for the attestation to be available
+  // In practice this should take about 8 minutes, but we're being conservative to make the examples robust.
+  await info.waitUntilHeightAttested(chainKey, blockNumber + 10, 5_000, 1_200_000);
 
   console.log(`Block ${blockNumber} attested! Generating proof...`);
 
@@ -106,6 +107,7 @@ export async function computeGasLimitForLoanManager(
   signerAddress: string,
   is_repayment: boolean
 ): Promise<bigint> {
+  const action = is_repayment ? 1 : 0; // See LoanManagerActions in USCLoanManager.sol
   const chainKey = proofData.chainKey;
   const height = proofData.headerNumber;
   const encodedTransaction = proofData.txBytes;
@@ -115,13 +117,20 @@ export async function computeGasLimitForLoanManager(
   const continuityRoots = proofData.continuityProof.roots;
 
   const iface = contract.interface;
+  const funcFragment = iface.getFunction(
+    'execute(uint8,uint64,uint64,bytes,bytes32,tuple(bytes32,bool)[],bytes32,bytes32[])'
+  );
 
-  const signature = is_repayment
-    ? 'noteLoanRepayment(uint64,uint64,bytes,bytes32,(bytes32,bool)[],bytes32,bytes32[])'
-    : 'markLoanAsFunded(uint64,uint64,bytes,bytes32,(bytes32,bool)[],bytes32,bytes32[])';
-  const funcFragment = iface.getFunction(signature);
-
-  const params = [chainKey, height, encodedTransaction, merkleRoot, siblings, lowerEndpointDigest, continuityRoots];
+  const params = [
+    action,
+    chainKey,
+    height,
+    encodedTransaction,
+    merkleRoot,
+    siblings,
+    lowerEndpointDigest,
+    continuityRoots,
+  ];
   const data = iface.encodeFunctionData(funcFragment!, params);
 
   const continuityBlocks = proofData.continuityProof.roots?.length || 1;
@@ -135,6 +144,7 @@ export async function computeGasLimitForMinter(
   proofData: proofGenerator.ContinuityResponse,
   signerAddress: string
 ): Promise<bigint> {
+  const action = 0; // Mint action (see MinterActions in USCMinter)
   const chainKey = proofData.chainKey;
   const height = proofData.headerNumber;
   const encodedTransaction = proofData.txBytes;
@@ -145,9 +155,18 @@ export async function computeGasLimitForMinter(
 
   const iface = contract.interface;
   const funcFragment = iface.getFunction(
-    'mintFromQuery(uint64,uint64,bytes,bytes32,(bytes32,bool)[],bytes32,bytes32[])'
+    'execute(uint8,uint64,uint64,bytes,bytes32,tuple(bytes32,bool)[],bytes32,bytes32[])'
   );
-  const params = [chainKey, height, encodedTransaction, merkleRoot, siblings, lowerEndpointDigest, continuityRoots];
+  const params = [
+    action,
+    chainKey,
+    height,
+    encodedTransaction,
+    merkleRoot,
+    siblings,
+    lowerEndpointDigest,
+    continuityRoots,
+  ];
   const data = iface.encodeFunctionData(funcFragment!, params);
 
   const continuityBlocks = proofData.continuityProof.roots?.length || 1;
@@ -166,6 +185,7 @@ export async function submitFundProofToLoanManager(
   proofData: proofGenerator.ContinuityResponse,
   gasLimit: bigint
 ): Promise<any> {
+  const action = 0; // `LoanFunded` in LoanManagerActions
   const chainKey = proofData.chainKey;
   const height = proofData.headerNumber;
   const encodedTransaction = proofData.txBytes;
@@ -174,7 +194,8 @@ export async function submitFundProofToLoanManager(
   const lowerEndpointDigest = proofData.continuityProof.lowerEndpointDigest;
   const continuityRoots = proofData.continuityProof.roots;
 
-  return await contract.markLoanAsFunded(
+  return await contract.execute(
+    action,
     chainKey,
     height,
     encodedTransaction,
@@ -197,6 +218,7 @@ export async function submitRepayProofToLoanManager(
   proofData: proofGenerator.ContinuityResponse,
   gasLimit: bigint
 ): Promise<any> {
+  const action = 1; // `LoanRepaid` in LoanManagerActions
   const chainKey = proofData.chainKey;
   const height = proofData.headerNumber;
   const encodedTransaction = proofData.txBytes;
@@ -205,7 +227,8 @@ export async function submitRepayProofToLoanManager(
   const lowerEndpointDigest = proofData.continuityProof.lowerEndpointDigest;
   const continuityRoots = proofData.continuityProof.roots;
 
-  return await contract.noteLoanRepayment(
+  return await contract.execute(
+    action,
     chainKey,
     height,
     encodedTransaction,
@@ -228,6 +251,7 @@ export async function submitProofToMinter(
   proofData: proofGenerator.ContinuityResponse,
   gasLimit: bigint
 ): Promise<any> {
+  const action = 0; // Mint action (see MinterActions in USCMinter)
   const chainKey = proofData.chainKey;
   const height = proofData.headerNumber;
   const encodedTransaction = proofData.txBytes;
@@ -236,7 +260,8 @@ export async function submitProofToMinter(
   const lowerEndpointDigest = proofData.continuityProof.lowerEndpointDigest;
   const continuityRoots = proofData.continuityProof.roots;
 
-  return await contract.mintFromQuery(
+  return await contract.execute(
+    action,
     chainKey,
     height,
     encodedTransaction,
