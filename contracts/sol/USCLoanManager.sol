@@ -136,7 +136,7 @@ contract USCLoanManager is Ownable, ReentrancyGuard, USCBase {
 
     // Processes a USC action resulting from the `execute` function of the USCBase contract
     function _processAndEmitEvent(
-        uint8 action, 
+        uint8 action,
         bytes32, // queryId - unused
         bytes memory encodedTransaction
         ) internal override {
