@@ -3,3 +3,6 @@ paths:
   .github/workflows/examples.yml:
     ignore:
       - 'shellcheck reported issue in this script: SC2129:.+'
+  .github/workflows/examples-devnet.yml:
+    ignore:
+      - 'shellcheck reported issue in this script: SC2129:.+'
