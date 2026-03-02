@@ -132,9 +132,9 @@ yarn utils:check_balance $USC_CUSTOM_MINTER_CONTRACT_ADDRESS $WALLET_ADDRESS
 It should show something like this:
 
 ```bash
-📦 Token: Mintable (TEST)
-🧾 Raw Balance: 2000
-💰 Formatted Balance: 0.000000000000002 TEST
+📦 Token: Bridge Test Token (BTKT)
+🧾 Raw Balance: 100000000000000000000
+💰 Formatted Balance: 100.0 BTKT
 Decimals for token micro unit: 18
 ```
 

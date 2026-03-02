@@ -34,6 +34,17 @@
   {
     "inputs": [
       {
+        "internalType": "uint8",
+        "name": "action",
+        "type": "uint8"
+      }
+    ],
+    "name": "InvalidAction",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
         "internalType": "address",
         "name": "owner",
         "type": "address"
@@ -215,6 +226,72 @@
       }
     ],
     "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint8",
+        "name": "action",
+        "type": "uint8"
+      },
+      {
+        "internalType": "uint64",
+        "name": "chainKey",
+        "type": "uint64"
+      },
+      {
+        "internalType": "uint64",
+        "name": "blockHeight",
+        "type": "uint64"
+      },
+      {
+        "internalType": "bytes",
+        "name": "encodedTransaction",
+        "type": "bytes"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "merkleRoot",
+        "type": "bytes32"
+      },
+      {
+        "components": [
+          {
+            "internalType": "bytes32",
+            "name": "hash",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "bool",
+            "name": "isLeft",
+            "type": "bool"
+          }
+        ],
+        "internalType": "struct INativeQueryVerifier.MerkleProofEntry[]",
+        "name": "siblings",
+        "type": "tuple[]"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "lowerEndpointDigest",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "bytes32[]",
+        "name": "continuityRoots",
+        "type": "bytes32[]"
+      }
+    ],
+    "name": "execute",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "success",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "nonpayable",
     "type": "function"
   },
   {
@@ -458,61 +535,6 @@
     "type": "function"
   },
   {
-    "inputs": [
-      {
-        "internalType": "uint64",
-        "name": "chainKey",
-        "type": "uint64"
-      },
-      {
-        "internalType": "uint64",
-        "name": "blockHeight",
-        "type": "uint64"
-      },
-      {
-        "internalType": "bytes",
-        "name": "encodedTransaction",
-        "type": "bytes"
-      },
-      {
-        "internalType": "bytes32",
-        "name": "merkleRoot",
-        "type": "bytes32"
-      },
-      {
-        "components": [
-          {
-            "internalType": "bytes32",
-            "name": "hash",
-            "type": "bytes32"
-          },
-          {
-            "internalType": "bool",
-            "name": "isLeft",
-            "type": "bool"
-          }
-        ],
-        "internalType": "struct INativeQueryVerifier.MerkleProofEntry[]",
-        "name": "siblings",
-        "type": "tuple[]"
-      },
-      {
-        "internalType": "bytes32",
-        "name": "lowerEndpointDigest",
-        "type": "bytes32"
-      },
-      {
-        "internalType": "bytes32[]",
-        "name": "continuityRoots",
-        "type": "bytes32[]"
-      }
-    ],
-    "name": "markLoanAsFunded",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
     "inputs": [],
     "name": "nextLoanId",
     "outputs": [
@@ -523,61 +545,6 @@
       }
     ],
     "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint64",
-        "name": "chainKey",
-        "type": "uint64"
-      },
-      {
-        "internalType": "uint64",
-        "name": "blockHeight",
-        "type": "uint64"
-      },
-      {
-        "internalType": "bytes",
-        "name": "encodedTransaction",
-        "type": "bytes"
-      },
-      {
-        "internalType": "bytes32",
-        "name": "merkleRoot",
-        "type": "bytes32"
-      },
-      {
-        "components": [
-          {
-            "internalType": "bytes32",
-            "name": "hash",
-            "type": "bytes32"
-          },
-          {
-            "internalType": "bool",
-            "name": "isLeft",
-            "type": "bool"
-          }
-        ],
-        "internalType": "struct INativeQueryVerifier.MerkleProofEntry[]",
-        "name": "siblings",
-        "type": "tuple[]"
-      },
-      {
-        "internalType": "bytes32",
-        "name": "lowerEndpointDigest",
-        "type": "bytes32"
-      },
-      {
-        "internalType": "bytes32[]",
-        "name": "continuityRoots",
-        "type": "bytes32[]"
-      }
-    ],
-    "name": "noteLoanRepayment",
-    "outputs": [],
-    "stateMutability": "nonpayable",
     "type": "function"
   },
   {

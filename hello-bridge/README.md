@@ -189,19 +189,19 @@ As a final check, verify that your tokens were successfully minted on Creditcoin
 
 ```bash
 WALLET_ADDRESS=$(cast wallet address --private-key $CREDITCOIN_WALLET_PRIVATE_KEY)
-yarn utils:check_balance $USC_MINTER_CONTRACT_ADDRESS $WALLET_ADDRESS
+yarn utils:check_balance $USC_MINTABLE_TOKEN $WALLET_ADDRESS
 ```
 
-This will return your balance in whole (TEST) token units.
+This will return your balance in whole (BTKT) token units.
 
-The contract address and your wallet address should show your minted TEST tokens from the bridging process.
+The contract address and your wallet address should show your minted BTKT tokens from the bridging process.
 
 It should show something like this:
 
 ```bash
-📦 Token: Mintable (TEST)
-🧾 Raw Balance: 1000
-💰 Formatted Balance: 0.000000000000001 TEST
+📦 Token: Bridge Test Token (BTKT)
+🧾 Raw Balance: 50000000000000000000
+💰 Formatted Balance: 50.0 BTKT
 Decimals for token micro unit: 18
 ```
 

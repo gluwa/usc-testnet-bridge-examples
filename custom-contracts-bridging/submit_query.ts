@@ -1,7 +1,7 @@
 import dotenv from 'dotenv';
 import { Contract, ethers, InterfaceAbi } from 'ethers';
 
-import simpleMinterAbi from '../contracts/abi/SimpleMinterUSC.json';
+import USCMinterABI from '../contracts/abi/USCMinter.json';
 import {
   generateProofFor,
   computeGasLimitForMinter,
@@ -81,7 +81,7 @@ async function main() {
   if (proofResult.success) {
     // Establish link with the USC contract
     const wallet = new ethers.Wallet(ccNextPrivateKey!, ccProvider);
-    const contractABI = simpleMinterAbi as unknown as InterfaceAbi;
+    const contractABI = USCMinterABI as unknown as InterfaceAbi;
     const minterContract = new Contract(minterContractAddress!, contractABI, wallet);
 
     const proofData = proofResult.data!;

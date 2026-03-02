@@ -1,89 +1,6 @@
-# Deploying SimpleMinterUSC Contract
+# Troubleshooting USCMinter Contract Deployment
 
-This guide explains how to deploy the `SimpleMinterUSC` contract to Creditcoin USC networks. The contract serves as a bridge minter that verifies cross-chain proofs and mints tokens on Creditcoin.
-
-## Prerequisites
-
-1. **Foundry installed**: Make sure you have Foundry installed. If not, install it:
-
-   ```bash
-   curl -L https://foundry.paradigm.xyz | bash
-   foundryup
-   ```
-
-2. **Funded wallet**: You need a wallet with native tokens (CTC) on the target network to pay for gas fees.
-   - Request test tokens from the [Creditcoin Discord faucet]
-
-3. **Private key**: Have your wallet's private key ready (make sure it's a test wallet with no real funds).
-
-## Step-by-Step Deployment
-
-### 1. Compile the Contract
-
-First, compile the contract to ensure it builds correctly:
-
-```bash
-forge build
-```
-
-You should see output indicating successful compilation. The compiled artifacts will be in the `out/` directory.
-
-### 2. Set Your Private Key
-
-Set your private in the `.env` file as an environment variable and then load the file into your environment with:
-
-```bash
-source .env
-```
-
-> [!CAUTION]
-> Never commit your private key to version control. Use environment variables or a secure secret management system.
-
-### 3. Deploy to USC Testnet
-
-First we need to deploy our `EvmV1Decoder` library so that we can reference it in our
-`SimpleMinterUSC`. We do so like this:
-
-```bash
-forge create \
-  --broadcast \
-  --rpc-url $CREDITCOIN_RPC_URL \
-  --private-key $CREDITCOIN_WALLET_PRIVATE_KEY \
-  contracts/sol/EvmV1Decoder.sol:EvmV1Decoder
-```
-
-You should get some output with the address of the library you just deployed:
-
-```bash
-Deployed to: 0x7d8726B05e4A48850E819639549B50beCB893506
-```
-
-Save the address of the contract. You will be needing it for the second half of this step.
-
-Now you can deploy your `SimpleMinterUSC` using the following command:
-
-```bash
-forge create \
-    --broadcast \
-    --rpc-url $CREDITCOIN_RPC_URL \
-    --private-key $CREDITCOIN_WALLET_PRIVATE_KEY \
-    --libraries contracts/sol/EvmV1Decoder.sol:EvmV1Decoder:<decoder_library_address> \
-    contracts/sol/SimpleMinterUSC.sol:SimpleMinterUSC
-```
-
-### 4. Save the Contract Address
-
-After successful deployment, you'll see output like:
-
-```
-Deployed to: 0x7d8726B05e4A48850E819639549B50beCB893506
-```
-
-**Save this address** - you'll need it to:
-
-- Check token balances
-- Submit mint queries
-- Interact with the contract
+This guide explains how to deploy the `USCMinter` contract to Creditcoin USC networks. The contract serves as a bridge minter that verifies cross-chain proofs and mints tokens on Creditcoin.
 
 ## Verify Deployment
 
@@ -93,11 +10,11 @@ Search for your contract address to see deployment details and transaction histo
 
 ## Contract Details
 
-- **Contract Name**: `SimpleMinterUSC`
-- **Token Name**: "Mintable (TEST)"
-- **Token Symbol**: "TEST"
+- **Contract Name**: `USCMinter`
+- **Token Name**: "Mintable (BTKT)"
+- **Token Symbol**: "BTKT"
 - **Decimals**: 18 (inherited from OpenZeppelin ERC20)
-- **Mint Amount**: 1,000 tokens per successful query
+- **Mint Amount**: 5 tokens per successful query (\* 10^18 for micro units)
 - **Constructor**: No parameters required
 
 ## Network Information
@@ -128,13 +45,14 @@ forge create \
     --rpc-url $CREDITCOIN_RPC_URL \
     --private-key $CREDITCOIN_WALLET_PRIVATE_KEY \
     --gas-price <higher_gas_price> \
-    contracts/sol/SimpleMinterUSC.sol:SimpleMinterUSC
+    --libraries contracts/sol/EvmV1Decoder.sol:EvmV1Decoder:<decoder_library_address> \
+    contracts/sol/USCMinter.sol:USCMinter
 ```
 
 **Solution 2: Wait and retry** (recommended)
 
 Usually waiting for around 10s-30s and trying to deploy again will work, if you already managed to deploy the decoder you only need to
-retry redeploying the `SimpleUSCMinter` contract:
+retry redeploying the `USCMinter` contract:
 
 ```bash
 forge create \
@@ -142,7 +60,7 @@ forge create \
     --rpc-url $CREDITCOIN_RPC_URL \
     --private-key $CREDITCOIN_WALLET_PRIVATE_KEY \
     --libraries contracts/sol/EvmV1Decoder.sol:EvmV1Decoder:<decoder_library_address> \
-    contracts/sol/SimpleMinterUSC.sol:SimpleMinterUSC
+    contracts/sol/USCMinter.sol:USCMinter
 ```
 
 **Solution 3: Check current nonce and use next**
@@ -158,7 +76,7 @@ forge create \
     --private-key $CREDITCOIN_WALLET_PRIVATE_KEY \
     --nonce X \
     --libraries contracts/sol/EvmV1Decoder.sol:EvmV1Decoder:<decoder_library_address> \
-    contracts/sol/SimpleMinterUSC.sol:SimpleMinterUSC
+    contracts/sol/USCMinter.sol:USCMinter
 ```
 
 **Solution 4: Check if contract was already deployed**
@@ -219,7 +137,7 @@ forge create \
     --private-key $CREDITCOIN_WALLET_PRIVATE_KEY \
     --nonce $((CURRENT_NONCE + 1)) \
     --libraries contracts/sol/EvmV1Decoder.sol:EvmV1Decoder:<decoder_library_address> \
-    contracts/sol/SimpleMinterUSC.sol:SimpleMinterUSC
+    contracts/sol/USCMinter.sol:USCMinter
 ```
 
 ## Next Steps
