@@ -28,6 +28,7 @@ jobs:
         uses: actions/setup-node@v6
         with:
           node-version: 24
+          cache: 'yarn'
       - run: npm install -g yarn
 
       - name: Compile smart contracts
@@ -49,6 +50,7 @@ jobs:
         uses: actions/setup-node@v6
         with:
           node-version: 24
+          cache: 'yarn'
       - run: npm install -g yarn
 
       - name: Regenerate the ABI
