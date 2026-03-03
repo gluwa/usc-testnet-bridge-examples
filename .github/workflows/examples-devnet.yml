@@ -83,7 +83,7 @@ jobs:
         run: |
           source .env
 
-          echo "INFO: Should not have any bridged tokens initially"
+          echo "INFO: Take a note of initial token balance"
           OUTPUT=$(yarn utils:check_balance $USC_MINTABLE_TOKEN "${{ env.WALLET_ADDRESS }}")
           echo "$OUTPUT"
           # note: on existing chains this accumulates between executions
@@ -177,7 +177,7 @@ jobs:
         run: |
           source .env
 
-          echo "INFO: Should not have any bridged tokens initially"
+          echo "INFO: Take a note of initial token balance"
           OUTPUT=$(yarn utils:check_balance "$USC_CUSTOM_MINTABLE_TOKEN" "${{ env.WALLET_ADDRESS }}")
           echo "$OUTPUT"
           # note: on existing chains this accumulates between executions
@@ -207,3 +207,101 @@ jobs:
           [ "$RAW_FINAL" == "$RAW_EXPECTED" ] || exit 1
           [ "$FMT_FINAL" == "$FMT_EXPECTED" ] || exit 2
           echo "PASS: final numbers match expected"
+
+  bridge-offchain-worker:
+    # chain examples b/c they use the same wallet
+    needs:
+      - custom-contracts-bridging
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install Foundry
+        run: |
+          export FOUNDRY_DIR="$HOME/.foundry"
+          # first install it
+          curl -L https://foundry.paradigm.xyz | bash
+          ~/.foundry/bin/foundryup
+
+      - name: Install Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: 'yarn'
+      - run: npm install -g yarn
+
+      - name: Prepare local .env
+        run: |
+          echo "SOURCE_CHAIN_KEY=3" > .env
+          echo "PROVER_API_URL='https://proof-gen-api.usc-devnet.creditcoin.network'" >> .env
+          echo "SOURCE_CHAIN_CUSTOM_CONTRACT_ADDRESS='0x3f9e77459C4b53Fa8231317A0832fff78e00Ba6d'" >> .env
+          echo "CREDITCOIN_RPC_URL='https://rpc.usc-devnet.creditcoin.network'" >> .env
+          echo "SOURCE_CHAIN_RPC_URL='https://blockchain.googleapis.com/v1/projects/usc-integration-test/locations/asia-east1/endpoints/ethereum-sepolia/rpc?key=${{ env.SEPOLIA_API_KEY }}'" >> .env
+          echo "USC_CUSTOM_MINTER_CONTRACT_ADDRESS='0xf882f3a71A36E29E86615B7055f42A68D7E4cfBB'" >> .env
+          echo "CREDITCOIN_WALLET_PRIVATE_KEY='${{ env.WALLET_PK }}'" >> .env
+          echo "USC_CUSTOM_MINTABLE_TOKEN='0x6CdC90d71442C821Baa8d3840746A7E0D3C1C96b'" >> .env
+
+          echo "===== DEBUG ====="
+          cat .env
+          echo "===== END DEBUG ====="
+
+      - name: Exercise example
+        run: |
+          yarn install
+
+          mkdir -p /var/tmp/bridge-offchain-worker-logs
+
+          source .env
+
+          echo "INFO: Take a note of initial token balance"
+          OUTPUT=$(yarn utils:check_balance "$USC_CUSTOM_MINTABLE_TOKEN" "${{ env.WALLET_ADDRESS }}")
+          echo "$OUTPUT"
+          # note: on existing chains this accumulates between executions
+          RAW_INITIAL=$(echo "$OUTPUT" | grep "Raw Balance:" | cut -f2 -d: | tr -d " ")
+          FMT_INITIAL=$(echo "$OUTPUT" | grep "Formatted Balance:" | cut -f2 -d: | cut -f2 -d" ")
+
+          echo "INFO: start offchain worker"
+          yarn offchain:start_worker > /var/tmp/bridge-offchain-worker-logs/offchain-worker.log 2>&1 &
+          sleep 10
+
+          echo "INFO: burn 2 tokens (on source chain) we want to bridge"
+          OUTPUT=$(~/.foundry/bin/cast send --rpc-url "$SOURCE_CHAIN_RPC_URL" \
+            "$SOURCE_CHAIN_CUSTOM_CONTRACT_ADDRESS"  \
+            "burn(uint256)" 2000000000000000000        \
+            --private-key "${{ env.WALLET_PK }}")
+          echo "$OUTPUT"
+          sleep 20
+
+          # Log that our token burn was detected
+          grep "Detected burn of" /var/tmp/bridge-offchain-worker-logs/offchain-worker.log
+
+          # wait for attestations for the source block where we burned the tokens
+          echo "INFO: Wait for mint query to be processed by the USC contract"
+          sleep 480
+          grep "Tokens minted!" /var/tmp/bridge-offchain-worker-logs/offchain-worker.log
+
+          echo "INFO: Verify bridged tokens"
+          OUTPUT=$(yarn utils:check_balance "$USC_CUSTOM_MINTABLE_TOKEN" "${{ env.WALLET_ADDRESS }}")
+          echo "$OUTPUT"
+          # note: on existing chains this accumulates between executions
+          RAW_FINAL=$(echo "$OUTPUT" | grep "Raw Balance:" | cut -f2 -d: | tr -d " ")
+          FMT_FINAL=$(echo "$OUTPUT" | grep "Formatted Balance:" | cut -f2 -d: | cut -f2 -d" ")
+          echo "INFO: Final $RAW_FINAL $FMT_FINAL"
+
+          # calculate expected
+          RAW_EXPECTED=$(echo "$RAW_INITIAL + 2000000000000000000" | bc)
+          FMT_EXPECTED=$(echo "$FMT_INITIAL + 2" | bc)
+          echo "INFO: Expected $RAW_EXPECTED $FMT_EXPECTED"
+
+          # compare & exit
+          [ "$RAW_FINAL" == "$RAW_EXPECTED" ] || exit 1
+          [ "$FMT_FINAL" == "$FMT_EXPECTED" ] || exit 2
+          echo "PASS: final numbers match expected"
+
+      - name: Upload logs
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: bridge-offchain-worker-logs
+          path: /var/tmp/bridge-offchain-worker-logs/
+          include-hidden-files: true
