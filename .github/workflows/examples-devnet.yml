@@ -14,14 +14,6 @@ concurrency:
 
 permissions: read-all
 
-env:
-  # must exist both on Sepolia and USC Devnet and must have
-  # funds on both chains to pay transaction fees
-  # this is the NEW_LENDER_ account in 1Password
-  WALLET_ADDRESS: "0x2C317383b8A99537c61042B63C4fB042Df51033a"
-  WALLET_PK: ${{ secrets.DEVNET_EVM_PK }}
-  SEPOLIA_API_KEY: ${{ secrets.GOOGLE_SEPOLIA_RPC_KEY }}
-
 jobs:
   hello-bridge:
     uses: ./.github/workflows/hello-bridge.yml
@@ -45,6 +37,16 @@ jobs:
     # replacement transaction underpriced and/or nonce errors
     needs: custom-contracts-bridging
     uses: ./.github/workflows/bridge-offchain-worker.yml
+    with:
+      source_chain_kind: "sepolia"
+      usc_kind: "devnet"
+    secrets: inherit
+
+  loan-flow:
+    # chain examples b/c they use the same wallet and we get
+    # replacement transaction underpriced and/or nonce errors
+    needs: bridge-offchain-worker
+    uses: ./.github/workflows/loan-flow.yml
     with:
       source_chain_kind: "sepolia"
       usc_kind: "devnet"
