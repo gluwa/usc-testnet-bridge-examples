@@ -78,11 +78,11 @@ jobs:
           name: binary-for-testing-ci
           path: target/release
 
+      - run: mkdir -p /var/tmp/hello-bridge-logs/
+
       - name: Start creditcoin3-node - Alice
         if: inputs.usc_kind == 'local'
         run: |
-          mkdir -p /var/tmp/hello-bridge-logs/
-
           chmod a+x ./target/release/creditcoin3-node
           ./target/release/creditcoin3-node \
             --chain dev \
