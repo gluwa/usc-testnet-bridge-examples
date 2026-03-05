@@ -39,3 +39,13 @@ jobs:
       source_chain_kind: "sepolia"
       usc_kind: "devnet"
     secrets: inherit
+
+  bridge-offchain-worker:
+    # chain examples b/c they use the same wallet and we get
+    # replacement transaction underpriced and/or nonce errors
+    needs: custom-contracts-bridging
+    uses: ./.github/workflows/bridge-offchain-worker.yml
+    with:
+      source_chain_kind: "sepolia"
+      usc_kind: "devnet"
+    secrets: inherit

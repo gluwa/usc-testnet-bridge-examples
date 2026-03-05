@@ -1,5 +1,5 @@
 ---
-name: Reusable workflow to exercise custom-contracts-bridging example
+name: Reusable workflow to exercise bridge-offchain-worker example
 
 "on":
   workflow_call:
@@ -78,7 +78,7 @@ jobs:
           name: binary-for-testing-ci
           path: target/release
 
-      - run: mkdir -p /var/tmp/custom-contract-bridging-logs/
+      - run: mkdir -p /var/tmp/bridge-offchain-worker-logs/
 
       - name: Start creditcoin3-node - Alice
         if: inputs.usc_kind == 'local'
@@ -89,7 +89,7 @@ jobs:
             --validator --alice  --pruning archive \
             --node-key d182d503b7dd97e7c055f33438c7717145840fd66b2a055284ee8d768241a463 \
             --unsafe-rpc-external --rpc-cors all \
-            --base-path ./alice-data >/var/tmp/custom-contract-bridging-logs/creditcoin3-node.log 2>&1 &
+            --base-path ./alice-data >/var/tmp/bridge-offchain-worker-logs/creditcoin3-node.log 2>&1 &
 
           .github/wait-for-creditcoin.sh 'http://127.0.0.1:9944'
 
@@ -112,7 +112,7 @@ jobs:
       - name: Start Attestation Zombienet for Alice - Anvil 1
         if: inputs.usc_kind == 'local'
         run: |
-          mkdir -p /var/tmp/custom-contract-bridging-logs/attestors-alice
+          mkdir -p /var/tmp/bridge-offchain-worker-logs/attestors-alice
 
           chmod a+x ./target/release/attestor*
           ./target/release/attestor_zombienet \
@@ -149,7 +149,7 @@ jobs:
             --cc3-key "//Alice" \
             --cc3-rpc-url ws://localhost:9944 \
             --eth-rpc-url http://localhost:8141 \
-            >/var/tmp/custom-contract-bridging-logs/proof-gen-api-server.log &
+            >/var/tmp/bridge-offchain-worker-logs/proof-gen-api-server.log &
 
           sleep 30
 
@@ -209,10 +209,6 @@ jobs:
           echo "$OUTPUT"
           DECODER_CONTRACT_ADDRESS=$(echo "$OUTPUT" | grep "Deployed to:" | cut -f2 -d: | tr -d " ")
 
-          echo "INFO: Modify USCMinter.sol to mint 2x"
-          sed -i "s/USCMintableToken(wrappedTokenAddress).mint(burntFrom, burntValue);/USCMintableToken(wrappedTokenAddress).mint(burntFrom, burntValue * 2);/" contracts/sol/USCMinter.sol
-          git diff
-
           echo "INFO: deploy USCMinter.sol to Creditcoin chain"
           OUTPUT=$(~/.foundry/bin/forge create \
               --broadcast \
@@ -244,15 +240,6 @@ jobs:
 
           echo "INFO: NOT minting tokens on source chain. Should already have some minted"
 
-          echo "INFO: burn the tokens (on source chain) we want to bridge"
-          OUTPUT=$(~/.foundry/bin/cast send --rpc-url "$SOURCE_CHAIN_RPC_URL" \
-            "$SOURCE_CHAIN_CONTRACT_ADDRESS"  \
-            "burn(uint256)" 5000000000000000000        \
-            --private-key "$WALLET_PK")
-          echo "$OUTPUT"
-          BURN_TX_HASH=$(echo "$OUTPUT" | grep "transactionHash " | tr -s " " | cut -f2 -d" ")
-          echo "burn_tx_hash=$BURN_TX_HASH" >> "$GITHUB_OUTPUT"
-
       - name: Prepare local .env
         run: |
           echo "SOURCE_CHAIN_KEY=${{ steps.env.outputs.source_chain_key }}" > .env
@@ -274,30 +261,44 @@ jobs:
           echo "$OUTPUT" | grep "Raw Balance: 0"
           echo "$OUTPUT" | grep "Formatted Balance: 0.0"
 
-          echo "INFO: Submit a mint query to the USC contract"
-          OUTPUT=$(yarn custom_bridge:submit_query "${{ steps.setup.outputs.burn_tx_hash }}")
+          echo "INFO: start offchain worker"
+          yarn offchain:start_worker > /var/tmp/bridge-offchain-worker-logs/offchain-worker.log 2>&1 &
+          sleep 10
+
+          echo "INFO: burn the tokens (on source chain) we want to bridge"
+          OUTPUT=$(~/.foundry/bin/cast send --rpc-url "$SOURCE_CHAIN_RPC_URL" \
+            "$SOURCE_CHAIN_CUSTOM_CONTRACT_ADDRESS"  \
+            "burn(uint256)" 5000000000000000000        \
+            --private-key "$CREDITCOIN_WALLET_PRIVATE_KEY")
           echo "$OUTPUT"
-          echo "$OUTPUT" | grep "Minting completed"
+          sleep 20
+
+          # Log that our token burn was detected
+          grep "Detected burn of" /var/tmp/bridge-offchain-worker-logs/offchain-worker.log
+
+          # wait for attestations for the source block where we burned the tokens
+          echo "INFO: Wait for mint query to be processed by the USC contract"
+          sleep 480
+          grep "Tokens minted!" /var/tmp/bridge-offchain-worker-logs/offchain-worker.log
 
           echo "INFO: Verify bridged tokens"
           OUTPUT=$(yarn utils:check_balance "$USC_CUSTOM_MINTABLE_TOKEN" "${{ steps.setup.outputs.creditcoin_wallet_address }}")
           echo "$OUTPUT"
-          echo "$OUTPUT" | grep "Raw Balance: 10000000000000000000"
-          echo "$OUTPUT" | grep "Formatted Balance: 10.0"
-          # WARNING: this is 2x compared to hello-bridge example
+          echo "$OUTPUT" | grep "Raw Balance: 5000000000000000000"
+          echo "$OUTPUT" | grep "Formatted Balance: 5.0"
 
       - name: Collect logs
         if: always()
         continue-on-error: true
         run: |
-          docker logs proof-gen-postgres > /var/tmp/custom-contract-bridging-logs/proof-gen-postgres.log
+          docker logs proof-gen-postgres > /var/tmp/bridge-offchain-worker-logs/proof-gen-postgres.log
 
       - name: Upload logs
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: custom-contract-bridging-logs
-          path: /var/tmp/custom-contract-bridging-logs/
+          name: bridge-offchain-worker-logs
+          path: /var/tmp/bridge-offchain-worker-logs/
           include-hidden-files: true
 
       - name: Kill processes
@@ -307,3 +308,5 @@ jobs:
           killall -9 attestor_zombienet
           killall -9 attestor
           killall -9 creditcoin3-node
+          killall -9 node
+          killall -9 tsx
