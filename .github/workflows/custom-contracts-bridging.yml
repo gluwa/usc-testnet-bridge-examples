@@ -127,24 +127,11 @@ jobs:
           # note: chain_key is hard-coded in this script so waiting only on Anvil_1
           .github/wait-for-attestors.sh 'http://127.0.0.1:9944'
 
-      - name: Start proof-gen-api-server DB
-        if: inputs.usc_kind == 'local'
-        run: |
-          docker run --rm --name proof-gen-postgres \
-            -p 5433:5432 \
-            -e POSTGRES_USER=postgres \
-            -e POSTGRES_PASSWORD=password \
-            -e POSTGRES_DB=proofs_db \
-            -d postgres
-
-          sleep 60
-
       - name: Start proof-gen-api-server
         if: inputs.usc_kind == 'local'
         run: |
           chmod a+x ./target/release/proof-gen-api-server
 
-          POSTGRES_HOST=localhost POSTGRES_PORT=5433 POSTGRES_USER=postgres POSTGRES_PASSWORD=password POSTGRES_DB=proofs_db \
           ./target/release/proof-gen-api-server \
             --cc3-key "//Alice" \
             --cc3-rpc-url ws://localhost:9944 \
@@ -285,12 +272,6 @@ jobs:
           echo "$OUTPUT" | grep "Raw Balance: 10000000000000000000"
           echo "$OUTPUT" | grep "Formatted Balance: 10.0"
           # WARNING: this is 2x compared to hello-bridge example
-
-      - name: Collect logs
-        if: always()
-        continue-on-error: true
-        run: |
-          docker logs proof-gen-postgres > /var/tmp/custom-contract-bridging-logs/proof-gen-postgres.log
 
       - name: Upload logs
         if: always()
