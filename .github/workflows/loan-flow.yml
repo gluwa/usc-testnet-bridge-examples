@@ -18,12 +18,16 @@ name: Reusable workflow to exercise loan-flow example
         required: false
         type: string
         default: ${{ github.event.pull_request.head.ref }}
+      runs-on:
+        required: false
+        type: string
+        default: "['ubuntu-24.04']"
 
 permissions: read-all
 
 jobs:
   example:
-    runs-on: ubuntu-24.04
+    runs-on: ${{ fromJSON(inputs.runs-on) }}
     steps:
       - name: Anvil ENV
         id: anvil
