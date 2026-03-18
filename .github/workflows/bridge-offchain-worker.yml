@@ -10,6 +10,14 @@ name: Reusable workflow to exercise bridge-offchain-worker example
       source_chain_kind:
         required: true
         type: string
+      checkout_repo:
+        required: false
+        type: string
+        default: ${{ github.event.pull_request.head.repo.full_name }}
+      checkout_ref:
+        required: false
+        type: string
+        default: ${{ github.event.pull_request.head.ref }}
 
 permissions: read-all
 
@@ -70,6 +78,9 @@ jobs:
           echo "source_chain_private_key=${{ steps.anvil.outputs.wallet_pk || steps.sepolia.outputs.wallet_pk }}" >> "$GITHUB_OUTPUT"
 
       - uses: actions/checkout@v6
+        with:
+          repository: ${{ inputs.checkout_repo }}
+          ref: ${{ inputs.checkout_ref }}
 
       - name: Download binaries
         if: inputs.usc_kind == 'local'
