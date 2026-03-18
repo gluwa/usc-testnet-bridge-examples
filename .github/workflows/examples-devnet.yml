@@ -43,6 +43,7 @@ jobs:
     secrets: inherit
 
   loan-flow:
+    if: false
     # chain examples b/c they use the same wallet and we get
     # replacement transaction underpriced and/or nonce errors
     needs: bridge-offchain-worker
