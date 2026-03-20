@@ -538,7 +538,7 @@ library EvmV1Decoder {
         (uint8 decodedTxType, bytes[] memory chunks) = abi.decode(chunk, (uint8, bytes[]));
         require(decodedTxType == 1, "EvmV1Decoder: Mismatched transaction type, expected 1");
         require(chunks.length == 3, "EvmV1Decoder: Invalid chunk count for Type 1");
-        
+
         // Decode common transaction fields and receipt fields (shared across all types)
         CommonTxFields memory commonTx = _decodeCommonTxChunk(chunk);
         ReceiptFields memory receipt = _decodeReceiptChunk(chunk, decodedTxType);
