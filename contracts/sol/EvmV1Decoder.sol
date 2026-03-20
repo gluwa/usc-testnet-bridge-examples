@@ -172,6 +172,7 @@ library EvmV1Decoder {
     function decodeReceiptFields(bytes memory chunk) public pure returns (ReceiptFields memory) {
         require(chunk.length > 0, "EvmV1Decoder: Empty");
         uint8 txType = getTransactionType(chunk);
+        require(txType <= 4, "EvmV1Decoder: Invalid transaction type");
         return _decodeReceiptChunk(chunk, txType);
     }
 
@@ -186,7 +187,7 @@ library EvmV1Decoder {
         require(chunk.length > 0, "EvmV1Decoder: Empty");
         (uint8 type_, bytes[] memory chunks) = abi.decode(chunk, (uint8, bytes[]));
         require(type_ == 0, "EvmV1Decoder: Invalid transaction type");
-        require(chunks.length >= 2, "EvmV1Decoder: Invalid chunk count for Type 0");
+        require(chunks.length == 3, "EvmV1Decoder: Invalid chunk count for Type 0");
         return _decodeTypeSpecificChunkType0(chunks[1]);
     }
 
@@ -201,7 +202,7 @@ library EvmV1Decoder {
         require(chunk.length > 0, "EvmV1Decoder: Empty");
         (uint8 type_, bytes[] memory chunks) = abi.decode(chunk, (uint8, bytes[]));
         require(type_ == 1, "EvmV1Decoder: Invalid transaction type");
-        require(chunks.length >= 2, "EvmV1Decoder: Invalid chunk count for Type 1");
+        require(chunks.length == 3, "EvmV1Decoder: Invalid chunk count for Type 1");
         return _decodeTypeSpecificChunkType1(chunks[1]);
     }
 
@@ -216,7 +217,7 @@ library EvmV1Decoder {
         require(chunk.length > 0, "EvmV1Decoder: Empty");
         (uint8 type_, bytes[] memory chunks) = abi.decode(chunk, (uint8, bytes[]));
         require(type_ == 2, "EvmV1Decoder: Invalid transaction type");
-        require(chunks.length >= 2, "EvmV1Decoder: Invalid chunk count for Type 2");
+        require(chunks.length == 3, "EvmV1Decoder: Invalid chunk count for Type 2");
         return _decodeTypeSpecificChunkType2(chunks[1]);
     }
 
@@ -231,7 +232,7 @@ library EvmV1Decoder {
         require(chunk.length > 0, "EvmV1Decoder: Empty");
         (uint8 type_, bytes[] memory chunks) = abi.decode(chunk, (uint8, bytes[]));
         require(type_ == 3, "EvmV1Decoder: Invalid transaction type");
-        require(chunks.length >= 3, "EvmV1Decoder: Invalid chunk count for Type 3");
+        require(chunks.length == 4, "EvmV1Decoder: Invalid chunk count for Type 3");
         return _decodeTypeSpecificChunkType3(chunks[1], chunks[2]);
     }
 
@@ -246,7 +247,7 @@ library EvmV1Decoder {
         require(chunk.length > 0, "EvmV1Decoder: Empty");
         (uint8 type_, bytes[] memory chunks) = abi.decode(chunk, (uint8, bytes[]));
         require(type_ == 4, "EvmV1Decoder: Invalid transaction type");
-        require(chunks.length >= 3, "EvmV1Decoder: Invalid chunk count for Type 4");
+        require(chunks.length == 4, "EvmV1Decoder: Invalid chunk count for Type 4");
         return _decodeTypeSpecificChunkType4(chunks[1], chunks[2]);
     }
 
@@ -266,8 +267,9 @@ library EvmV1Decoder {
      * @return common Common transaction fields
      */
     function _decodeCommonTxChunk(bytes memory chunk) internal pure returns (CommonTxFields memory common) {
-        (, bytes[] memory chunks) = abi.decode(chunk, (uint8, bytes[]));
-        require(chunks.length >= 1, "EvmV1Decoder: Invalid chunk count");
+        (uint8 decodedTxType, bytes[] memory chunks) = abi.decode(chunk, (uint8, bytes[]));
+        require(decodedTxType <= 4, "EvmV1Decoder: Invalid transaction type");
+        require(chunks.length == 3 || chunks.length == 4, "EvmV1Decoder: Invalid chunk count");
 
         uint64 nonce;
         uint64 gasLimit;
@@ -300,14 +302,15 @@ library EvmV1Decoder {
      */
     function _decodeReceiptChunk(bytes memory chunk, uint8 txType) internal pure returns (ReceiptFields memory receipt) {
         (, bytes[] memory chunks) = abi.decode(chunk, (uint8, bytes[]));
+        require(txType <= 4, "EvmV1Decoder: Invalid transaction type");
 
         uint256 receiptChunkIndex;
         if (txType <= 2) {
             receiptChunkIndex = 2;
-            require(chunks.length >= 3, "EvmV1Decoder: Invalid chunk count");
+            require(chunks.length == 3, "EvmV1Decoder: Invalid chunk count for Type 0-2");
         } else {
             receiptChunkIndex = 3;
-            require(chunks.length >= 4, "EvmV1Decoder: Invalid chunk count");
+            require(chunks.length == 4, "EvmV1Decoder: Invalid chunk count for Type 3-4");
         }
 
         uint8 receiptStatus;
@@ -513,11 +516,16 @@ library EvmV1Decoder {
 
     // ---------- Final assemblers ----------
     function _decodeType0(bytes memory chunk) internal pure returns (DecodedTransactionType0 memory d) {
+        // Decode chunks and validate transaction type
+        (uint8 decodedTxType, bytes[] memory chunks) = abi.decode(chunk, (uint8, bytes[]));
+        require(decodedTxType == 0, "EvmV1Decoder: Mismatched transaction type, expected 0");
+        require(chunks.length == 3, "EvmV1Decoder: Invalid chunk count for Type 0");
+
+        // Decode common transaction fields and receipt fields (shared across all types)
         CommonTxFields memory commonTx = _decodeCommonTxChunk(chunk);
-        ReceiptFields memory receipt = _decodeReceiptChunk(chunk, 0);
+        ReceiptFields memory receipt = _decodeReceiptChunk(chunk, decodedTxType);
 
         // Decode type-specific chunk
-        (, bytes[] memory chunks) = abi.decode(chunk, (uint8, bytes[]));
         d.type0 = _decodeTypeSpecificChunkType0(chunks[1]);
 
         // Assemble structs
@@ -526,11 +534,16 @@ library EvmV1Decoder {
     }
 
     function _decodeType1(bytes memory chunk) internal pure returns (DecodedTransactionType1 memory d) {
+        // Decode chunks and validate transaction type
+        (uint8 decodedTxType, bytes[] memory chunks) = abi.decode(chunk, (uint8, bytes[]));
+        require(decodedTxType == 1, "EvmV1Decoder: Mismatched transaction type, expected 1");
+        require(chunks.length == 3, "EvmV1Decoder: Invalid chunk count for Type 1");
+        
+        // Decode common transaction fields and receipt fields (shared across all types)
         CommonTxFields memory commonTx = _decodeCommonTxChunk(chunk);
-        ReceiptFields memory receipt = _decodeReceiptChunk(chunk, 1);
+        ReceiptFields memory receipt = _decodeReceiptChunk(chunk, decodedTxType);
 
         // Decode type-specific chunk
-        (, bytes[] memory chunks) = abi.decode(chunk, (uint8, bytes[]));
         d.type1 = _decodeTypeSpecificChunkType1(chunks[1]);
 
         // Assemble structs
@@ -539,11 +552,16 @@ library EvmV1Decoder {
     }
 
     function _decodeType2(bytes memory chunk) internal pure returns (DecodedTransactionType2 memory d) {
+        // Decode chunks and validate transaction type
+        (uint8 decodedTxType, bytes[] memory chunks) = abi.decode(chunk, (uint8, bytes[]));
+        require(decodedTxType == 2, "EvmV1Decoder: Mismatched transaction type, expected 2");
+        require(chunks.length == 3, "EvmV1Decoder: Invalid chunk count for Type 2");
+
+        // Decode common transaction fields and receipt fields (shared across all types)
         CommonTxFields memory commonTx = _decodeCommonTxChunk(chunk);
-        ReceiptFields memory receipt = _decodeReceiptChunk(chunk, 2);
+        ReceiptFields memory receipt = _decodeReceiptChunk(chunk, decodedTxType);
 
         // Decode type-specific chunk
-        (, bytes[] memory chunks) = abi.decode(chunk, (uint8, bytes[]));
         d.type2 = _decodeTypeSpecificChunkType2(chunks[1]);
 
         // Assemble structs
@@ -552,11 +570,16 @@ library EvmV1Decoder {
     }
 
     function _decodeType3(bytes memory chunk) internal pure returns (DecodedTransactionType3 memory d) {
+        // Decode chunks and validate transaction type
+        (uint8 decodedTxType, bytes[] memory chunks) = abi.decode(chunk, (uint8, bytes[]));
+        require(decodedTxType == 3, "EvmV1Decoder: Mismatched transaction type, expected 3");
+        require(chunks.length == 4, "EvmV1Decoder: Invalid chunk count for Type 3");
+
+        // Decode common transaction fields and receipt fields (shared across all types)
         CommonTxFields memory commonTx = _decodeCommonTxChunk(chunk);
-        ReceiptFields memory receipt = _decodeReceiptChunk(chunk, 3);
+        ReceiptFields memory receipt = _decodeReceiptChunk(chunk, decodedTxType);
 
         // Decode type-specific chunks (2 and 3)
-        (, bytes[] memory chunks) = abi.decode(chunk, (uint8, bytes[]));
         d.type3 = _decodeTypeSpecificChunkType3(chunks[1], chunks[2]);
 
         // Assemble structs
@@ -565,11 +588,15 @@ library EvmV1Decoder {
     }
 
     function _decodeType4(bytes memory chunk) internal pure returns (DecodedTransactionType4 memory d) {
+        // Decode chunks and validate transaction type
+        (uint8 decodedTxType, bytes[] memory chunks) = abi.decode(chunk, (uint8, bytes[]));
+        require(decodedTxType == 4, "EvmV1Decoder: Mismatched transaction type, expected 4");
+        require(chunks.length == 4, "EvmV1Decoder: Invalid chunk count for Type 4");
+
         CommonTxFields memory commonTx = _decodeCommonTxChunk(chunk);
-        ReceiptFields memory receipt = _decodeReceiptChunk(chunk, 4);
+        ReceiptFields memory receipt = _decodeReceiptChunk(chunk, decodedTxType);
 
         // Decode type-specific chunks (2 and 3)
-        (, bytes[] memory chunks) = abi.decode(chunk, (uint8, bytes[]));
         d.type4 = _decodeTypeSpecificChunkType4(chunks[1], chunks[2]);
 
         // Assemble structs
