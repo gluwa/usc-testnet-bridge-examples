@@ -178,9 +178,9 @@ jobs:
           WALLET_PK=$(echo "$OUTPUT" | grep "Private key:" | cut -f2 -d: | tr -d ' ')
           echo "creditcoin_wallet_pk=$WALLET_PK" >> "$GITHUB_OUTPUT"
 
-          echo "INFO: get 0.001 ETH on source chain"
+          echo "INFO: get 0.01 ETH on source chain"
           ~/.foundry/bin/cast send "$WALLET_ADDRESS" "0x" \
-            --value 1000000000000000 \
+            --value 10000000000000000 \
             --private-key ${{ steps.env.outputs.source_chain_private_key }} \
             --rpc-url "$SOURCE_CHAIN_RPC_URL"
 
