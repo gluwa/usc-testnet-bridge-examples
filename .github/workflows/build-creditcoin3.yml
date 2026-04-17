@@ -20,8 +20,8 @@ jobs:
       - uses: actions/checkout@v6
         with:
           lfs: true
-          repository: gluwa/creditcoin3-next
-          ref: poc_external_attestation_network
+          repository: gluwa/creditcoin3
+          ref: usc-dev
           token: ${{ secrets.GLUWA_BOT_TOKEN }}
 
       - name: Install protobuf
