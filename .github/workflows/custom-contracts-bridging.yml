@@ -137,7 +137,8 @@ jobs:
                 --cc3-url=ws://localhost:9944 \
                 --funding-address='//Alice' \
                 --config=.github/attestor-config.yaml \
-                --chain-key=2 &
+                --chain-key=2 \
+                >/var/tmp/custom-contract-bridging-logs/zombienet-alice.log &
 
           # note: chain_key is hard-coded in this script so waiting only on Anvil_1
           .github/wait-for-attestors.sh 'http://127.0.0.1:9944'
@@ -293,7 +294,9 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: custom-contract-bridging-logs
-          path: /var/tmp/custom-contract-bridging-logs/
+          path: |
+            /var/tmp/custom-contract-bridging-logs/
+            ./logs
           include-hidden-files: true
 
       - name: Kill processes
