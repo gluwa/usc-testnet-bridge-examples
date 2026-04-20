@@ -45,7 +45,7 @@ jobs:
         run: |
           # shellcheck disable=SC2129
           echo "source_chain_rpc_url=https://blockchain.googleapis.com/v1/projects/usc-integration-test/locations/asia-east1/endpoints/ethereum-sepolia/rpc?key=${{ secrets.GOOGLE_SEPOLIA_RPC_KEY }}" >> "$GITHUB_OUTPUT"
-          echo "source_chain_key=3" >> "$GITHUB_OUTPUT"
+          echo "source_chain_key=1" >> "$GITHUB_OUTPUT"
           # note: this is NEW_LENDER_ in 1Password & must be funded on Sepolia
           echo "wallet_pk=${{ secrets.DEVNET_EVM_PK }}" >> "$GITHUB_OUTPUT"
 
