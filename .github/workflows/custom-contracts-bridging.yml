@@ -64,8 +64,8 @@ jobs:
         if: inputs.usc_kind == 'devnet'
         run: |
           # shellcheck disable=SC2129
-          echo "creditcoin_rpc_url=https://rpc.usc-devnet.creditcoin.network" >> "$GITHUB_OUTPUT"
-          echo "prover_api_url=https://prover.usc-devnet.creditcoin.network/" >> "$GITHUB_OUTPUT"
+          echo "creditcoin_rpc_url=https://rpc.cc3-devnet.creditcoin.network" >> "$GITHUB_OUTPUT"
+          echo "prover_api_url=https://proof-gen-api.cc3-devnet.creditcoin.network/" >> "$GITHUB_OUTPUT"
           # note: this is NEW_LENDER_ in 1Password & must be funded on USC Devnet
           echo "wallet_pk=${{ secrets.DEVNET_EVM_PK }}" >> "$GITHUB_OUTPUT"
 
