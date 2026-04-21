@@ -21,7 +21,6 @@ jobs:
         with:
           repository: gluwa/creditcoin3
           ref: usc-dev
-          token: ${{ secrets.GLUWA_BOT_TOKEN }}
 
       - name: Install protobuf
         uses: arduino/setup-protoc@v3
