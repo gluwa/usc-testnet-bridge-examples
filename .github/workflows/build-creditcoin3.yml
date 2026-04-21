@@ -19,7 +19,6 @@ jobs:
     steps:
       - uses: actions/checkout@v6
         with:
-          lfs: true
           repository: gluwa/creditcoin3
           ref: usc-dev
           token: ${{ secrets.GLUWA_BOT_TOKEN }}
