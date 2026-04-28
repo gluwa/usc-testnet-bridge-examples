@@ -281,7 +281,7 @@ jobs:
 
           # wait for attestations for the source block where we burned the tokens
           echo "INFO: Wait for mint query to be processed by the USC contract"
-          sleep 500
+          timeout 1080 bash -c 'until grep -q "Tokens minted!" /var/tmp/bridge-offchain-worker-logs/offchain-worker.log; do sleep 5; done'
           grep "Tokens minted!" /var/tmp/bridge-offchain-worker-logs/offchain-worker.log
 
           echo "INFO: Verify bridged tokens"
