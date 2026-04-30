@@ -46,7 +46,7 @@ export async function generateProofFor(
 
   // We wait for at most 20 minutes for the attestation to be available
   // In practice this should take about 8 minutes, but we're being conservative to make the examples robust.
-  await info.waitUntilHeightAttested(chainKey, blockNumber + 10, 5_000, 1_200_000);
+  await info.waitUntilHeightAttested(chainKey, blockNumber, 5_000, 1_200_000);
 
   console.log(`Block ${blockNumber} attested! Generating proof...`);
 
