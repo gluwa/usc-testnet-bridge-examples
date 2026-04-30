@@ -1,5 +1,5 @@
 import dotenv from 'dotenv';
-import { Contract, ethers, InterfaceAbi } from 'ethers';
+import { Contract, ethers } from 'ethers';
 
 import loanHelperAbi from '../contracts/abi/AuxiliaryLoanContract.json';
 import ERC20Abi from '../contracts/abi/TestERC20.json';
@@ -64,17 +64,9 @@ const main = async () => {
   // 1. Connect to source chain loan contract and ERC20 contract
   const sourceChainProvider = new ethers.JsonRpcProvider(sourceChainRpcUrl);
   const borrowerWallet = new ethers.Wallet(borrowerPrivateKey!, sourceChainProvider);
-  const sourceChainLoanContract = new Contract(
-    sourceChainLoanContractAddress!,
-    loanHelperAbi as unknown as InterfaceAbi,
-    borrowerWallet
-  );
+  const sourceChainLoanContract = new Contract(sourceChainLoanContractAddress!, loanHelperAbi, borrowerWallet);
   const lenderWallet = new ethers.Wallet(lenderPrivateKey!, sourceChainProvider);
-  const sourceChainERC20Contract = new Contract(
-    sourceChainERC20ContractAddress!,
-    ERC20Abi as unknown as InterfaceAbi,
-    borrowerWallet
-  );
+  const sourceChainERC20Contract = new Contract(sourceChainERC20ContractAddress!, ERC20Abi, borrowerWallet);
 
   // 2. Approve the loan contract to transfer borrower's tokens
   try {
