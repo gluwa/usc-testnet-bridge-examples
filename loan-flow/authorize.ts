@@ -1,5 +1,5 @@
 import dotenv from 'dotenv';
-import { Contract, ethers, InterfaceAbi } from 'ethers';
+import { Contract, ethers } from 'ethers';
 
 import loanHelperAbi from '../contracts/abi/AuxiliaryLoanContract.json';
 import { isValidContractAddress, isValidPrivateKey } from '../utils';
@@ -46,11 +46,7 @@ const main = async () => {
   // 1. Connect to source chain loan contract
   const sourceChainProvider = new ethers.JsonRpcProvider(sourceChainRpcUrl);
   const sourceChainWallet = new ethers.Wallet(ccNextWalletPrivateKey!, sourceChainProvider);
-  const sourceChainLoanContract = new Contract(
-    sourceChainLoanContractAddress!,
-    loanHelperAbi as unknown as InterfaceAbi,
-    sourceChainWallet
-  );
+  const sourceChainLoanContract = new Contract(sourceChainLoanContractAddress!, loanHelperAbi, sourceChainWallet);
 
   // 2. Authorize the token to be used in loans
   try {

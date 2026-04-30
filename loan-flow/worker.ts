@@ -1,5 +1,5 @@
 import dotenv from 'dotenv';
-import { Contract, ethers, InterfaceAbi } from 'ethers';
+import { Contract, ethers } from 'ethers';
 
 import loanManagerAbi from '../contracts/abi/USCLoanManager.json';
 import loanHelperAbi from '../contracts/abi/AuxiliaryLoanContract.json';
@@ -93,20 +93,12 @@ const main = async () => {
   const ccProvider = new ethers.JsonRpcProvider(ccNextRpcUrl);
   const ccWallet = new ethers.Wallet(ccNextWalletPrivateKey!, ccProvider);
 
-  const managerContract = new Contract(
-    loanManagerContractAddress!,
-    loanManagerAbi as unknown as InterfaceAbi,
-    ccWallet
-  );
+  const managerContract = new Contract(loanManagerContractAddress!, loanManagerAbi, ccWallet);
 
   // 2. Connect to source chain loan contract
   const sourceChainProvider = new ethers.JsonRpcProvider(sourceChainRpcUrl);
   const sourceChainWallet = new ethers.Wallet(ccNextWalletPrivateKey!, sourceChainProvider);
-  const sourceChainLoanContract = new Contract(
-    sourceChainLoanContractAddress!,
-    loanHelperAbi as unknown as InterfaceAbi,
-    sourceChainWallet
-  );
+  const sourceChainLoanContract = new Contract(sourceChainLoanContractAddress!, loanHelperAbi, sourceChainWallet);
 
   // 3. Initialize loan tracker, expiry tracker and other state
   const loanTracker: Record<string, LoanInfo> = {};

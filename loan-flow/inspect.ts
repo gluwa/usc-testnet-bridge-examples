@@ -1,5 +1,5 @@
 import dotenv from 'dotenv';
-import { Contract, ethers, InterfaceAbi } from 'ethers';
+import { Contract, ethers } from 'ethers';
 
 import loanManagerAbi from '../contracts/abi/USCLoanManager.json';
 import { isValidContractAddress } from '../utils';
@@ -100,11 +100,7 @@ const main = async () => {
 
   // 1. Connect to Creditcoin chain loan manager contract
   const ccNextProvider = new ethers.JsonRpcProvider(ccNextRpcUrl);
-  const loanManagerContract = new Contract(
-    loanManagerContractAddress!,
-    loanManagerAbi as unknown as InterfaceAbi,
-    ccNextProvider
-  );
+  const loanManagerContract = new Contract(loanManagerContractAddress!, loanManagerAbi, ccNextProvider);
 
   // 2. Check loan details for the given loan ID
   try {

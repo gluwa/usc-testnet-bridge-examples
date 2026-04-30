@@ -1,5 +1,5 @@
 import dotenv from 'dotenv';
-import { Contract, ethers, InterfaceAbi } from 'ethers';
+import { Contract, ethers } from 'ethers';
 
 import burnerAbi from '../contracts/abi/TestERC20.json';
 import USCMinterABI from '../contracts/abi/USCMinter.json';
@@ -71,12 +71,12 @@ const main = async () => {
 
   // 1. Create connection to source chain burner contract
   const ethProvider = new ethers.JsonRpcProvider(sourceChainRpcUrl);
-  const burnerContract = new Contract(sourceChainContractAddress!, burnerAbi as unknown as InterfaceAbi, ethProvider);
+  const burnerContract = new Contract(sourceChainContractAddress!, burnerAbi, ethProvider);
 
   // 2. Create connection to minter contract on Creditcoin USC chain
   const ccProvider = new ethers.JsonRpcProvider(ccNextRpcUrl);
   const wallet = new ethers.Wallet(ccNextWalletPrivateKey!, ccProvider);
-  const minterContract = new Contract(uscMinterContractAddress!, USCMinterABI as unknown as InterfaceAbi, wallet);
+  const minterContract = new Contract(uscMinterContractAddress!, USCMinterABI, wallet);
 
   // Get starting block numbers
   let burnerFromBlock = await ethProvider.getBlockNumber();
