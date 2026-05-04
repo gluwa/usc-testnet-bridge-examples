@@ -126,7 +126,7 @@ Run the following command to check your funds:
 
 ```sh
 WALLET_ADDRESS=$(cast wallet address --private-key $CREDITCOIN_WALLET_PRIVATE_KEY)
-yarn utils:check_balance $USC_CUSTOM_MINTER_CONTRACT_ADDRESS $WALLET_ADDRESS
+yarn utils:check_balance $USC_CUSTOM_MINTABLE_TOKEN $WALLET_ADDRESS
 ```
 
 It should show something like this:
