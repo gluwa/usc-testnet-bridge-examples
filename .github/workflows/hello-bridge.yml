@@ -187,9 +187,9 @@ jobs:
 
           CREDITCOIN_RPC_URL="${{ steps.env.outputs.creditcoin_rpc_url }}"
 
-          echo "INFO: get 0.002 CTC on Creditcoin chain"
+          echo "INFO: get 0.02 CTC on Creditcoin chain"
           ~/.foundry/bin/cast send "$WALLET_ADDRESS" "0x" \
-            --value 2000000000000000 \
+            --value 20000000000000000 \
             --private-key ${{ steps.env.outputs.execution_chain_private_key }} \
             --rpc-url "$CREDITCOIN_RPC_URL"
 
