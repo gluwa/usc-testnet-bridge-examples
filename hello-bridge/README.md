@@ -14,7 +14,7 @@ bridging!** Cross-chain bridging on Creditcoin can be broken down into three bro
 This tutorial involves the use of two different blockchains.
 
 - Sepolia, which serves as our _source chain_ for the tutorial. This is where tokens are burned.
-- Creditcoin USC Testnet, which serves as our _execution chain_ for the tutorial. This is where our minter universal smart contract lives. Tokens are minted by that contract.
+- Creditcoin CC3 Testnet, which serves as our _execution chain_ for the tutorial. This is where our minter universal smart contract lives. Tokens are minted by that contract.
 
 In order to use both blockchains we need to create a wallet and fund it with the native tokens of
 both networks.
@@ -23,7 +23,7 @@ both networks.
 
 In order to safely sign transactions for this tutorial, we want to generate a fresh EVM wallet address.
 Since all EVM networks use the same address and transaction signature scheme we can use the address we
-create on both Sepolia and Creditcoin USC Testnet.
+create on both Sepolia and Creditcoin CC3 Testnet.
 
 > [!CAUTION]
 > In this tutorial, we will be using your wallet's private key to allow some test scripts to act on
