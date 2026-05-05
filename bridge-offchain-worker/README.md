@@ -117,7 +117,7 @@ Tokens minted! Contract: 0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512, To: 0xf39Fd
 That's it! All it took was a single transaction on your end to initiate the bridging process,
 providing for a _truly native UX_.
 
-## 6. Check Balance in USC Testnet ERC20 Contract
+## 6. Check Balance in CC3 Testnet ERC20 Contract
 
 As a final check, we can take a look at the balance of your account on Creditcoin to confirm that
 the bridging process was successful.
