@@ -35,8 +35,9 @@ export async function generateProofFor(
 
   console.log(`Transaction ${txHash} found in block ${blockNumber}`);
 
-  // Now that we have the block number, we can setup the chain info provider to await
-  // for its attestation
+  // Now that we have the block number, we can listen for the required attestation
+  // to land in the cache of the proof gen server.
+  const proofGenApi = new proofGenerator.api.ProverAPIProofGenerator(chainKey, proofServerUrl);
   const info = new chainInfo.PrecompileChainInfoProvider(creditcoinRpc);
 
   console.log(`Waiting for block ${blockNumber} attestation on Creditcoin...`);
@@ -44,15 +45,13 @@ export async function generateProofFor(
   const latestAttested = await info.getLatestAttestedHeightAndHash(chainKey);
   console.log(`Latest attested height for chain key ${chainKey}: ${latestAttested.height}`);
 
-  // We wait for at most 20 minutes for the attestation to be available
+  // We wait for at most 20 minutes for the attestation to be available in the proof gen server cache
   // In practice this should take about 8 minutes, but we're being conservative to make the examples robust.
-  await info.waitUntilHeightAttested(chainKey, blockNumber + 10, 5_000, 1_200_000);
+  await proofGenApi.waitUntilHeightAttested(chainKey, blockNumber, 15_000, 1_200_000);
 
   console.log(`Block ${blockNumber} attested! Generating proof...`);
 
   // We can now proceed to generate the proof using the prover API
-  const proofGenApi = new proofGenerator.api.ProverAPIProofGenerator(chainKey, proofServerUrl);
-
   try {
     const proof = await proofGenApi.generateProof(txHash);
     console.log('Proof generation successful!');
@@ -327,8 +326,6 @@ export async function submitProofToMinterAndAwait(
   } else {
     console.log('Transaction mined but TokensMinted event not found in logs');
   }
-
-  console.log('Minting completed!');
 
   return { txHash, receipt, mintEvent };
 }
