@@ -280,7 +280,7 @@ jobs:
           echo "INFO: Submit a mint query to the USC contract"
           OUTPUT=$(yarn custom_bridge:submit_query "${{ steps.setup.outputs.burn_tx_hash }}")
           echo "$OUTPUT"
-          echo "$OUTPUT" | grep "Minting completed"
+          echo "$OUTPUT" | grep "Tokens minted!"
 
           echo "INFO: Verify bridged tokens"
           OUTPUT=$(yarn utils:check_balance "$USC_CUSTOM_MINTABLE_TOKEN" "${{ steps.setup.outputs.creditcoin_wallet_address }}")
