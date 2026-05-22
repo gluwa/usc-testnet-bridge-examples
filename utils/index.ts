@@ -47,7 +47,8 @@ export async function generateProofFor(
 
   // We wait for at most 20 minutes for the attestation to be available in the proof gen server cache
   // In practice this should take about 8 minutes, but we're being conservative to make the examples robust.
-  await proofGenApi.waitUntilHeightAttested(chainKey, blockNumber, 15_000, 1_200_000);
+  // TODO: use proofGenApi endpoint for this again once it's been rolled out on Testnets
+  await info.waitUntilHeightAttested(chainKey, blockNumber + 10, 5_000, 1_200_000);
 
   console.log(`Block ${blockNumber} attested! Generating proof...`);
 
