@@ -20,13 +20,13 @@
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "8.59.0",
-    "@typescript-eslint/parser": "8.59.0",
+    "@typescript-eslint/eslint-plugin": "8.60.0",
+    "@typescript-eslint/parser": "8.60.0",
     "eslint": "^8.57.0",
     "eslint-config-prettier": "^10.1.8",
     "prettier": "^3.8.0",
     "typescript": "6.0.2",
-    "tsx": "^4.20.3"
+    "tsx": "^4.22.4"
   },
   "dependencies": {
     "@gluwa/usc-sdk": "0.12.2",
