@@ -147,7 +147,7 @@ async function processBlock(blockNumber: number): Promise<Result[]> {
     if (!receipt) continue;
 
     const encodedAbi = await encodeTransaction(provider, tx.hash, receipt);
-    const combinedAbiBytes = hexBytes(encodedAbi);  
+    const combinedAbiBytes = hexBytes(encodedAbi);
 
     out.push({
       hash: tx.hash,
