@@ -22,7 +22,7 @@ async function main() {
     yarn submit_decode <Transaction_Hash>
 
   Example:
-    yarn submit_decode 0x87c97c776a678941b5941ec0cb602a4467ff4a35f77264208575f137cb05b2a7
+    yarn submit_decode 0x343b91c47944693ed1cdf3c979bd7722ed9284320ff6069bcfd46c109d9c4199
   `);
     process.exit(1);
   }

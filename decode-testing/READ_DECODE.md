@@ -1,6 +1,31 @@
-# Steps 
+# Read-Decode (Instructions for decode testing tools)
+We test decoding the largest transactions on ETH mainnet using the tools here. 
+There are 3 main tools:
+1. Script for collecting largest eth transactions starting from the most recent block `largest_eth_transactions.ts`
+2. A minimal prove-and-decode-only USC to be deployed on CC3 Devnet `USCDecodeOnly.sol`
+3. A script for calling our USC with one of the large transactions we scraped `submit_decode_query.ts`
 
-1. Deploy Decoder
+## Steps 
+
+0. Set up .env
+Add the following lines to your .env, replacing the X's with your api key.
+Note that whichever key you use must be able to handle lots of traffic at 
+a rate defined in `largest_eth_transactions.ts`.
+
+```sh
+MAINNET_CHAIN_KEY=4               
+USC_DECODE_ONLY_CONTRACT_ADDRESS=""
+WSS_URL="wss://mainnet.infura.io/ws/v3/XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+HTTPS_URL="https://mainnet.infura.io/v3/XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+```
+
+1. Run transaction scraper 
+```sh
+source .env
+yarn largest-txs
+```
+
+2. Deploy Decoder
 ```bash
 forge create \
   --broadcast \
@@ -9,7 +34,7 @@ forge create \
   contracts/sol/EvmV1Decoder.sol:EvmV1Decoder
 ```
 
-2. 
+3. Deploy Decode Only USC
 ```bash
 forge create \
     --broadcast \
@@ -19,7 +44,7 @@ forge create \
     contracts/sol/USCDecodeOnly.sol:USCDecodeOnly
 ```
 
-2.1. 
+3.1. 
 Set env var in .env
 ```sh
 USC_DECODE_ONLY_CONTRACT_ADDRESS=<address_from_step_2>
