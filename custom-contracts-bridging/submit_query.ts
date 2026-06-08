@@ -45,9 +45,9 @@ async function main() {
     throw new Error('SOURCE_CHAIN_KEY environment variable is not configured or invalid');
   }
 
-  const proverApiUrl = process.env.PROVER_API_URL;
-  if (!proverApiUrl) {
-    throw new Error('PROVER_API_URL is not configured or invalid');
+  const proofBuilderUrl = process.env.PROOF_BUILDER_URL;
+  if (!proofBuilderUrl) {
+    throw new Error('PROOF_BUILDER_URL is not configured or invalid');
   }
 
   const creditcoinRpcUrl = process.env.CREDITCOIN_RPC_URL;
@@ -72,7 +72,7 @@ async function main() {
   const proofResult = await generateProofFor(
     transactionHash,
     sourceChainKey,
-    proverApiUrl,
+    proofBuilderUrl,
     ccProvider,
     sourceChainProvider
   );

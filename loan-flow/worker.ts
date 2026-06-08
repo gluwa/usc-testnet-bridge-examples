@@ -46,7 +46,7 @@ const main = async () => {
   console.log('Starting loan worker...');
 
   // Environment Variables
-  const proverApiUrl = process.env.PROVER_API_URL;
+  const proofBuilderUrl = process.env.PROOF_BUILDER_URL;
   const sourceChainRpcUrl = process.env.SOURCE_CHAIN_RPC_URL;
   const ccNextRpcUrl = process.env.CREDITCOIN_RPC_URL;
   const ccNextWalletPrivateKey = process.env.CREDITCOIN_WALLET_PRIVATE_KEY;
@@ -54,8 +54,8 @@ const main = async () => {
   const loanManagerContractAddress = process.env.USC_LOAN_MANAGER_CONTRACT_ADDRESS;
   const sourceChainLoanContractAddress = process.env.SOURCE_CHAIN_LOAN_CONTRACT_ADDRESS;
 
-  if (!proverApiUrl) {
-    throw new Error('PROVER_API_URL environment variable is not configured or invalid');
+  if (!proofBuilderUrl) {
+    throw new Error('PROOF_BUILDER_URL environment variable is not configured or invalid');
   }
 
   if (!sourceChainRpcUrl) {
@@ -222,7 +222,7 @@ const main = async () => {
         const proofResult = await generateProofFor(
           txHash,
           sourceChainKey,
-          proverApiUrl,
+          proofBuilderUrl,
           ccProvider,
           sourceChainProvider
         );
@@ -277,7 +277,7 @@ const main = async () => {
         const proofResult = await generateProofFor(
           txHash,
           sourceChainKey,
-          proverApiUrl,
+          proofBuilderUrl,
           ccProvider,
           sourceChainProvider
         );
