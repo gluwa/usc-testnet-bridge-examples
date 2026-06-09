@@ -55,7 +55,7 @@ jobs:
         run: |
           # shellcheck disable=SC2129
           echo "creditcoin_rpc_url=http://127.0.0.1:9944" >> "$GITHUB_OUTPUT"
-          echo "prover_api_url=http://localhost:3100" >> "$GITHUB_OUTPUT"
+          echo "proof_builder_url=http://localhost:3100" >> "$GITHUB_OUTPUT"
           # note: this is Alith's PK
           echo "wallet_pk=0x5fb92d6e98884f76de468fa3f6278f8807c48bebc13595d45af5bdc4da702133" >> "$GITHUB_OUTPUT"
 
@@ -65,7 +65,7 @@ jobs:
         run: |
           # shellcheck disable=SC2129
           echo "creditcoin_rpc_url=https://rpc.cc3-devnet.creditcoin.network" >> "$GITHUB_OUTPUT"
-          echo "prover_api_url=https://prover.cc3-devnet.creditcoin.network/" >> "$GITHUB_OUTPUT"
+          echo "proof_builder_url=https://prover.cc3-devnet.creditcoin.network/" >> "$GITHUB_OUTPUT"
           # note: this is NEW_LENDER_ in 1Password & must be funded on USC Devnet
           echo "wallet_pk=${{ secrets.DEVNET_EVM_PK }}" >> "$GITHUB_OUTPUT"
 
@@ -74,7 +74,7 @@ jobs:
         run: |
           # shellcheck disable=SC2129
           echo "creditcoin_rpc_url=${{ steps.local.outputs.creditcoin_rpc_url || steps.devnet.outputs.creditcoin_rpc_url }}" >> "$GITHUB_OUTPUT"
-          echo "prover_api_url=${{ steps.local.outputs.prover_api_url || steps.devnet.outputs.prover_api_url }}" >> "$GITHUB_OUTPUT"
+          echo "proof_builder_url=${{ steps.local.outputs.proof_builder_url || steps.devnet.outputs.proof_builder_url }}" >> "$GITHUB_OUTPUT"
           echo "execution_chain_private_key=${{ steps.local.outputs.wallet_pk || steps.devnet.outputs.wallet_pk }}" >> "$GITHUB_OUTPUT"
 
           echo "source_chain_rpc_url=${{ steps.anvil.outputs.source_chain_rpc_url || steps.sepolia.outputs.source_chain_rpc_url }}" >> "$GITHUB_OUTPUT"
@@ -261,7 +261,7 @@ jobs:
           echo "SOURCE_CHAIN_KEY=${{ steps.env.outputs.source_chain_key }}" > .env
           echo "SOURCE_CHAIN_RPC_URL='${{ steps.env.outputs.source_chain_rpc_url }}'" >> .env
           echo "CREDITCOIN_RPC_URL='${{ steps.env.outputs.creditcoin_rpc_url }}'" >> .env
-          echo "PROVER_API_URL='${{ steps.env.outputs.prover_api_url }}'" >> .env
+          echo "PROOF_BUILDER_URL='${{ steps.env.outputs.proof_builder_url }}'" >> .env
           echo "SOURCE_CHAIN_CUSTOM_CONTRACT_ADDRESS='${{ steps.setup.outputs.source_chain_contract_address }}'" >> .env
           echo "USC_CUSTOM_MINTER_CONTRACT_ADDRESS='${{ steps.setup.outputs.usc_minter_contract_address }}'" >> .env
           echo "CREDITCOIN_WALLET_PRIVATE_KEY='${{ steps.setup.outputs.creditcoin_wallet_pk }}'" >> .env

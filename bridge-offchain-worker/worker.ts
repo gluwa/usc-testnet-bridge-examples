@@ -32,11 +32,11 @@ process.on('SIGTERM', () => {
 const main = async () => {
   console.log('Starting...');
 
-  // Prover API URL
-  const proverApiUrl = process.env.PROVER_API_URL;
+  // Proof Builder API URL
+  const proofBuilderUrl = process.env.PROOF_BUILDER_URL;
 
-  if (!proverApiUrl) {
-    throw new Error('PROVER_API_URL environment variable is not configured or invalid');
+  if (!proofBuilderUrl) {
+    throw new Error('PROOF_BUILDER_URL environment variable is not configured or invalid');
   }
 
   // Source chain contract address (ERC20 contract on source chain) where tokens are burned
@@ -118,7 +118,7 @@ const main = async () => {
         console.log(`Detected burn of ${amount.toString()} tokens from ${from} at ${txHash}`);
 
         // Generate proof for the burn transaction
-        const proofResult = await generateProofFor(txHash, sourceChainKey, proverApiUrl, ccProvider, ethProvider);
+        const proofResult = await generateProofFor(txHash, sourceChainKey, proofBuilderUrl, ccProvider, ethProvider);
 
         if (proofResult.success) {
           const proofData = proofResult.data!;

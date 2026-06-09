@@ -1,6 +1,6 @@
 import { Contract, JsonRpcApiProvider, TransactionReceipt, Log, LogDescription, EventLog } from 'ethers';
 
-import { proofGenerator, chainInfo } from '@gluwa/usc-sdk';
+import { proofProvider, chainInfo } from '@gluwa/usc-sdk';
 
 /**
  * Tries to generate a proof for the given transaction hash on the specified chain. Will fail if the
@@ -9,18 +9,18 @@ import { proofGenerator, chainInfo } from '@gluwa/usc-sdk';
  * minutes depending on how fast the attestation happens.
  * @param txHash Transaction hash on the source chain to generate the proof for.
  * @param chainKey Chain key identifying the source chain on the Creditcoin network.
- * @param proofServerUrl Url of the prover API server.
+ * @param proofBuilderUrl Url of the proof builder service.
  * @param creditcoinRpc A JsonRpcApiProvider connected to the Creditcoin network.
  * @param sourceChainRpc A JsonRpcApiProvider connected to the source chain.
- * @returns Promise that resolves to a ProofGenerationResult containing the proof data if successful.
+ * @returns Promise that resolves to a ProofResult containing the proof data if successful.
  */
 export async function generateProofFor(
   txHash: string,
   chainKey: number,
-  proofServerUrl: string,
+  proofBuilderUrl: string,
   creditcoinRpc: JsonRpcApiProvider,
   sourceChainRpc: JsonRpcApiProvider
-): Promise<proofGenerator.ProofGenerationResult> {
+): Promise<proofProvider.ProofResult> {
   // First, we need to ensure that the transaction exists on the source chain
   const transaction = await sourceChainRpc.getTransaction(txHash);
   if (!transaction) {
@@ -36,8 +36,8 @@ export async function generateProofFor(
   console.log(`Transaction ${txHash} found in block ${blockNumber}`);
 
   // Now that we have the block number, we can listen for the required attestation
-  // to land in the cache of the proof gen server.
-  const proofGenApi = new proofGenerator.api.ProverAPIProofGenerator(chainKey, proofServerUrl);
+  // to land in the cache of the proof builder.
+  const proofBuilder = new proofProvider.service.ProofBuilder(chainKey, proofBuilderUrl);
   const info = new chainInfo.PrecompileChainInfoProvider(creditcoinRpc);
 
   console.log(`Waiting for block ${blockNumber} attestation on Creditcoin...`);
@@ -45,15 +45,15 @@ export async function generateProofFor(
   const latestAttested = await info.getLatestAttestedHeightAndHash(chainKey);
   console.log(`Latest attested height for chain key ${chainKey}: ${latestAttested.height}`);
 
-  // We wait for at most 20 minutes for the attestation to be available in the proof gen server cache
+  // We wait for at most 20 minutes for the attestation to be available in the proof builder cache
   // In practice this should take about 8 minutes, but we're being conservative to make the examples robust.
-  await proofGenApi.waitUntilHeightAttested(chainKey, blockNumber, 15_000, 1_200_000);
+  await proofBuilder.waitUntilHeightAttested(chainKey, blockNumber, 15_000, 1_200_000);
 
   console.log(`Block ${blockNumber} attested! Generating proof...`);
 
-  // We can now proceed to generate the proof using the prover API
+  // We can now proceed to generate the proof using the proof builder service
   try {
-    const proof = await proofGenApi.generateProof(txHash);
+    const proof = await proofBuilder.getProof(txHash);
     console.log('Proof generation successful!');
     return proof;
   } catch (error) {
@@ -102,7 +102,7 @@ async function computeGasLimit(
 export async function computeGasLimitForLoanManager(
   provider: JsonRpcApiProvider,
   contract: Contract,
-  proofData: proofGenerator.ContinuityResponse,
+  proofData: proofProvider.ContinuityResponse,
   signerAddress: string,
   is_repayment: boolean
 ): Promise<bigint> {
@@ -140,7 +140,7 @@ export async function computeGasLimitForLoanManager(
 export async function computeGasLimitForMinter(
   provider: JsonRpcApiProvider,
   contract: Contract,
-  proofData: proofGenerator.ContinuityResponse,
+  proofData: proofProvider.ContinuityResponse,
   signerAddress: string
 ): Promise<bigint> {
   const action = 0; // Mint action (see MinterActions in USCMinter)
@@ -177,11 +177,11 @@ export async function computeGasLimitForMinter(
  * Submits the proof of a LoanFunded event to the USCLoanManager contract
  * @param contract The loan manager contract. Must have the function markLoanAsFunded.
  * @param proofData A proof data object obtained from the proof generation process.
- * * @returns A promise that resolves to the transaction response of the markLoanAsFunded call.
+ * @returns A promise that resolves to the transaction response of the markLoanAsFunded call.
  */
 export async function submitFundProofToLoanManager(
   contract: Contract,
-  proofData: proofGenerator.ContinuityResponse,
+  proofData: proofProvider.ContinuityResponse,
   gasLimit: bigint
 ): Promise<any> {
   const action = 0; // `LoanFunded` in LoanManagerActions
@@ -210,11 +210,11 @@ export async function submitFundProofToLoanManager(
  * Submits the proof of a LoanRepaid event to the USCLoanManager contract
  * @param contract The loan manager contract. Must have the function noteLoanRepayment.
  * @param proofData A proof data object obtained from the proof generation process.
- * * @returns A promise that resolves to the transaction response of the noteLoanRepayment call.
+ * @returns A promise that resolves to the transaction response of the noteLoanRepayment call.
  */
 export async function submitRepayProofToLoanManager(
   contract: Contract,
-  proofData: proofGenerator.ContinuityResponse,
+  proofData: proofProvider.ContinuityResponse,
   gasLimit: bigint
 ): Promise<any> {
   const action = 1; // `LoanRepaid` in LoanManagerActions
@@ -247,7 +247,7 @@ export async function submitRepayProofToLoanManager(
  */
 export async function submitProofToMinter(
   contract: Contract,
-  proofData: proofGenerator.ContinuityResponse,
+  proofData: proofProvider.ContinuityResponse,
   gasLimit: bigint
 ): Promise<any> {
   const action = 0; // Mint action (see MinterActions in USCMinter)
@@ -293,7 +293,7 @@ export interface MintResult {
  */
 export async function submitProofToMinterAndAwait(
   contract: Contract,
-  proofData: proofGenerator.ContinuityResponse,
+  proofData: proofProvider.ContinuityResponse,
   gasLimit: bigint
 ): Promise<MintResult> {
   const response = await submitProofToMinter(contract, proofData, gasLimit);
