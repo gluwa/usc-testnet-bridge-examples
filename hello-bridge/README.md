@@ -181,7 +181,7 @@ Waiting for transaction to be mined...
 Tokens minted! Contract: 0x914Cf96BF28b7b4921db27b264ecEd71aC91134E, To: 0x20dB67795C2AEb4De075986b0D4217A109FEF2B5, Amount: 50000000000000000000, QueryId: 0xf655981895d3e55d883e52c239ba490afba06b87e33c569a5afe9a7980721c47
 ```
 
-Sometimes it may take a bit longer for the `TokensMinted` event to trigger, but should be around 10 minutes at most.
+With a comparatively slow source chain such as Ethereum or Sepolia, transactions in very recent blocks will take ~8-10 minutes to be attested. This delay is necessary to keep the USC protocol secure in the event of a **source chain reversion**.
 
 Once that's done we only need to check our newly minted tokens!
 

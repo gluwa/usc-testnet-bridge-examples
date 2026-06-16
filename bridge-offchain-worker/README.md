@@ -113,7 +113,7 @@ Waiting for block attestation on Creditcoin...
 Eventually, you should see a message like this one:
 
 ```bash
-Tokens minted! Contract: 0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512, To: 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266, Amount: 2000, QueryId: 0x3bfcf46c80011ef4280b7212e4fa11e5be314b12c9ddd56a74e83c2964b3e9be
+Tokens minted! Contract: 0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512, To: 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266, Amount: 4000, QueryId: 0x3bfcf46c80011ef4280b7212e4fa11e5be314b12c9ddd56a74e83c2964b3e9be
 ```
 
 That's it! All it took was a single transaction on your end to initiate the bridging process,
