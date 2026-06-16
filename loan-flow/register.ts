@@ -1,5 +1,5 @@
 import dotenv from 'dotenv';
-import { Contract, ethers } from 'ethers';
+import { Contract, ethers, EventLog } from 'ethers';
 
 import loanManagerAbi from '../contracts/abi/USCLoanManager.json';
 import { isValidContractAddress, isValidPrivateKey } from '../utils';
@@ -133,14 +133,11 @@ const main = async () => {
 
   let loanRegistered = false;
 
-  // 4. Listed to LoanRegistered events
-  const _ = managerContract.on('LoanRegistered', (loanId: number) => {
-    console.log(`Loan successfully registered with ID: ${loanId.toString()}`);
-    loanRegistered = true;
-  });
+  const registerBlock = await ccProvider.getBlockNumber();
 
-  // 5. Register the loan
+  // 4. Register the loan
   try {
+    console.log('Submitting loan registration transaction...');
     const tx = await managerContract.registerLoan(fundFlow, repayFlow, loanTerm, lenderSignature, borrowerSignature);
     console.log('Loan registered with transaction hash: ', tx.hash);
   } catch (error: any) {
@@ -148,9 +145,24 @@ const main = async () => {
     process.exit(1);
   }
 
-  // 6. Wait for the LoanRegistered event
+  // 5. Wait for the LoanRegistered event
   while (!loanRegistered) {
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    const currentBlock = await ccProvider.getBlockNumber();
+    console.log(`Waiting for LoanRegistered event... Current block: ${currentBlock}`);
+    const events = await managerContract.queryFilter(
+      managerContract.filters.LoanRegistered(),
+      registerBlock,
+      currentBlock
+    );
+
+    if (events.length > 0) {
+      const eventData = events[0] as EventLog;
+      const loanId = eventData.args.loanId;
+      console.log(`Loan successfully registered with ID: ${loanId.toString()}`);
+      loanRegistered = true;
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, 5000));
   }
 
   process.exit(0);

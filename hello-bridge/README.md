@@ -115,8 +115,8 @@ use to mint some dummy ERC20 tokens. Run the following command:
 
 ```bash
 cast send --rpc-url $SOURCE_CHAIN_RPC_URL \
-    $SOURCE_CHAIN_CONTRACT_ADDRESS  \
-    "mint(uint256)" 50000000000000000000        \
+    $SOURCE_CHAIN_CONTRACT_ADDRESS \
+    "mint(uint256)" 50000000000000000000 \
     --private-key $CREDITCOIN_WALLET_PRIVATE_KEY
 ```
 
@@ -129,8 +129,8 @@ bridging process, we won't be creating any artificial value. Run the following c
 
 ```sh
 cast send --rpc-url $SOURCE_CHAIN_RPC_URL \
-    $SOURCE_CHAIN_CONTRACT_ADDRESS  \
-    "burn(uint256)" 50000000000000000000        \
+    $SOURCE_CHAIN_CONTRACT_ADDRESS \
+    "burn(uint256)" 50000000000000000000 \
     --private-key $CREDITCOIN_WALLET_PRIVATE_KEY
 ```
 
@@ -164,21 +164,24 @@ yarn hello_bridge:submit_query <transaction_hash_from_step_3>
 On a succesfull query, you should see some messages like the following from the script:
 
 ```sh
-Transaction 0x87c97c776a678941b5941ec0cb602a4467ff4a35f77264208575f137cb05b2a7 found in block 254
-Waiting for block 254 attestation on Creditcoin...
-Latest attested height for chain key 2: 240
-Block 254 attested! Generating proof...
+Transaction 0xce785c35e300d607d83da9564990c4d2aaf45dafc68ef76539d97aee3de6859b found in block 11073054
+Waiting for block 11073054 attestation on Creditcoin...
+Latest attested height for chain key 1: 11073010
+Height 11073054 not yet attested and in proof builder service cache for chain key 1. Latest height: 11073010. Retrying in 15000ms...
+....
+Height 11073054 not yet attested and in proof builder service cache for chain key 1. Latest height: 11073050. Retrying in 15000ms...
+Height 11073054 not yet attested and in proof builder service cache for chain key 1. Latest height: 11073050. Retrying in 15000ms...
+Height 11073054 not yet attested and in proof builder service cache for chain key 1. Latest height: 11073050. Retrying in 15000ms...
+Block 11073054 attested! Generating proof...
 Proof generation successful!
 ⏳ Estimating gas...
-   Estimated gas: 357667, Gas limit with buffer: 482850
-Proof submitted:  0xd96bc0545714fcce088d5484f9daa009eaa10c7426ffda54366bcb982a3d3381
-Waiting for TokensMinted event...
-Waiting for TokensMinted event...
-Waiting for TokensMinted event...
-Tokens minted! Contract: 0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512, To: 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266, Amount: 1000, QueryId: 0xcb77283a28cc0ff227193664bfed87d63124aa753a45cae0a49e31021102f8c7
+   Estimated gas: 420181, Gas limit with buffer: 567244
+Proof submitted:  0x7cc3a7333e9522f5921e6430bd59192caf7e1ce2382ae022879da93cd4ae9388
+Waiting for transaction to be mined...
+Tokens minted! Contract: 0x914Cf96BF28b7b4921db27b264ecEd71aC91134E, To: 0x20dB67795C2AEb4De075986b0D4217A109FEF2B5, Amount: 50000000000000000000, QueryId: 0xf655981895d3e55d883e52c239ba490afba06b87e33c569a5afe9a7980721c47
 ```
 
-Sometimes it may take a bit longer for the `TokensMinted` event to trigger, but should be no more than a couple of minutes.
+Sometimes it may take a bit longer for the `TokensMinted` event to trigger, but should be around 10 minutes at most.
 
 Once that's done we only need to check our newly minted tokens!
 
@@ -198,6 +201,7 @@ The contract address and your wallet address should show your minted BTKT tokens
 It should show something like this:
 
 ```bash
+🔗 Using RPC URL: https://rpc.cc3-testnet.creditcoin.network
 📦 Token: Bridge Test Token (BTKT)
 🧾 Raw Balance: 50000000000000000000
 💰 Formatted Balance: 50.0 BTKT
@@ -210,11 +214,9 @@ Congratulations, you've bridged your first funds using the **Creditcoin Decentra
 is only a simple example of the cross chain functionality made possible by Creditcoin, keep on
 reading to find more ways in which you can leverage decentralized cross-chain proofs of state!
 
-In the next tutorial we will be looking at the next piece in the puzzle of decentralized bridging:
+In the next tutorial: [Custom Contracts Bridging], we will be looking at the next piece in the puzzle of decentralized bridging:
 self-hosted smart contracts! In a production environment, the Creditcoin oracle will almost always
 be used by teams of DApp builders who will handle data provisioning on behalf of their end users.
-Such teams will want to define and deploy their own contracts as shown in the [custom contract
-bridging] tutorial.
 
 [🚰 testnet faucet]: https://cloud.google.com/application/web3/faucet/ethereum/sepolia
 [🚰 creditcoin discord faucet]: https://discord.com/channels/762302877518528522/1463257679827828962
@@ -223,8 +225,8 @@ bridging] tutorial.
 
 [Infura]: https://developer.metamask.io/register
 [already deployed]: https://sepolia.etherscan.io/address/0x15166Ba9d24aBfa477C0c88dD1E6321297214eC8
-[custom contract bridging]: ../custom-contracts-bridging/README.md
 [step 1.1]: #11-generate-a-new-wallet-address
 [step 2]: #2-minting-some-tokens-on-sepolia
 [step 4]: #4-submit-a-mint-query-to-the-usc-contract
 [DApp Design Patterns]: https://docs.creditcoin.org/usc/dapp-builder-infrastructure/dapp-design-patterns
+[Custom Contracts Bridging]: ../custom-contracts-bridging/README.md

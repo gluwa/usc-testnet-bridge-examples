@@ -38,8 +38,8 @@ source .env
 So, first of all we start with deploying our ERC20 contract:
 
 ```sh
-forge create                \
-    --broadcast              \
+forge create \
+    --broadcast \
     --rpc-url $SOURCE_CHAIN_RPC_URL \
     --private-key $CREDITCOIN_WALLET_PRIVATE_KEY \
     contracts/sol/TestERC20.sol:TestERC20
@@ -48,10 +48,12 @@ forge create                \
 This should display some output containing the address of your test `ERC20` contract:
 
 ```bash
-Deployed to: 0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9
+Deployer: 0x20dB67795C2AEb4De075986b0D4217A109FEF2B5
+Deployed to: 0x814Fd6EfA5E1cb49B623599Fd63Ab74142762A46
+Transaction hash: 0xb234238d0da392063395ef59195b25827cdaf2009fe773fed1f8f7eda99fab7b
 ```
 
-Grab this address and add it to the `.env` file at the root of the repository with the address, like so:
+Grab the contract address and add it to the `.env` file at the root of the repository with the address, like so:
 
 ```env
 SOURCE_CHAIN_ERC20_CONTRACT_ADDRESS=<erc20_contract_address>
@@ -71,21 +73,24 @@ forge create \
 You should get some output with the address of the library you just deployed:
 
 ```bash
-Deployed to: 0x73684e10cE6d6E344BfdD4F92a79e0D6Cd931b52
+Deployer: 0x20dB67795C2AEb4De075986b0D4217A109FEF2B5
+Deployed to: 0xfE119359B96Bb1A32c14d32dD6b7E2f977Cd1060
+Transaction hash: 0xd1689ff2d26fd9e271d8c03e7933ce98f2f38836dd18441f6240e86a5816ec8d
 ```
 
-Save the address of the contract. You will be needing it for the second half of this step.
-
-Then, we deploy the USC manager contract:
+Use the contract address shown in `Deployed to:` to deploy your `USCMinter` using the following command:
 
 ```sh
-forge create                \
-    --broadcast              \
+forge create \
+    --broadcast \
     --rpc-url $CREDITCOIN_RPC_URL \
     --private-key $CREDITCOIN_WALLET_PRIVATE_KEY \
     --libraries contracts/sol/EvmV1Decoder.sol:EvmV1Decoder:<decoder_library_address> \
     contracts/sol/USCLoanManager.sol:USCLoanManager
 ```
+
+> [!IMPORTANT]
+> Don't forget to replace `<decoder_library_address>` with the address of your deployed decoder contract!
 
 As before, grab the address and add it to the `.env` file, like so:
 
@@ -96,8 +101,8 @@ USC_LOAN_MANAGER_CONTRACT_ADDRESS=<usc_loan_manager_contract_address>
 Finally, we deploy the loan helper contract:
 
 ```sh
-forge create                \
-    --broadcast              \
+forge create \
+    --broadcast \
     --rpc-url $SOURCE_CHAIN_RPC_URL \
     --private-key $CREDITCOIN_WALLET_PRIVATE_KEY \
     contracts/sol/AuxiliaryLoanContract.sol:AuxiliaryLoanContract
@@ -181,8 +186,8 @@ yarn utils:check_balance $SOURCE_CHAIN_ERC20_CONTRACT_ADDRESS $WALLET_ADDRESS $S
 
 ```bash
 📦 Token: Mintable (TEST)
-🧾 Raw Balance: 300000000
-💰 Formatted Balance: 0.0000000003 TEST
+🧾 Raw Balance: 5000000000
+💰 Formatted Balance: 0.000000005 TEST
 Decimals for token micro unit: 18
 ```
 
@@ -219,8 +224,8 @@ Once it's up and running, you start to see the following logs:
 ```bash
 Starting loan worker...
 Worker started! Listening for events...
-Polling source chain from block 3093
-Polling USC chain from block 3712
+Polling source chain from block 11073401
+Polling USC chain from block 4969438
 ```
 
 ## 3. Registering a loan
@@ -236,7 +241,7 @@ source .env
 Then run the following command to register a loan:
 
 ```sh
-yarn loan_flow:register_loan 1000 500 1000
+yarn loan_flow:register_loan 1000 500 10000
 ```
 
 These are the loan parameters, the first is the loan amount, the second the interest rate in base points and the last
@@ -294,7 +299,7 @@ Loan Details:
  Deadline Block Number: 1167
  Status: Created
  Repaid Amount: 0
- Blocks until deadline: 912
+ Blocks until deadline: 9831
 ```
 
 ## 4. Funding the loan
@@ -344,8 +349,7 @@ you will see something like that in the worker logs:
 ```sh
 Proof generation successful!
 ⏳ Estimating gas...
-   Gas estimation failed: missing revert data
-   Using calculated gas limit based on proof size: 81000 (8 continuity blocks)
+   Estimated gas: 445678, Gas limit with buffer: 601665
 Registered loan 5 for repayment on source chain, tx hash: 0x9ea075d13b1ef07d374b44eec68f2852d664220d2166f9f7cfe6e675c4aa7cc1
 Marked loan 5 as funded on Creditcoin, tx hash: 0x30bbaf08809e8c2b80626a971fd63c2070781cbe80c5e46d69561dfbe0a0f7c7
 Loan 5 has been marked as funded on Creditcoin.
@@ -383,8 +387,7 @@ repayment really happened. Once proven the following appears in the logs:
 Block 3236 attested! Generating proof...
 Proof generation successful!
 ⏳ Estimating gas...
-   Gas estimation failed: missing revert data
-   Using calculated gas limit based on proof size: 66000 (5 continuity blocks)
+   Estimated gas: 445678, Gas limit with buffer: 601665
 Note loan 5 repayment, tx hash: 0xa1c22b43c37e51734d3d388fcd583afcb46fbe5bb682bc7622d4321722266df4
 Loan 5 has been partially repaid on Creditcoin. Amount repaid: 1000
 ```
@@ -411,8 +414,7 @@ Aaand voila! Loan repaid!
 Block 3291 attested! Generating proof...
 Proof generation successful!
 ⏳ Estimating gas...
-   Gas estimation failed: missing revert data
-   Using calculated gas limit based on proof size: 91000 (10 continuity blocks)
+   Estimated gas: 445678, Gas limit with buffer: 601665
 Note loan 5 repayment, tx hash: 0xb51ddfee000f3ccbd81b75f99fe39560afb425b0c75567b321f26a4cbbd70698
 Loan 5 has been marked as fully repaid on Creditcoin.
 ```
@@ -430,10 +432,10 @@ yarn utils:check_balance $SOURCE_CHAIN_ERC20_CONTRACT_ADDRESS $WALLET_ADDRESS $S
 It should show something like this:
 
 ```sh
-📦 Token: Mintable (TEST)
+🔗 Using RPC URL: https://sepolia.infura.io/v3/da68253ba61f49c380fd9385716ed733
+📦 Token: Burn Test (TEST)
 🧾 Raw Balance: 299999950
 💰 Formatted Balance: 0.00000000029999995 TEST
-Decimals for token micro unit: 18
 ```
 
 And for the lender:
@@ -446,7 +448,8 @@ yarn utils:check_balance $SOURCE_CHAIN_ERC20_CONTRACT_ADDRESS $WALLET_ADDRESS $S
 It should show something like this:
 
 ```sh
-📦 Token: Mintable (TEST)
+🔗 Using RPC URL: https://sepolia.infura.io/v3/da68253ba61f49c380fd9385716ed733
+📦 Token: Burn Test (TEST)
 🧾 Raw Balance: 5000000050
 💰 Formatted Balance: 0.00000000500000005 TEST
 Decimals for token micro unit: 18

@@ -70,6 +70,8 @@ Once it's up and running, you start to see the following logs:
 ```bash
 Starting...
 Worker started! Listening for burn events...
+Polling source chain from block 11073265
+Polling USC chain from block 4969330
 ```
 
 ## 3. Burning the tokens you want to bridge
@@ -88,8 +90,8 @@ Then run the following command to initiate the burn:
 
 ```sh
 cast send --rpc-url $SOURCE_CHAIN_RPC_URL \
-    $SOURCE_CHAIN_CUSTOM_CONTRACT_ADDRESS       \
-    "burn(uint256)" 2000        \
+    $SOURCE_CHAIN_CUSTOM_CONTRACT_ADDRESS \
+    "burn(uint256)" 2000 \
     --private-key $CREDITCOIN_WALLET_PRIVATE_KEY
 ```
 
@@ -111,7 +113,7 @@ Waiting for block attestation on Creditcoin...
 Eventually, you should see a message like this one:
 
 ```bash
-Tokens minted! Contract: 0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512, To: 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266, Amount: 1000, QueryId: 0x3bfcf46c80011ef4280b7212e4fa11e5be314b12c9ddd56a74e83c2964b3e9be
+Tokens minted! Contract: 0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512, To: 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266, Amount: 2000, QueryId: 0x3bfcf46c80011ef4280b7212e4fa11e5be314b12c9ddd56a74e83c2964b3e9be
 ```
 
 That's it! All it took was a single transaction on your end to initiate the bridging process,
@@ -132,10 +134,10 @@ yarn utils:check_balance $USC_CUSTOM_MINTABLE_TOKEN $WALLET_ADDRESS
 It should show something like this:
 
 ```bash
+🔗 Using RPC URL: https://rpc.cc3-testnet.creditcoin.network
 📦 Token: Bridge Test Token (BTKT)
-🧾 Raw Balance: 100000000000000000000
-💰 Formatted Balance: 100.0 BTKT
-Decimals for token micro unit: 18
+🧾 Raw Balance: 100000000000000004000
+💰 Formatted Balance: 100.000000000000004 BTKT
 ```
 
 ## Conclusion
@@ -143,7 +145,7 @@ Decimals for token micro unit: 18
 Congratulations! You've managed to run your first offchain worker!
 
 The next tutorial will take what we've learned here and increase the complexity with a more real world
-example: a loan flow in which a user can lend tokens to another and through the oracle validate that the
+example: a [Loan Flow], in which a user can lend tokens to another and through the oracle validate that the
 repayments truly happened.
 
 [Custom Contract Bridging]: ../custom-contracts-bridging/README.md
@@ -153,3 +155,4 @@ repayments truly happened.
 [setup]: ../hello-bridge/README.md#1-setup
 [Custom Contracts Bridging]: ../custom-contracts-bridging/README.md#33-update-environment-with-yout-usc-contract-address
 [USC Gitbook]: https://docs.creditcoin.org/usc
+[Loan Flow]: ../loan-flow/README.md

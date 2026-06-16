@@ -28,8 +28,8 @@ source .env
 After, run the following command to deploy the contract:
 
 ```sh
-forge create                \
-    --broadcast              \
+forge create \
+    --broadcast \
     --rpc-url $SOURCE_CHAIN_RPC_URL \
     --private-key $CREDITCOIN_WALLET_PRIVATE_KEY \
     contracts/sol/TestERC20.sol:TestERC20
@@ -38,10 +38,12 @@ forge create                \
 This should display some output containing the address of your test `ERC20` contract:
 
 ```bash
-Deployed to: 0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9
+Deployer: 0x20dB67795C2AEb4De075986b0D4217A109FEF2B5
+Deployed to: 0xCDf3e9eC93015a1B3047d087296C1cE096f33f74
+Transaction hash: 0xfb0aaf396684bf0727019e5271d7e0dedee1dea9e5a4a1ef7456662d0ac07b12
 ```
 
-Save the contract address. You will be needing it in the next step.
+Save the contract address shown in `Deployed to:`. You will be needing it in the next step.
 
 Additionally update the `.env` file at the root of the repository with the address, like so:
 
@@ -79,7 +81,7 @@ of tokens which were burned on our _source chain_.
 > token each time we bridge it.
 
 Start by opening the file `contracts/sol/USCMinter.sol`. Next, navigate to the following line
-inside of the `mintFromQuery` function:
+inside of the `_processMint` function:
 
 ```sol
 USCMintableToken(wrappedTokenAddress).mint(burntFrom, burntValue);
@@ -108,12 +110,12 @@ forge create \
 You should get some output with the address of the library you just deployed:
 
 ```bash
-Deployed to: 0x73684e10cE6d6E344BfdD4F92a79e0D6Cd931b52
+Deployer: 0x20dB67795C2AEb4De075986b0D4217A109FEF2B5
+Deployed to: 0x128A6492F875Bd92C07D7F0050fc5c265dbc849B
+Transaction hash: 0x04e524d4578851b06bd2196710b0c9890fff6bf29d40999c5fb02dab0c428fca
 ```
 
-Save the address of the contract. You will be needing it for the second half of this step.
-
-Now you can deploy your `USCMinter` using the following command:
+Use the contract address shown in `Deployed to:` to deploy your `USCMinter` using the following command:
 
 ```bash
 forge create \
@@ -124,10 +126,15 @@ forge create \
     contracts/sol/USCMinter.sol:USCMinter
 ```
 
+> [!IMPORTANT]
+> Don't forget to replace `<decoder_library_address>` with the address of your deployed decoder contract!
+
 You should get some output with the address of the contract you just deployed:
 
 ```bash
-Deployed to: 0x7d8726B05e4A48850E819639549B50beCB893506
+Deployer: 0x20dB67795C2AEb4De075986b0D4217A109FEF2B5
+Deployed to: 0xCDf3e9eC93015a1B3047d087296C1cE096f33f74
+Transaction hash: 0xe86e3c2f77fd050a4120dbd195668af2f3d94f3a41b5db21643c53c1ac3cc212
 ```
 
 If you have issues with deployment during this step, see the [Deployment Troubleshooting Guide]
@@ -164,7 +171,9 @@ forge create \
 You should get some output with the address of the ERC20 token you just deployed:
 
 ```bash
-Deployed to: 0x73684e10cE6d6E344BfdD4F92a79e0D6Cd931b52
+Deployer: 0x20dB67795C2AEb4De075986b0D4217A109FEF2B5
+Deployed to: 0xD1A5c57654636146417B589aED99C56b9c73C510
+Transaction hash: 0x07f87a00b117f9d16c5a20a461d00cbce87aa76994af727a02d73da3aca622f1
 ```
 
 Modify the following entry in the `.env` file found at the root of the
@@ -180,14 +189,14 @@ Once again, reload your `.env` file with:
 source .env
 ```
 
-Our last step is to register the our ERC20 token as the wrapped version of the source chain token we intend
+Our last step is to register the ERC20 token as the wrapped version of the source chain token we intend
 to bridge.
 
 ```bash
-cast send   \
+cast send \
     --rpc-url $CREDITCOIN_RPC_URL \
-    $USC_CUSTOM_MINTER_CONTRACT_ADDRESS                    \
-    "wrapOriginToken(address, address)" $SOURCE_CHAIN_CUSTOM_CONTRACT_ADDRESS $USC_CUSTOM_MINTABLE_TOKEN   \
+    $USC_CUSTOM_MINTER_CONTRACT_ADDRESS \
+    "wrapOriginToken(address, address)" $SOURCE_CHAIN_CUSTOM_CONTRACT_ADDRESS $USC_CUSTOM_MINTABLE_TOKEN \
     --private-key $CREDITCOIN_WALLET_PRIVATE_KEY
 ```
 
@@ -201,10 +210,10 @@ transferring them to an address for which the private key is unknown, making the
 Run the following command to initiate the burn:
 
 ```bash
-cast send   \
+cast send \
     --rpc-url $SOURCE_CHAIN_RPC_URL \
-    $SOURCE_CHAIN_CUSTOM_CONTRACT_ADDRESS                    \
-    "burn(uint256)" 50000000000000000000                         \
+    $SOURCE_CHAIN_CUSTOM_CONTRACT_ADDRESS \
+    "burn(uint256)" 50000000000000000000 \
     --private-key $CREDITCOIN_WALLET_PRIVATE_KEY
 ```
 
@@ -229,18 +238,20 @@ yarn custom_bridge:submit_query <transaction_hash_from_step_4>
 On a succesfull query, you should see some messages like the following from the script:
 
 ```sh
-Transaction 0x87c97c776a678941b5941ec0cb602a4467ff4a35f77264208575f137cb05b2a7 found in block 254
-Waiting for block 254 attestation on Creditcoin...
-Latest attested height for chain key 2: 240
-Block 254 attested! Generating proof...
+Transaction 0xfd432f2c8ff1930ba5527e85c15fdaf68894f52ee6c975d61a745a6d55577341 found in block 11073177
+Waiting for block 11073177 attestation on Creditcoin...
+Latest attested height for chain key 1: 11073130
+Height 11073177 not yet attested and in proof builder service cache for chain key 1. Latest height: 11073130. Retrying in 15000ms...
+Height 11073177 not yet attested and in proof builder service cache for chain key 1. Latest height: 11073130. Retrying in 15000ms...
+...
+Height 11073177 not yet attested and in proof builder service cache for chain key 1. Latest height: 11073170. Retrying in 15000ms...
+Block 11073177 attested! Generating proof...
 Proof generation successful!
 ⏳ Estimating gas...
-   Estimated gas: 357667, Gas limit with buffer: 482850
-Proof submitted:  0xd96bc0545714fcce088d5484f9daa009eaa10c7426ffda54366bcb982a3d3381
-Waiting for TokensMinted event...
-Waiting for TokensMinted event...
-Waiting for TokensMinted event...
-Tokens minted! Contract: 0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512, To: 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266, Amount: 1000, QueryId: 0xcb77283a28cc0ff227193664bfed87d63124aa753a45cae0a49e31021102f8c7
+   Estimated gas: 419719, Gas limit with buffer: 566620
+Proof submitted:  0xe9960fab9592311b7abc2097216828b64c6f6791ba47151714cd619705415ec3
+Waiting for transaction to be mined...
+Tokens minted! Contract: 0xD1A5c57654636146417B589aED99C56b9c73C510, To: 0x20dB67795C2AEb4De075986b0D4217A109FEF2B5, Amount: 50000000000000000000, QueryId: 0x3a18d51bb0433b512a770dd1e6bfbbec534f5ad76acdd657d1764141c5fba494
 ```
 
 Sometimes it may take a bit more for the `TokensMinted` event to trigger, but should be no more than 30 seconds.
@@ -263,6 +274,7 @@ Notice how you now have _twice_ the amount of tokens you originally burned on Se
 It should show something like this:
 
 ```bash
+🔗 Using RPC URL: https://rpc.cc3-testnet.creditcoin.network
 📦 Token: Bridge Test Token (BTKT)
 🧾 Raw Balance: 100000000000000000000
 💰 Formatted Balance: 100.0 BTKT
@@ -274,19 +286,18 @@ Decimals for token micro unit: 18
 Congratulations! You've set up your first custom smart contracts which make use of the Creditcoin
 Decentralized Oracle!
 
-The next tutorial will take another important step towards developing a mature, production ready
+The next tutorial: [Bridge Offchain Worker], will take another important step towards developing a mature, production ready
 cross-chain DApp. That step is automation! We automate using an **offchain worker** which submits
 queries automatically. This _vastly_ improves UX by making it so the
 end user only has to sign a _single_ transaction to initiate the bridging procedure.
 
 In practice, DApp builders will want to conduct all cross-chain queries via an offchain worker in
-order to ensure robustness and streamline UX. Checkout the [bridge offchain worker] tutorial next
-for more information!
+order to ensure robustness and streamline UX.
 
 [Hello Bridge]: ../hello-bridge/README.md
 [setup]: ../hello-bridge/README.md#1-setup
 [step 2]: #2-deploy-a-test-erc20-contract-on-sepolia
 [step 3.2]: #32-deploy-your-modified-contract
 [step 5]: #5-submit-a-mint-query-to-the-usc-contract
-[bridge offchain worker]: ../bridge-offchain-worker/README.md
 [Deployment Troubleshooting Guide]: ../contracts/DEPLOY.md
+[Bridge Offchain Worker]: ../bridge-offchain-worker/README.md
