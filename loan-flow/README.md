@@ -432,7 +432,7 @@ yarn utils:check_balance $SOURCE_CHAIN_ERC20_CONTRACT_ADDRESS $WALLET_ADDRESS $S
 It should show something like this:
 
 ```sh
-🔗 Using RPC URL: https://sepolia.infura.io/v3/da68253ba61f49c380fd9385716ed733
+🔗 Using RPC URL: https://sepolia.infura.io/v3/.......
 📦 Token: Burn Test (TEST)
 🧾 Raw Balance: 299999950
 💰 Formatted Balance: 0.00000000029999995 TEST
@@ -448,7 +448,7 @@ yarn utils:check_balance $SOURCE_CHAIN_ERC20_CONTRACT_ADDRESS $WALLET_ADDRESS $S
 It should show something like this:
 
 ```sh
-🔗 Using RPC URL: https://sepolia.infura.io/v3/da68253ba61f49c380fd9385716ed733
+🔗 Using RPC URL: https://sepolia.infura.io/v3/......
 📦 Token: Burn Test (TEST)
 🧾 Raw Balance: 5000000050
 💰 Formatted Balance: 0.00000000500000005 TEST
