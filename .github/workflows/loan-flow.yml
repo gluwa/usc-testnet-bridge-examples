@@ -218,7 +218,7 @@ jobs:
             --broadcast \
             --rpc-url "$CREDITCOIN_RPC_URL" \
             --private-key "$WALLET_PK" \
-            contracts/sol/EvmV1Decoder.sol:EvmV1Decoder)
+            node_modules/@gluwa/usc-contracts/contracts/decoding/EvmV1Decoder.sol:EvmV1Decoder)
           echo "$OUTPUT"
           DECODER_CONTRACT_ADDRESS=$(echo "$OUTPUT" | grep "Deployed to:" | cut -f2 -d: | tr -d " ")
 
@@ -227,7 +227,7 @@ jobs:
                 --broadcast                    \
                 --rpc-url "$CREDITCOIN_RPC_URL"  \
                 --private-key "$WALLET_PK"   \
-                --libraries "contracts/sol/EvmV1Decoder.sol:EvmV1Decoder:$DECODER_CONTRACT_ADDRESS" \
+                --libraries "node_modules/@gluwa/usc-contracts/contracts/decoding/EvmV1Decoder.sol:EvmV1Decoder:$DECODER_CONTRACT_ADDRESS" \
                 contracts/sol/USCLoanManager.sol:USCLoanManager)
           echo "$OUTPUT"
           USC_LOAN_MANAGER_CONTRACT_ADDRESS=$(echo "$OUTPUT" | grep "Deployed to:" | cut -f2 -d: | tr -d " ")
