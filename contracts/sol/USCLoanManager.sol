@@ -9,7 +9,7 @@ import {MessageHashUtils} from "@openzeppelin/contracts/utils/cryptography/Messa
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
 import {LoanFlow, LoanStatus, LoanOrder, LoanTerms} from "./LoanTypes.sol";
-import {EvmV1Decoder} from "./EvmV1Decoder.sol";
+import {EvmV1Decoder} from "@gluwa/usc-contracts/decoding/EvmV1Decoder.sol";
 import {INativeQueryVerifier, NativeQueryVerifierLib} from "./VerifierInterface.sol";
 import {USCBase} from "./USCBase.sol";
 

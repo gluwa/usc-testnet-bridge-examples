@@ -29,6 +29,7 @@
     "tsx": "^4.22.4"
   },
   "dependencies": {
+    "@gluwa/usc-contracts": "0.1.1",
     "@gluwa/usc-sdk": "0.17.0",
     "@openzeppelin/contracts": "5.4.0",
     "@types/node": "25.9.1",

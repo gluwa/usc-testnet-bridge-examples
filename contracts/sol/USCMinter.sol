@@ -3,7 +3,7 @@ pragma solidity ^0.8.23;
 
 import {USCMintableToken, USC_MINTER} from "./MintableToken.sol";
 import {USCBase} from "./USCBase.sol";
-import {EvmV1Decoder} from "./EvmV1Decoder.sol";
+import {EvmV1Decoder} from "@gluwa/usc-contracts/decoding/EvmV1Decoder.sol";
 
 contract USCMinter is USCBase {
     enum MinterActions {

@@ -169,6 +169,11 @@
   resolved "https://registry.yarnpkg.com/@eslint/js/-/js-8.57.1.tgz#de633db3ec2ef6a3c89e2f19038063e8a122e2c2"
   integrity sha512-d9zaMRSTIKDLhctzH12MtXvJKSSUhaHcjV+2Z+GK+EEY7XKpP5yR4x+N3TAcHTcu963nIr+TMcCb4DBCYX1z6Q==
 
+"@gluwa/usc-contracts@0.1.1":
+  version "0.1.1"
+  resolved "https://registry.yarnpkg.com/@gluwa/usc-contracts/-/usc-contracts-0.1.1.tgz#80028c3549fa182e9641789b58a7c24987731348"
+  integrity sha512-qAki0faRpIfcmMIXUAMurJabAj9WqFf92+Mv4InvlJQ833HUxZHj5idfIhK38vcIh/PBi0jfJQIrxDY6ol/A1w==
+
 "@gluwa/usc-sdk@0.17.0":
   version "0.17.0"
   resolved "https://registry.yarnpkg.com/@gluwa/usc-sdk/-/usc-sdk-0.17.0.tgz#c5c7a5141b0b5f32fb61c36179773562840399c7"
