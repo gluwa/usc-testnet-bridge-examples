@@ -81,7 +81,7 @@ jobs:
           echo "source_chain_key=${{ steps.anvil.outputs.source_chain_key || steps.sepolia.outputs.source_chain_key }}" >> "$GITHUB_OUTPUT"
           echo "source_chain_private_key=${{ steps.anvil.outputs.wallet_pk || steps.sepolia.outputs.wallet_pk }}" >> "$GITHUB_OUTPUT"
 
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           repository: ${{ inputs.checkout_repo }}
           ref: ${{ inputs.checkout_ref }}
