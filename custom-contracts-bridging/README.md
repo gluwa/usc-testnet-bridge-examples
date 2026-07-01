@@ -8,6 +8,14 @@ Now that you have performed your first _trustless bridge transaction_, let's kee
 step: this tutorial teaches you how to set up your own custom bridging logic by deploying your own
 smart contracts!
 
+## 0. Install
+
+For our tutorial scripts to function properly, we need to install dependencies first.
+
+```bash
+yarn install
+```
+
 ## 1. Setup
 
 This is the same as in [Hello Bridge]. If you have not already done so, follow the installation
@@ -104,7 +112,7 @@ forge create \
   --broadcast \
   --rpc-url $CREDITCOIN_RPC_URL \
   --private-key $CREDITCOIN_WALLET_PRIVATE_KEY \
-  contracts/sol/EvmV1Decoder.sol:EvmV1Decoder
+  node_modules/@gluwa/usc-contracts/contracts/decoding/EvmV1Decoder.sol:EvmV1Decoder
 ```
 
 You should get some output with the address of the library you just deployed:
@@ -122,7 +130,7 @@ forge create \
     --broadcast \
     --rpc-url $CREDITCOIN_RPC_URL \
     --private-key $CREDITCOIN_WALLET_PRIVATE_KEY \
-    --libraries contracts/sol/EvmV1Decoder.sol:EvmV1Decoder:<decoder_library_address> \
+    --libraries node_modules/@gluwa/usc-contracts/contracts/decoding/EvmV1Decoder.sol:EvmV1Decoder:<decoder_library_address> \
     contracts/sol/USCMinter.sol:USCMinter
 ```
 

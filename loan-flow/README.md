@@ -17,6 +17,14 @@ that the loan progresses correctly from creation to funding to repayment.
 
 Well, they are in luck! Because that's what we are going to do in this example!
 
+## 0. Install
+
+For our tutorial scripts to function properly, we need to install dependencies first.
+
+```bash
+yarn install
+```
+
 ## 1. Setup
 
 The setup of this example is a bit more complex than previous ones. So let's go slowly:
@@ -67,7 +75,7 @@ forge create \
   --broadcast \
   --rpc-url $CREDITCOIN_RPC_URL \
   --private-key $CREDITCOIN_WALLET_PRIVATE_KEY \
-  contracts/sol/EvmV1Decoder.sol:EvmV1Decoder
+  node_modules/@gluwa/usc-contracts/contracts/decoding/EvmV1Decoder.sol:EvmV1Decoder
 ```
 
 You should get some output with the address of the library you just deployed:
@@ -85,7 +93,7 @@ forge create \
     --broadcast \
     --rpc-url $CREDITCOIN_RPC_URL \
     --private-key $CREDITCOIN_WALLET_PRIVATE_KEY \
-    --libraries contracts/sol/EvmV1Decoder.sol:EvmV1Decoder:<decoder_library_address> \
+    --libraries node_modules/@gluwa/usc-contracts/contracts/decoding/EvmV1Decoder.sol:EvmV1Decoder:<decoder_library_address> \
     contracts/sol/USCLoanManager.sol:USCLoanManager
 ```
 

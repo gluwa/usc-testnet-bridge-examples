@@ -9,6 +9,14 @@ bridging!** Cross-chain bridging on Creditcoin can be broken down into three bro
 3. Using the proofs we generated, we call our minter universal smart contract (USC) which will internally call the Creditcoin oracle's native proof verifier
 4. After that the same contract will mint the tokens on Creditcoin
 
+## 0. Install
+
+For our tutorial scripts to function properly, we need to install dependencies first.
+
+```bash
+yarn install
+```
+
 ## 1. Setup
 
 This tutorial involves the use of two different blockchains.

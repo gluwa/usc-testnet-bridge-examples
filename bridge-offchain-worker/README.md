@@ -17,6 +17,14 @@ _Universal Smart Contract_ on Creditcoin in response to specific events on
 each chain. With an offchain worker, all the end user needs to do is sign a single transaction
 on the source chain kicking off cross-chain interaction.
 
+## 0. Install
+
+For our tutorial scripts to function properly, we need to install dependencies first.
+
+```bash
+yarn install
+```
+
 ## 1. Setup
 
 This is the same as in [Hello Bridge]. If you have not already done so, follow the installation
