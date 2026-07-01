@@ -17,6 +17,14 @@ that the loan progresses correctly from creation to funding to repayment.
 
 Well, they are in luck! Because that's what we are going to do in this example!
 
+## 0. Install
+
+For our tutorial scripts to function properly, we need to install dependencies first.
+
+```bash
+yarn install
+```
+
 ## 1. Setup
 
 The setup of this example is a bit more complex than previous ones. So let's go slowly:

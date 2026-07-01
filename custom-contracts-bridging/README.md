@@ -8,6 +8,14 @@ Now that you have performed your first _trustless bridge transaction_, let's kee
 step: this tutorial teaches you how to set up your own custom bridging logic by deploying your own
 smart contracts!
 
+## 0. Install
+
+For our tutorial scripts to function properly, we need to install dependencies first.
+
+```bash
+yarn install
+```
+
 ## 1. Setup
 
 This is the same as in [Hello Bridge]. If you have not already done so, follow the installation
